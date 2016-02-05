@@ -1,0 +1,2 @@
+javac -cp .:./jars/libthrift-0.9.0.jar:./jars/slf4j-api-1.7.14.jar ./src/csci5105/*.java -d .
+
