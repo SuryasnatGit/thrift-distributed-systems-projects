@@ -1,0 +1,2 @@
+java -cp ".:/usr/local/Thrift/*" MulServer
+
