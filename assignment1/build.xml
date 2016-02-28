@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+   <project name="Distributed Hash Table" default="build">
+   
+     <property name="src.dir" value="src" />
+     <property name="build.dir" value = "bin"/>
+     <property name="thrift.install" value="/usr/local/Thrift/" />
+
+       <target name="info">
+	 <echo>A Distributed Hash Table based on the Chord System</echo>
+       </target>
+
+       <path id="master-classpath">
+	 <fileset dir="${thrift.install}">
+           <include name="*.jar"/>
+	 </fileset>
+	 <pathelement path="${build.dir}"/>
+       </path>
+       
+       <target name="clean" description="Clean output directories">
+	 <delete>
+           <fileset dir="${build.dir}">
+             <include name="**/*.class"/>
+           </fileset>
+	 </delete>
+       </target>
+
+
+       <target name="thrift" description="Uses thrift compiler to generate java files">
+	    <apply executable="thrift" parallel="true">
+	      <arg line="-r --gen java -o ${src.dir}"/>
+              <srcfile/>               
+              <fileset dir="${src.dir}" includes="*.thrift"/>
+            </apply>
+       </target>  
+
+       <target name="build" description="Compile source tree java files" depends="thrift">
+	 <mkdir dir="${build.dir}"/>
+	 <javac includeantruntime="false" destdir="${build.dir}" 
+		source="1.7" target="1.7" debug="true">
+           <src path="${src.dir}"/>
+           <classpath refid="master-classpath"/>
+	 </javac>
+       </target>
+
+   </project>
