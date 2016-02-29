@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-   <project name="Distributed Hash Table" default="build">
+   <project name="CSci 5105: Distributed Hash Table" default="build">
    
      <property name="src.dir" value="src" />
      <property name="build.dir" value = "bin"/>
@@ -13,7 +13,8 @@
 	 <fileset dir="${thrift.install}">
            <include name="*.jar"/>
 	 </fileset>
-	 <pathelement path="${build.dir}"/>
+	 <pathelement path="${thrift.install}"/>
+	 <pathelement path="${build.dir}" />
        </path>
        
        <target name="clean" description="Clean output directories">
@@ -24,19 +25,33 @@
 	 </delete>
        </target>
 
+       <target name="start-supernode" depends="build" description="Start SuperNode">
+	 <echo>Starting SuperNode on Port 9090 with Minimum of 5 Nodes</echo>
+	 <java classname="SuperNodeHandler">
+	   <classpath refid="master-classpath"/>
+	   <arg line="9090 5"/>
+	 </java>
+       </target>
+
        <target name="thrift">
 	 <antcall target="thrift-gen">
 	   <param name="file" value="SuperNode.thrift"/>
 	 </antcall>
 	 <antcall target="thrift-gen">
+	   <param name="file" value="shared.thrift"/>
+	 </antcall>
+	 <antcall target="thrift-gen">
 	   <param name="file" value="Node.thrift"/>
 	 </antcall>
+	 <!--
 	 <antcall target="thrift-gen">
 	   <param name="file" value="Client.thrift"/>
 	 </antcall>
+	 -->
        </target>
 
        <target name="thrift-gen">
+	 <echo> Generating Java files for ${file} </echo>
        <exec executable="thrift">
 	 <arg line="-o ${src.dir} --gen java ${src.dir}/${file}"/>
        </exec>
@@ -47,8 +62,19 @@
 	 <javac includeantruntime="false" destdir="${build.dir}" 
 		source="1.7" target="1.7" debug="true">
            <src path="${src.dir}"/>
-           <classpath refid="master-classpath"/>
+	   <compilerarg value="-Xlint:unchecked"/>
+           <classpath>
+	     <path refid="master-classpath"/>
+	     <path path="${build.dir}"/>
+	   </classpath>
 	 </javac>
+       </target>
+
+       <!-- http://stackoverflow.com/questions/14406288/ant-javac-classpathref-not-working -->
+       <target name="diagnostics">
+	 <pathconvert property="classpathProp" refid="master-classpath"/>
+
+	 <echo>Classpath is ${classpathProp}</echo>
        </target>
 
        <target name="thriftAll" description="Uses thrift compiler to generate java files, doesn't work because vanilla ant doesn't have foreach">
