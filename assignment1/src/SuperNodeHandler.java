@@ -21,7 +21,10 @@ public class SuperNodeHandler implements SuperNode.Iface {
 	    System.out.println("New Node Wants to Join: " + node.ipAddress);
 	    return cluster;
 	}
-	return new ArrayList<>(); //NACK
+	Machine NULL = new Machine();
+	List<Machine> nack = new ArrayList<>();
+	nack.add(NULL);
+	return nack; //NACK
     }
 
     @Override

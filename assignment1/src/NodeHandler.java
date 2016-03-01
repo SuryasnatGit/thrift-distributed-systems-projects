@@ -87,6 +87,14 @@ public class NodeHandler implements Node.Iface{
 	// call join on superNode for a list
 	List<Machine> listOfNodes = superNode.join(self);
 	
+	//keep trying until we can join (RPC calls)
+	while(!listOfNodes.isEmpty() && listOfNodes.get(0).ipAddress.equals("NULL")){
+	    System.err.println("Could not join, retrying ..");
+	    Thread.sleep(1000);
+	    listOfNodes = superNode.join(self);
+	}
+
+
 	// New Node ID is +1 in the index of Nodes
 	this.nodeID = listOfNodes.size();
 	this.table = new DHT(this.nodeID);
