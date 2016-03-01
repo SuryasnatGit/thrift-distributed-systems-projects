@@ -38,6 +38,7 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
 
   private static final org.apache.thrift.protocol.TField IP_ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("ipAddress", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("port", org.apache.thrift.protocol.TType.I16, (short)2);
+  private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I16, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,11 +48,13 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
 
   public String ipAddress; // required
   public short port; // required
+  public short id; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     IP_ADDRESS((short)1, "ipAddress"),
-    PORT((short)2, "port");
+    PORT((short)2, "port"),
+    ID((short)3, "id");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -70,6 +73,8 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
           return IP_ADDRESS;
         case 2: // PORT
           return PORT;
+        case 3: // ID
+          return ID;
         default:
           return null;
       }
@@ -111,6 +116,7 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
 
   // isset id assignments
   private static final int __PORT_ISSET_ID = 0;
+  private static final int __ID_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -118,6 +124,8 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
     tmpMap.put(_Fields.IP_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("ipAddress", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.PORT, new org.apache.thrift.meta_data.FieldMetaData("port", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I16)));
+    tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I16)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Machine.class, metaDataMap);
@@ -128,12 +136,15 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
 
   public Machine(
     String ipAddress,
-    short port)
+    short port,
+    short id)
   {
     this();
     this.ipAddress = ipAddress;
     this.port = port;
     setPortIsSet(true);
+    this.id = id;
+    setIdIsSet(true);
   }
 
   /**
@@ -145,6 +156,7 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
       this.ipAddress = other.ipAddress;
     }
     this.port = other.port;
+    this.id = other.id;
   }
 
   public Machine deepCopy() {
@@ -156,6 +168,8 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
     this.ipAddress = null;
     setPortIsSet(false);
     this.port = 0;
+    setIdIsSet(false);
+    this.id = 0;
   }
 
   public String getIpAddress() {
@@ -205,6 +219,29 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __PORT_ISSET_ID, value);
   }
 
+  public short getId() {
+    return this.id;
+  }
+
+  public Machine setId(short id) {
+    this.id = id;
+    setIdIsSet(true);
+    return this;
+  }
+
+  public void unsetId() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ID_ISSET_ID);
+  }
+
+  /** Returns true if field id is set (has been assigned a value) and false otherwise */
+  public boolean isSetId() {
+    return EncodingUtils.testBit(__isset_bitfield, __ID_ISSET_ID);
+  }
+
+  public void setIdIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ID_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case IP_ADDRESS:
@@ -223,6 +260,14 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
       }
       break;
 
+    case ID:
+      if (value == null) {
+        unsetId();
+      } else {
+        setId((Short)value);
+      }
+      break;
+
     }
   }
 
@@ -233,6 +278,9 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
 
     case PORT:
       return getPort();
+
+    case ID:
+      return getId();
 
     }
     throw new IllegalStateException();
@@ -249,6 +297,8 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
       return isSetIpAddress();
     case PORT:
       return isSetPort();
+    case ID:
+      return isSetId();
     }
     throw new IllegalStateException();
   }
@@ -284,6 +334,15 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
         return false;
     }
 
+    boolean this_present_id = true;
+    boolean that_present_id = true;
+    if (this_present_id || that_present_id) {
+      if (!(this_present_id && that_present_id))
+        return false;
+      if (this.id != that.id)
+        return false;
+    }
+
     return true;
   }
 
@@ -300,6 +359,11 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
     list.add(present_port);
     if (present_port)
       list.add(port);
+
+    boolean present_id = true;
+    list.add(present_id);
+    if (present_id)
+      list.add(id);
 
     return list.hashCode();
   }
@@ -328,6 +392,16 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
     }
     if (isSetPort()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.port, other.port);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetId()).compareTo(other.isSetId());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.id, other.id);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -362,6 +436,10 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
     if (!first) sb.append(", ");
     sb.append("port:");
     sb.append(this.port);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("id:");
+    sb.append(this.id);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -424,6 +502,14 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 3: // ID
+            if (schemeField.type == org.apache.thrift.protocol.TType.I16) {
+              struct.id = iprot.readI16();
+              struct.setIdIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -446,6 +532,9 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
       }
       oprot.writeFieldBegin(PORT_FIELD_DESC);
       oprot.writeI16(struct.port);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(ID_FIELD_DESC);
+      oprot.writeI16(struct.id);
       oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -471,19 +560,25 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
       if (struct.isSetPort()) {
         optionals.set(1);
       }
-      oprot.writeBitSet(optionals, 2);
+      if (struct.isSetId()) {
+        optionals.set(2);
+      }
+      oprot.writeBitSet(optionals, 3);
       if (struct.isSetIpAddress()) {
         oprot.writeString(struct.ipAddress);
       }
       if (struct.isSetPort()) {
         oprot.writeI16(struct.port);
       }
+      if (struct.isSetId()) {
+        oprot.writeI16(struct.id);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, Machine struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(2);
+      BitSet incoming = iprot.readBitSet(3);
       if (incoming.get(0)) {
         struct.ipAddress = iprot.readString();
         struct.setIpAddressIsSet(true);
@@ -491,6 +586,10 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
       if (incoming.get(1)) {
         struct.port = iprot.readI16();
         struct.setPortIsSet(true);
+      }
+      if (incoming.get(2)) {
+        struct.id = iprot.readI16();
+        struct.setIdIsSet(true);
       }
     }
   }

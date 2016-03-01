@@ -1,6 +1,10 @@
 <?xml version="1.0"?>
    <project name="CSci 5105: Distributed Hash Table" default="build">
    
+     <property name="superNode.address" value="x30-01.cselabs.umn.edu" />
+     <property name="superNode.port" value="9090"/>
+     <property name="superNode.minNode" value="5"/>
+
      <property name="src.dir" value="src" />
      <property name="build.dir" value = "bin"/>
      <property name="thrift.install" value="/usr/local/Thrift/" />
@@ -26,10 +30,18 @@
        </target>
 
        <target name="start-supernode" depends="build" description="Start SuperNode">
-	 <echo>Starting SuperNode on Port 9090 with Minimum of 5 Nodes</echo>
+	 <echo>Starting SuperNode on Port ${superNode.port} with Minimum of 5 Nodes</echo>
 	 <java classname="SuperNodeHandler">
 	   <classpath refid="master-classpath"/>
-	   <arg line="9090 5"/>
+	   <arg line="${superNode.port} ${superNode.minNode}"/>
+	 </java>
+       </target>
+
+       <target name="start-client" depends="build" description="Start Client">
+	 <echo>Starting Client on Port 5000 to connect to SuperNode at "${superNode.address}:${superNode.port}"</echo>
+	 <java classname="Client">
+	   <classpath refid="master-classpath"/>
+	   <arg line="${superNode.address} ${superNode.port}"/>
 	 </java>
        </target>
 
