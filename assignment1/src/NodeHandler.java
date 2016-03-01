@@ -55,6 +55,7 @@ public class NodeHandler implements Node.Iface{
 		connectToNode(NodesList.get(i)).updateDHT(NodesList);
 	    }
 	} 
+	table.print();
     }
     
     Node.Client connectToNode(Machine node) throws TException {

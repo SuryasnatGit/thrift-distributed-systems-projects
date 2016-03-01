@@ -66,6 +66,16 @@ class DHT{
 	}
     }
 
+    void print(){
+	System.out.println("=======Machine DHT: "+nodeID+"=======");
+	System.out.println(table);
+	Iterator it = table.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            System.out.println("[ " + pair.getKey() + " | " + ((Machine)pair.getValue()).id + " ]");
+        }
+    }
+
     @Override
     @SuppressWarnings("unchecked") //lol type safety
     public boolean equals(Object that){
