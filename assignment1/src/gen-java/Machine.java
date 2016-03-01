@@ -132,6 +132,8 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
   }
 
   public Machine() {
+    this.ipAddress = "NULL";
+
   }
 
   public Machine(
@@ -165,7 +167,8 @@ public class Machine implements org.apache.thrift.TBase<Machine, Machine._Fields
 
   @Override
   public void clear() {
-    this.ipAddress = null;
+    this.ipAddress = "NULL";
+
     setPortIsSet(false);
     this.port = 0;
     setIdIsSet(false);

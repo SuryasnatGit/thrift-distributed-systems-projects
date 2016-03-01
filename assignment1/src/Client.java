@@ -1,21 +1,32 @@
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.protocol.*;
+import org.apache.thrift.transport.*;
 
 import java.util.Scanner;
 
 public class Client {
 
     Scanner sc; 
+    SuperNode.Client superNode;
+    TTransport superNodeTransport;
 
     //Connect to the superNode
-    public Client(String host, Integer port) {
+    public Client(String host, Integer port) throws TException{
 	sc = new Scanner(System.in);
+	
+	superNodeTransport = new TSocket(host, port);
+	superNodeTransport.open();
+	TProtocol superNodeProtocol = new TBinaryProtocol(new TFramedTransport(superNodeTransport));
+	superNode = new SuperNode.Client(superNodeProtocol);
+
     }
 
-    public boolean connectToNode() {
+    public boolean connectToNode() throws TException {
+	//perform call to superNode for a node.
+	//get a node, and kill the connection to the supernode
+	Machine node = superNode.getNode();
+	if(node.ipAddress.equals("NULL"))
+	   System.out.println("NULL NODE!!!!!");
 	return true;
     }
 
@@ -25,23 +36,26 @@ public class Client {
 	    System.err.println("Usage: java Client <host> <port>");
 	    return;
 	}
-	
-	String host = args[0];
-	Integer port = Integer.parseInt(args[1]);
+	try {
+	    String host = args[0];
+	    Integer port = Integer.parseInt(args[1]);
 
-	Client client = new Client(host, port);
-	System.out.println("Contacted SuperNode at " + host + ":" + port);
+	    Client client = new Client(host, port);
+	    System.out.println("Contacted SuperNode at " + host + ":" + port);
 
-	if(!client.connectToNode()) {
-	    System.err.println("Failed to connect to a node on cluster, shutting down.:");
-	    return;
+	    if(!client.connectToNode()) {
+		System.err.println("Failed to connect to a node on cluster, shutting down.:");
+		return;
+	    }
+	    System.out.println("Connected to Node at : ");
+	    while(true) {
+		if(client.getAndProcessUserInput() == false)
+		    break;
+	    }
 	}
-	System.out.println("Connected to Node at : ");
-	while(true) {
-	    if(client.getAndProcessUserInput() == false)
-		break;
+	catch(Exception e) {
+	    e.printStackTrace();
 	}
-
     }
 
     private boolean getAndProcessUserInput(){

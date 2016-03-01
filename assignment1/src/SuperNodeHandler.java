@@ -15,7 +15,7 @@ public class SuperNodeHandler implements SuperNode.Iface {
     Machine lastJoiningNode; //populated when a node wants to join.
 
     @Override
-    public List<Machine> Join(Machine node) throws org.apache.thrift.TException {
+    public List<Machine> Join(Machine node) throws TException {
 	if(node != null && lastJoiningNode == null) {
 	    lastJoiningNode = node;
 	    return cluster;
@@ -25,7 +25,7 @@ public class SuperNodeHandler implements SuperNode.Iface {
 
     @Override
     /*Function called by Nodes after they have reported to all nodes they have joined */
-    public boolean PostJoin(Machine node) throws org.apache.thrift.TException {
+    public boolean PostJoin(Machine node) throws TException {
 	if(node == null || node.equals(lastJoiningNode))
 	    return false;
 	//Add node to list of nodes and let other machines join.
@@ -40,9 +40,10 @@ public class SuperNodeHandler implements SuperNode.Iface {
 
     @Override
     /* Function called by client to get a node to talk to */
-    public Machine getNode() throws org.apache.thrift.TException {
-	if(cluster.size() < minNodes) //not enough nodes to start up
-	    return null;
+    public Machine getNode() throws TException {
+	System.out.println("Get node called");
+	if(cluster.size() < minNodes) //not enough nodes to start up, return null marker value
+	    return new Machine();
 	return cluster.get(random.nextInt(cluster.size()));
     }
 
