@@ -15,9 +15,10 @@ public class SuperNodeHandler implements SuperNode.Iface {
     Machine lastJoiningNode; //populated when a node wants to join.
 
     @Override
-    public List<Machine> Join(Machine node) throws TException {
-	if(node != null && lastJoiningNode == null) {
+    public List<Machine> join(Machine node) throws TException {
+	if(!node.ipAddress.equals("NULL") && lastJoiningNode == null) {
 	    lastJoiningNode = node;
+	    System.out.println("New Node Wants to Join: " + node.ipAddress);
 	    return cluster;
 	}
 	return new ArrayList<>(); //NACK
@@ -25,8 +26,10 @@ public class SuperNodeHandler implements SuperNode.Iface {
 
     @Override
     /*Function called by Nodes after they have reported to all nodes they have joined */
-    public boolean PostJoin(Machine node) throws TException {
-	if(node == null || node.equals(lastJoiningNode))
+    public boolean postJoin(Machine node) throws TException {
+
+	if(node.ipAddress.equals("NULL") || !node.ipAddress.equals(lastJoiningNode.ipAddress) 
+	   || node.port != lastJoiningNode.port)
 	    return false;
 	//Add node to list of nodes and let other machines join.
 	cluster.add(node);

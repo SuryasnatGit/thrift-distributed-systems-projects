@@ -45,6 +45,14 @@
 	 </java>
        </target>
 
+       <target name="start-node" depends="build" description="Start Node">
+	 <echo>Starting Node on Port 8000 to connect to SuperNode at "${superNode.address}:${superNode.port}"</echo>
+	 <java classname="NodeHandler">
+	   <classpath refid="master-classpath"/>
+	   <arg line="${superNode.address} ${superNode.port} 8000"/>
+	 </java>
+       </target>
+
        <target name="thrift">
 	 <antcall target="thrift-gen">
 	   <param name="file" value="SuperNode.thrift"/>
@@ -69,7 +77,8 @@
        </exec>
        </target>
 
-       <target name="build" description="Compile source tree java files" depends="thrift">
+       <!-- Remember to manually rebuild thrift files if they have changed! -->
+       <target name="build" description="Compile source tree java files">
 	 <mkdir dir="${build.dir}"/>
 	 <javac includeantruntime="false" destdir="${build.dir}" 
 		source="1.7" target="1.7" debug="true">
