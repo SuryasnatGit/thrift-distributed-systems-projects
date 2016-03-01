@@ -21,7 +21,6 @@ public class NodeHandler implements Node.Iface{
 	//getMachine(filename).write(filename,contents)
 	// Hash the file name
 	int hash = filename.hashCode();
-	
 	// Getting which machine the file is ours.
 	int target = hash % numMachines;
 	

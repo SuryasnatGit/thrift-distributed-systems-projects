@@ -1,9 +1,12 @@
 <?xml version="1.0"?>
    <project name="CSci 5105: Distributed Hash Table" default="build">
-   
+
+
+     <!--Default SuperNode and Node properties-->   
      <property name="superNode.address" value="x30-01.cselabs.umn.edu" />
      <property name="superNode.port" value="9090"/>
      <property name="superNode.minNode" value="5"/>
+     <property name="node.port" value="8080"/>
 
      <property name="src.dir" value="src" />
      <property name="build.dir" value = "bin"/>
@@ -29,16 +32,71 @@
 	 </delete>
        </target>
 
+       <target name="start-all" depends="build" description="Starts SuperNode, 5 Nodes, 1 Client All Locally ">
+	 <echo>Launching SuperNode, Node and Client on localhost</echo>
+	 <echo>Starting SuperNode on Port ${superNode.port} with Minimum of ${superNode.minNode} nodes</echo>
+	 <parallel>
+	   <sequential>
+	     <java classname="SuperNodeHandler" fork="true">
+	       <classpath refid="master-classpath"/>
+	       <arg line="${superNode.port} ${superNode.minNode}"/>
+	     </java>
+	   </sequential>
+	   <sequential>
+	     <sleep milliseconds="500"/>
+	     <antcall target="start-node">
+	       <param name="superNode.address" value="localhost" />
+	       <param name="node.port" value="8000"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <sleep milliseconds="500"/>
+	     <antcall target="start-node">
+	       <param name="superNode.address" value="localhost" />
+	       <param name="node.port" value="8080"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <sleep milliseconds="500"/>
+	     <antcall target="start-node">
+	       <param name="superNode.address" value="localhost" />
+	       <param name="node.port" value="8800"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <sleep milliseconds="500"/>
+	     <antcall target="start-node">
+	       <param name="superNode.address" value="localhost" />
+	       <param name="node.port" value="8008"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <sleep milliseconds="500"/>
+	     <antcall target="start-node">
+	       <param name="superNode.address" value="localhost" />
+	       <param name="node.port" value="8888"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <sleep milliseconds="500"/>
+	     <echo>Starting Client ... </echo>
+	     <antcall target="start">
+	       <param name="superNode.address" value="localhost"/>
+	     </antcall>
+	   </sequential>
+	 </parallel>
+       </target>
+
        <target name="start-supernode" depends="build" description="Start SuperNode">
 	 <echo>Starting SuperNode on Port ${superNode.port} with Minimum of 5 Nodes</echo>
-	 <java classname="SuperNodeHandler">
+	 <java classname="SuperNodeHandler" fork="true">
 	   <classpath refid="master-classpath"/>
 	   <arg line="${superNode.port} ${superNode.minNode}"/>
 	 </java>
        </target>
 
        <target name="start-client" depends="build" description="Start Client">
-	 <echo>Starting Client on Port 5000 to connect to SuperNode at "${superNode.address}:${superNode.port}"</echo>
+	 <echo>Starting Client to connect to SuperNode at "${superNode.address}:${superNode.port}"</echo>
 	 <java classname="Client">
 	   <classpath refid="master-classpath"/>
 	   <arg line="${superNode.address} ${superNode.port}"/>
@@ -46,10 +104,10 @@
        </target>
 
        <target name="start-node" depends="build" description="Start Node">
-	 <echo>Starting Node on Port 8000 to connect to SuperNode at "${superNode.address}:${superNode.port}"</echo>
-	 <java classname="NodeHandler">
+	 <echo>Starting Node on Port ${node.port} to connect to SuperNode at "${superNode.address}:${superNode.port}"</echo>
+	 <java classname="NodeHandler" fork="true">
 	   <classpath refid="master-classpath"/>
-	   <arg line="${superNode.address} ${superNode.port} 8000"/>
+	   <arg line="${superNode.address} ${superNode.port} ${node.port}"/>
 	 </java>
        </target>
 
