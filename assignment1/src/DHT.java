@@ -13,33 +13,21 @@ class DHT{
         this.table = new HashMap<Integer,Machine>();
     }
 	
-    // Void but should be a connection...		
-    Machine getMachine(String filename, int target, int origin, boolean stop){
-	// If file reside in this machine,
-	if(nodeID == target){
-	    // Do something once we found what we wanted
-	    // return a connection to this machine
-	    return new Machine();
-	}
-	else {
-	    Integer index = contains(target);
-	    if(index >= 0){
-		Machine successor = table.get(index);
-			return successor;
-	    }
-	    Iterator it = table.entrySet().iterator();
-	    while (it.hasNext()) {
-		Map.Entry pair = (Map.Entry) it.next();
-		if(((Machine) pair.getValue()).id <= nodeID){
-		    // connect to the machine
-		    if(stop == true && origin == nodeID)
-			return new Machine(); //null
-		    return getMachine(filename,target,origin,true);
-		}
-	    }
-	    //return the last machine
-	    return table.get(numMachines - 1);
-	}
+    Machine searchDHT(String filename, int target){
+        Integer index = contains(target);
+        if(index >= 0){
+            Machine successor = table.get(index);
+            return successor;
+        }
+        Iterator it = table.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            if(((Machine) pair.getValue()).id <= nodeID){
+                return pair.getValue();
+            }
+        }
+        //return the last machine
+        return table.get(numMachines - 1);
     }
 	
     Integer contains(int num){

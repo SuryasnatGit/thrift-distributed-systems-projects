@@ -13,20 +13,70 @@ import java.net.InetAddress;
 public class NodeHandler implements Node.Iface{
 			
     DHT table;
+    Machine self; //thrft struct for information about ourselves  
     Integer nodeID;
     Integer numMachines;
     Integer port;
-	
+	HashMap<String,String> fs;
+    
     @Override
     public boolean write(String filename, String contents) throws org.apache.thrift.TException {
-	//getMachine(filename).write(filename,contents)
-	// Hash the file name
-	int hash = filename.hashCode();
-	// Getting which machine the file is ours.
-	int target = hash % numMachines;
-	
-	// write the file
-	return false;
+        Machine m = findMachine(filename,new List<Integer>());
+        if(m.ipAddress.equals("NULL")){
+            System.out.println("   THIS SHOULD NOT HAPPEN BUT IT HAPPENED, TAKE A LOOK     ");
+            return false;
+        }else if(m.equals(self))
+            fs.put(filename,contents);
+            return true;
+        }else{
+            // RPC the write call
+            TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
+            nodeTransport.open();
+            TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
+            Node.Client node = new Node.Client(nodeProtocol);
+            System.out.println("Machine("+nodeID+") Calling write on Machine(" + m.id+")");
+            boolean success = node.write(filename,contents);
+            nodeTransport.close();
+            return success;
+        }
+    }
+    
+    @Override
+    public Machine findMachine(String filename, List<Integer> chain)throws org.apache.thrift.TException {
+        if(chain.contains(nodeID)){
+            //back at step one, return null machine
+            
+            //TODO print the chain
+            
+            return new Machine();
+        }
+        chain.add(nodeID);
+        
+        // Hash the file name
+        int hash = filename.hashCode();
+        // Getting which machine the file is ours.
+        int target = hash % numMachines;
+        Machine m;
+        
+        //we have the file
+        if (nodeID == target) 
+            //TODO print the chain
+            return self;
+            
+        // Go look in the DHT
+        Machine m = table.searchDHT(filename,target);
+        
+        // Traverse the DHT by RPC
+        TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
+        nodeTransport.open();
+        TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
+        Node.Client node = new Node.Client(nodeProtocol);
+        System.out.println("Machine("+nodeID+") Calling findMachine on Machine(" + m.id+")");
+        Machine sucessor = node.findMachine(filename,chain);
+        nodeTransport.close();
+        //TODO print the chain
+        return sucessor;
+
     }
     
     @Override
@@ -57,7 +107,7 @@ public class NodeHandler implements Node.Iface{
                 nodeTransport.open();
                 TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
                 Node.Client node = new Node.Client(nodeProtocol);
-                System.out.println("Calling updateDHT on Machine: " + m.id);
+                System.out.println("Machine("+nodeID+") Calling updateDHT on Machine(" + m.id+")");
                 node.updateDHT(NodesList,chain);
                 nodeTransport.close();
             }
@@ -89,19 +139,19 @@ public class NodeHandler implements Node.Iface{
 	TProtocol superNodeProtocol = new TBinaryProtocol(new TFramedTransport(superNodeTransport));
 	SuperNode.Client superNode = new SuperNode.Client(superNodeProtocol);
 	
-	System.out.println("Connected to SuperNode.");
+	System.out.println("Machine("+nodeID+") Connected to SuperNode.");
 	
 	//Create a Machine data type representing ourselves
-	Machine self = new Machine();
+	self = new Machine();
 	self.ipAddress = InetAddress.getLocalHost().getHostName().toString();			//not sure if this works.
-	self.port = port; //lol unsafe typecasts woo
+	self.port = port; //yay safe type casting
 	
 	// call join on superNode for a list
 	List<Machine> listOfNodes = superNode.join(self);
 	
 	//keep trying until we can join (RPC calls)
 	while(!listOfNodes.isEmpty() && listOfNodes.get(0).ipAddress.equals("NULL")){
-	    System.err.println("Could not join, retrying ..");
+	    System.err.println("Machine("+nodeID+") Could not join, retrying ..");
 	    Thread.sleep(1000);
 	    listOfNodes = superNode.join(self);
 	}
@@ -110,6 +160,7 @@ public class NodeHandler implements Node.Iface{
 	// New Node ID is +1 in the index of Nodes
 	this.nodeID = listOfNodes.size();
 	this.table = new DHT(this.nodeID);
+    this.fs = new HashMap<String,String>();
 
 	//set selfID
 	self.id = this.nodeID;
@@ -122,7 +173,7 @@ public class NodeHandler implements Node.Iface{
 
 	// call post join after all DHTs are updated.
 	if(!superNode.postJoin(self))
-	    System.err.println("Could not perform postJoin call");
+	    System.err.println("Machine("+nodeID+") Could not perform postJoin call");
 	
 	superNodeTransport.close();
     }
