@@ -41,7 +41,7 @@ public class Node {
 
     public String read(String filename) throws org.apache.thrift.TException;
 
-    public void updateDHT(List<Machine> nodeList) throws org.apache.thrift.TException;
+    public void updateDHT(List<Machine> nodeList, Set<Integer> chain) throws org.apache.thrift.TException;
 
     public int ping() throws org.apache.thrift.TException;
 
@@ -53,7 +53,7 @@ public class Node {
 
     public void read(String filename, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void updateDHT(List<Machine> nodeList, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void updateDHT(List<Machine> nodeList, Set<Integer> chain, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void ping(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -126,16 +126,17 @@ public class Node {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "read failed: unknown result");
     }
 
-    public void updateDHT(List<Machine> nodeList) throws org.apache.thrift.TException
+    public void updateDHT(List<Machine> nodeList, Set<Integer> chain) throws org.apache.thrift.TException
     {
-      send_updateDHT(nodeList);
+      send_updateDHT(nodeList, chain);
       recv_updateDHT();
     }
 
-    public void send_updateDHT(List<Machine> nodeList) throws org.apache.thrift.TException
+    public void send_updateDHT(List<Machine> nodeList, Set<Integer> chain) throws org.apache.thrift.TException
     {
       updateDHT_args args = new updateDHT_args();
       args.setNodeList(nodeList);
+      args.setChain(chain);
       sendBase("updateDHT", args);
     }
 
@@ -253,24 +254,27 @@ public class Node {
       }
     }
 
-    public void updateDHT(List<Machine> nodeList, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void updateDHT(List<Machine> nodeList, Set<Integer> chain, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      updateDHT_call method_call = new updateDHT_call(nodeList, resultHandler, this, ___protocolFactory, ___transport);
+      updateDHT_call method_call = new updateDHT_call(nodeList, chain, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class updateDHT_call extends org.apache.thrift.async.TAsyncMethodCall {
       private List<Machine> nodeList;
-      public updateDHT_call(List<Machine> nodeList, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private Set<Integer> chain;
+      public updateDHT_call(List<Machine> nodeList, Set<Integer> chain, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.nodeList = nodeList;
+        this.chain = chain;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("updateDHT", org.apache.thrift.protocol.TMessageType.CALL, 0));
         updateDHT_args args = new updateDHT_args();
         args.setNodeList(nodeList);
+        args.setChain(chain);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -390,7 +394,7 @@ public class Node {
 
       public updateDHT_result getResult(I iface, updateDHT_args args) throws org.apache.thrift.TException {
         updateDHT_result result = new updateDHT_result();
-        iface.updateDHT(args.nodeList);
+        iface.updateDHT(args.nodeList, args.chain);
         return result;
       }
     }
@@ -585,7 +589,7 @@ public class Node {
       }
 
       public void start(I iface, updateDHT_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.updateDHT(args.nodeList,resultHandler);
+        iface.updateDHT(args.nodeList, args.chain,resultHandler);
       }
     }
 
@@ -2196,6 +2200,7 @@ public class Node {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("updateDHT_args");
 
     private static final org.apache.thrift.protocol.TField NODE_LIST_FIELD_DESC = new org.apache.thrift.protocol.TField("nodeList", org.apache.thrift.protocol.TType.LIST, (short)1);
+    private static final org.apache.thrift.protocol.TField CHAIN_FIELD_DESC = new org.apache.thrift.protocol.TField("chain", org.apache.thrift.protocol.TType.SET, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2204,10 +2209,12 @@ public class Node {
     }
 
     public List<Machine> nodeList; // required
+    public Set<Integer> chain; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      NODE_LIST((short)1, "nodeList");
+      NODE_LIST((short)1, "nodeList"),
+      CHAIN((short)2, "chain");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2224,6 +2231,8 @@ public class Node {
         switch(fieldId) {
           case 1: // NODE_LIST
             return NODE_LIST;
+          case 2: // CHAIN
+            return CHAIN;
           default:
             return null;
         }
@@ -2270,6 +2279,9 @@ public class Node {
       tmpMap.put(_Fields.NODE_LIST, new org.apache.thrift.meta_data.FieldMetaData("nodeList", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Machine.class))));
+      tmpMap.put(_Fields.CHAIN, new org.apache.thrift.meta_data.FieldMetaData("chain", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(updateDHT_args.class, metaDataMap);
     }
@@ -2278,10 +2290,12 @@ public class Node {
     }
 
     public updateDHT_args(
-      List<Machine> nodeList)
+      List<Machine> nodeList,
+      Set<Integer> chain)
     {
       this();
       this.nodeList = nodeList;
+      this.chain = chain;
     }
 
     /**
@@ -2295,6 +2309,10 @@ public class Node {
         }
         this.nodeList = __this__nodeList;
       }
+      if (other.isSetChain()) {
+        Set<Integer> __this__chain = new HashSet<Integer>(other.chain);
+        this.chain = __this__chain;
+      }
     }
 
     public updateDHT_args deepCopy() {
@@ -2304,6 +2322,7 @@ public class Node {
     @Override
     public void clear() {
       this.nodeList = null;
+      this.chain = null;
     }
 
     public int getNodeListSize() {
@@ -2345,6 +2364,45 @@ public class Node {
       }
     }
 
+    public int getChainSize() {
+      return (this.chain == null) ? 0 : this.chain.size();
+    }
+
+    public java.util.Iterator<Integer> getChainIterator() {
+      return (this.chain == null) ? null : this.chain.iterator();
+    }
+
+    public void addToChain(int elem) {
+      if (this.chain == null) {
+        this.chain = new HashSet<Integer>();
+      }
+      this.chain.add(elem);
+    }
+
+    public Set<Integer> getChain() {
+      return this.chain;
+    }
+
+    public updateDHT_args setChain(Set<Integer> chain) {
+      this.chain = chain;
+      return this;
+    }
+
+    public void unsetChain() {
+      this.chain = null;
+    }
+
+    /** Returns true if field chain is set (has been assigned a value) and false otherwise */
+    public boolean isSetChain() {
+      return this.chain != null;
+    }
+
+    public void setChainIsSet(boolean value) {
+      if (!value) {
+        this.chain = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case NODE_LIST:
@@ -2355,6 +2413,14 @@ public class Node {
         }
         break;
 
+      case CHAIN:
+        if (value == null) {
+          unsetChain();
+        } else {
+          setChain((Set<Integer>)value);
+        }
+        break;
+
       }
     }
 
@@ -2362,6 +2428,9 @@ public class Node {
       switch (field) {
       case NODE_LIST:
         return getNodeList();
+
+      case CHAIN:
+        return getChain();
 
       }
       throw new IllegalStateException();
@@ -2376,6 +2445,8 @@ public class Node {
       switch (field) {
       case NODE_LIST:
         return isSetNodeList();
+      case CHAIN:
+        return isSetChain();
       }
       throw new IllegalStateException();
     }
@@ -2402,6 +2473,15 @@ public class Node {
           return false;
       }
 
+      boolean this_present_chain = true && this.isSetChain();
+      boolean that_present_chain = true && that.isSetChain();
+      if (this_present_chain || that_present_chain) {
+        if (!(this_present_chain && that_present_chain))
+          return false;
+        if (!this.chain.equals(that.chain))
+          return false;
+      }
+
       return true;
     }
 
@@ -2413,6 +2493,11 @@ public class Node {
       list.add(present_nodeList);
       if (present_nodeList)
         list.add(nodeList);
+
+      boolean present_chain = true && (isSetChain());
+      list.add(present_chain);
+      if (present_chain)
+        list.add(chain);
 
       return list.hashCode();
     }
@@ -2431,6 +2516,16 @@ public class Node {
       }
       if (isSetNodeList()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.nodeList, other.nodeList);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetChain()).compareTo(other.isSetChain());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetChain()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.chain, other.chain);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -2460,6 +2555,14 @@ public class Node {
         sb.append("null");
       } else {
         sb.append(this.nodeList);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("chain:");
+      if (this.chain == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.chain);
       }
       first = false;
       sb.append(")");
@@ -2524,6 +2627,24 @@ public class Node {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // CHAIN
+              if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
+                {
+                  org.apache.thrift.protocol.TSet _set3 = iprot.readSetBegin();
+                  struct.chain = new HashSet<Integer>(2*_set3.size);
+                  int _elem4;
+                  for (int _i5 = 0; _i5 < _set3.size; ++_i5)
+                  {
+                    _elem4 = iprot.readI32();
+                    struct.chain.add(_elem4);
+                  }
+                  iprot.readSetEnd();
+                }
+                struct.setChainIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -2543,11 +2664,23 @@ public class Node {
           oprot.writeFieldBegin(NODE_LIST_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.nodeList.size()));
-            for (Machine _iter3 : struct.nodeList)
+            for (Machine _iter6 : struct.nodeList)
             {
-              _iter3.write(oprot);
+              _iter6.write(oprot);
             }
             oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+        if (struct.chain != null) {
+          oprot.writeFieldBegin(CHAIN_FIELD_DESC);
+          {
+            oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, struct.chain.size()));
+            for (int _iter7 : struct.chain)
+            {
+              oprot.writeI32(_iter7);
+            }
+            oprot.writeSetEnd();
           }
           oprot.writeFieldEnd();
         }
@@ -2572,13 +2705,25 @@ public class Node {
         if (struct.isSetNodeList()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetChain()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetNodeList()) {
           {
             oprot.writeI32(struct.nodeList.size());
-            for (Machine _iter4 : struct.nodeList)
+            for (Machine _iter8 : struct.nodeList)
             {
-              _iter4.write(oprot);
+              _iter8.write(oprot);
+            }
+          }
+        }
+        if (struct.isSetChain()) {
+          {
+            oprot.writeI32(struct.chain.size());
+            for (int _iter9 : struct.chain)
+            {
+              oprot.writeI32(_iter9);
             }
           }
         }
@@ -2587,20 +2732,33 @@ public class Node {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, updateDHT_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.nodeList = new ArrayList<Machine>(_list5.size);
-            Machine _elem6;
-            for (int _i7 = 0; _i7 < _list5.size; ++_i7)
+            org.apache.thrift.protocol.TList _list10 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.nodeList = new ArrayList<Machine>(_list10.size);
+            Machine _elem11;
+            for (int _i12 = 0; _i12 < _list10.size; ++_i12)
             {
-              _elem6 = new Machine();
-              _elem6.read(iprot);
-              struct.nodeList.add(_elem6);
+              _elem11 = new Machine();
+              _elem11.read(iprot);
+              struct.nodeList.add(_elem11);
             }
           }
           struct.setNodeListIsSet(true);
+        }
+        if (incoming.get(1)) {
+          {
+            org.apache.thrift.protocol.TSet _set13 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, iprot.readI32());
+            struct.chain = new HashSet<Integer>(2*_set13.size);
+            int _elem14;
+            for (int _i15 = 0; _i15 < _set13.size; ++_i15)
+            {
+              _elem14 = iprot.readI32();
+              struct.chain.add(_elem14);
+            }
+          }
+          struct.setChainIsSet(true);
         }
       }
     }

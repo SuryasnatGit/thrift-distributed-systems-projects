@@ -7,6 +7,8 @@ import org.apache.thrift.server.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.net.InetAddress;
 
 public class NodeHandler implements Node.Iface{
@@ -43,27 +45,24 @@ public class NodeHandler implements Node.Iface{
     
     
     @Override
-    public void updateDHT(List<Machine> NodesList) throws TException{
-	if(table.equals(NodesList)){
-		    return;    
-	}
-	// Update your own dht
-	table.update(NodesList);
-	//Connect to each machine and call UpdateDHT
-	for (int i=0; i<NodesList.size() ;i++){
-	    if(table.contains(i) > -1){
-		System.out.println("Doing a recursive call from Machine: " + nodeID);
-		Machine m = NodesList.get(i);
-		TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
-		nodeTransport.open();
-		TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
-		Node.Client node = new Node.Client(nodeProtocol);
-		System.out.println("Calling ping on remote machine " + m.id);
-		node.updateDHT(NodesList);
-		nodeTransport.close();
-	    }
-	} 
-	table.print();
+    public void updateDHT(List<Machine> NodesList,Set<Integer> chain) throws TException{
+        // Update your own dht
+        table.update(NodesList);
+        table.print();
+        chain.add(nodeID);
+        //Connect to each machine and call UpdateDHT
+        for (int i=0; i<NodesList.size() ;i++){
+            if(table.contains(i) > -1 && !chain.contains(i)){
+                Machine m = NodesList.get(i);
+                TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
+                nodeTransport.open();
+                TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
+                Node.Client node = new Node.Client(nodeProtocol);
+                System.out.println("Calling updateDHT on Machine: " + m.id);
+                node.updateDHT(NodesList,chain);
+                nodeTransport.close();
+            }
+        } 
     }
 
     @Override
@@ -120,7 +119,7 @@ public class NodeHandler implements Node.Iface{
 	listOfNodes.add(self);
 
 	// populate our own DHT and recursively update others
-	updateDHT(listOfNodes);
+	updateDHT(listOfNodes,new HashSet<Integer>());
 
 	// call post join after all DHTs are updated.
 	if(!superNode.postJoin(self))
