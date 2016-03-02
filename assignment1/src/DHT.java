@@ -17,13 +17,10 @@ class DHT{
 	
     Machine searchDHT(String filename, int target) throws Exception {
         Integer index = contains(target);
-        System.out.println("THE INDEX IS " + index + " and the target is " + target);
-        System.out.println("THE TABLE IS ");
-        print();
         
         if(index >= 0){
             Machine successor = table.get(index);
-            if(successor == null) throw new Exception("TEEHEEE");
+            if(successor == null) throw new Exception("searchDHT returned a null successor");
             return successor;
         }
         Iterator it = table.entrySet().iterator();
@@ -34,9 +31,8 @@ class DHT{
             }
         }
         //return the last machine
-        System.out.println(numIndexes + " ex machina" );
-        if(table.get(numIndexes - 1) == null) throw new Exception("machine minnus oine ");
-        
+        //System.out.println(numIndexes + " ex machina" );
+        //if(table.get(numIndexes - 1) == null) throw new Exception("Machine Minus One Occured");
         return table.get(numIndexes - 1); //get the last index
     }
 	
@@ -65,12 +61,13 @@ class DHT{
     }
 
     void print(){
-	System.out.println("=======Machine DHT: "+nodeID+"=======");
-	System.out.println(table);
+	System.out.println();
+	System.out.println("======= Finger Table of Node: ("+nodeID+") =======");
 	Iterator it = table.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-            System.out.println("[ " + pair.getKey() + " | " + ((Machine)pair.getValue()).id + " ]");
+	    Machine i = (Machine) pair.getValue();
+            System.out.println("[ " + pair.getKey() + " | " + i.id + " ] ->  " + i.ipAddress + ":" + i.port);
         }
     }
 
