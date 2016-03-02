@@ -50,8 +50,9 @@ public class NodeHandler implements Node.Iface{
 	// Update your own dht
 	table.update(NodesList);
 	//Connect to each machine and call UpdateDHT
-	for (int i=1; i==NodesList.size() ;i++){
+	for (int i=0; i<NodesList.size() ;i++){
 	    if(table.contains(i) > -1){
+		System.out.println("Doing a recursive call from Machine: " + nodeID);
 		connectToNode(NodesList.get(i)).updateDHT(NodesList);
 	    }
 	} 
@@ -59,7 +60,7 @@ public class NodeHandler implements Node.Iface{
     }
     
     Node.Client connectToNode(Machine node) throws TException {
-	TTransport nodeTransport = new TSocket(node.ipAddress, node.id);
+	TTransport nodeTransport = new TSocket(node.ipAddress, node.port);
 	nodeTransport.open();
 	TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
 	return new Node.Client(nodeProtocol);
@@ -81,7 +82,7 @@ public class NodeHandler implements Node.Iface{
 	
 	//Create a Machine data type representing ourselves
 	Machine self = new Machine();
-	self.ipAddress = InetAddress.getLocalHost().toString();			//not sure if this works.
+	self.ipAddress = InetAddress.getLocalHost().getHostName().toString();			//not sure if this works.
 	self.port = port; //lol unsafe typecasts woo
 	
 	// call join on superNode for a list

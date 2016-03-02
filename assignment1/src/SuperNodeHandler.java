@@ -41,8 +41,8 @@ public class SuperNodeHandler implements SuperNode.Iface {
 	lastJoiningNode = null;
 
 	System.out.println("---- Current Nodes in DHT ----");
-	for(Machine node : cluster)
-	    System.out.println(node.toString());
+	for(Machine m : cluster)
+	    System.out.println(m.toString());
 
 	return true;
     }

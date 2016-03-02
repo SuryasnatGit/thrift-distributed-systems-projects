@@ -46,7 +46,7 @@ class DHT{
 	Iterator it = table.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-            if(((Machine) pair.getValue()).id == nodeID){
+            if(((Machine) pair.getValue()).id == num){
                 return (int) pair.getKey();
             }
         }
