@@ -5,6 +5,7 @@ import org.apache.thrift.transport.*;
 import java.util.Scanner;
 import java.io.File;
 import java.nio.file.Paths;
+import java.nio.file.Files;
 
 public class Client {
 
@@ -42,7 +43,7 @@ public class Client {
 	TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
 	node = new Node.Client(nodeProtocol);
 
-	System.out.println("Client: Successfully connected to Node : " + m.id);
+	System.out.println("Client: Successfully connected to Node : " + machine.id);
 	return true;
     }
     
@@ -74,7 +75,7 @@ public class Client {
 	}
     }
 
-    private boolean getAndProcessUserInput(){
+    private boolean getAndProcessUserInput() throws Exception {
 	String[] input = sc.nextLine().split(" ");
 	switch(input[0]) {
 	case "get" :
@@ -108,7 +109,7 @@ public class Client {
 	nodeTransport.close();
     }
 
-    private void fileOperation(String[] input, String op) {
+    private void fileOperation(String[] input, String op) throws Exception {
 
 	if(input.length != 2 && (!op.equals("put-all")) || !op.equals("ls")) {
 	    System.out.println("Usage: [<get> OR <put> <filename> ]");
@@ -128,11 +129,11 @@ public class Client {
 	    System.out.println("Loading all files in current directory to DHT");
 	    break;
 	case "ls":
-	    listAllFiles();
+	    listAllFiles(new File("."));
 	}
     }
 
-    private boolean writeFile(String filename) {
+    private boolean writeFile(String filename) throws Exception {
 	//check if file exists
 	File file = new File(filename);
 	if(!file.exists() || file.isDirectory()) {
@@ -146,13 +147,21 @@ public class Client {
 	    //send it over the wire
 	    return node.write(filename, new String(contents, "utf-8"));
 	}
-	catch(IOException e) {
+	catch(Exception e) {
 	    System.out.println("Client: Failed to read file contents");
 	    return false;
 	}
     }
 
-    private void listAllFiles() {
+    //Thank you http://stackoverflow.com/a/1846349
+    private void listAllFiles(final File folder) {
+	for (final File fileEntry : folder.listFiles()) {
+	    if (fileEntry.isDirectory()) {
+		listAllFiles(fileEntry);
+	    } else {
+		System.out.println(fileEntry.getName());
+	    }
+	}
     }
     
 }

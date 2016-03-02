@@ -23,7 +23,7 @@ class DHT{
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             if(((Machine) pair.getValue()).id <= nodeID){
-                return pair.getValue();
+                return (Machine) pair.getValue();
             }
         }
         //return the last machine

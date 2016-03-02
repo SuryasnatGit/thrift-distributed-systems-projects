@@ -21,14 +21,16 @@ public class NodeHandler implements Node.Iface{
     
     @Override
     public boolean write(String filename, String contents) throws org.apache.thrift.TException {
-        Machine m = findMachine(filename,new List<Integer>());
-        if(m.ipAddress.equals("NULL")){
+        Machine m = findMachine(filename,new ArrayList<Integer>());
+        if(m.ipAddress.equals("NULL")) {
             System.out.println("   THIS SHOULD NOT HAPPEN BUT IT HAPPENED, TAKE A LOOK     ");
             return false;
-        }else if(m.equals(self))
+        }
+	else if(m.equals(self)) {
             fs.put(filename,contents);
             return true;
-        }else{
+        }
+	else {
             // RPC the write call
             TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
             nodeTransport.open();
@@ -56,7 +58,6 @@ public class NodeHandler implements Node.Iface{
         int hash = filename.hashCode();
         // Getting which machine the file is ours.
         int target = hash % numMachines;
-        Machine m;
         
         //we have the file
         if (nodeID == target) 
