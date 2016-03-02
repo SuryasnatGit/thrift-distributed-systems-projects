@@ -175,6 +175,46 @@ Alternatively open up `build.xml` and edit the properties by hand:
 
 #Test Cases
 
+
+## Expected Finger Table For 5 Nodes
+
+    Machine 0:
+    Index | Machine
+    0     | 1 = (0 + 2^0 % 5)
+    1     | 2 = (0 + 2^1 % 5)
+        
+    Machine 1:
+    Index | Machine
+    0     | 2 = (1 + 2^0 % 5)
+    1     | 3 = (1 + 2^1 % 5)
+    
+    Machine 2:
+    Index | Machine
+    0     | 3 = (2 + 2^0 % 5)
+    1     | 4 = (2 + 2^1 % 5)    
+    
+    Machine 3:
+    Index | Machine
+    0     | 3 = (3 + 2^0 % 5)
+    1     | 0 = (3 + 2^1 % 5)
+    
+    
+    Machine 4:
+    Index | Machine
+    0     | 0 = (4 + 2^0 % 5)
+    1     | 1 = (4 + 2^1 % 5)
+
 ## Sunny Day Scenarios
+###Put in the machine 
+###Put in a machine in the DHT
+###Put in a machine in a network hop
+
+###Get in the machine
+###Get in a machine in the DHT
+###Get in a machine in a network hop
 
 ## Rainy Day Scenarios
+
+###Put a file you dont have.
+###Read a file that doesn't exist
+
