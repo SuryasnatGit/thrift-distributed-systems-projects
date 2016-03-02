@@ -54,7 +54,7 @@ class DHT{
     }
     
     int indexToMachine(int index){
-	return (int) (nodeID + Math.pow(2,index)) % nodeID;
+	return (int) (nodeID + Math.pow(2,index)) % numMachines;
     }
     
     void update(List<Machine> NodesList){

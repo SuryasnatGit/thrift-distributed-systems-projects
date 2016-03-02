@@ -59,7 +59,7 @@ public class NodeHandler implements Node.Iface{
 		TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
 		Node.Client node = new Node.Client(nodeProtocol);
 		System.out.println("Calling ping on remote machine " + m.id);
-		System.out.println(node.ping() + " ---- ");
+		node.updateDHT(NodesList);
 		nodeTransport.close();
 	    }
 	} 
