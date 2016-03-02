@@ -12,8 +12,9 @@
 
 #Node
 
-##`FindMachine(String Filename,List<Integer> Chain)`
-A RPC function used to find the machine that has the file specified by the file name.
+#`FindMachine(String Filename,List<Integer> Chain)`
+A RPC function used to find the machine that has the file specified by the file name. First the filename is hashed then to locate which machine
+it would be put into the module of the number of machines in the system is taken.
 Read and write depend on the function FindMachine to find a machine that has the resource the user
 is requesting to read or write. If the machine is the current machine then no RPC calls have to be made.
 Other wise the current machine will have to make hops across the network to find the resource.
@@ -37,7 +38,7 @@ If its the case that the file resides in the system there are three scenarios co
 
 This recursive lookup nature was designed to be similar to the CHORD DHT.
 
-##`Write(String Filename,String Contents)`
+#`Write(String Filename,String Contents)`
 After finding a machine, write behaves as follows depending who that machine is:
     1. If it is the current machine, write the file and the contents to the the current machine's in memory filesystem.
     2. If it is located across the network, make a write call through the use of RPC on that machine, passing the file and it's contents.
@@ -47,7 +48,7 @@ This will accomplish putting the file the user uploaded into the system.
 If the file does not exist in the system, FindMachine will return a invalid machine
 and return false to the client.
 
-##`Read(String Filename)`
+#`Read(String Filename)`
 After finding a machine, read behaves as follows depending who that machine is:
     1. If it is the current machine, read the file from the in memory file system and return it.
     2. If it is located across the network, make a read call through the use of RPC on that machine, passing the filename.
@@ -57,7 +58,7 @@ This will accomplish returning the contents of a requested resource.
 If the file does not exist in the system, FindMachine will return a invalid machine and read will detect this
 and return a blank to the user.
 
-##`UpdateDHT(List<Machine> NodesList,List<Integer> Chain)`
+#`UpdateDHT(List<Machine> NodesList,List<Integer> Chain)`
 UpdateDHT is split into two parts:
     1. A call to update it's own finger table
     2. A recursive call to update all machine's in it's finger table.
@@ -71,9 +72,26 @@ a chain is passed throughout the process to keep track of machines that have alr
 ##`Main`
 
 # DHT
-`SearchDHT(String filename,Integer target)`
-`Update(List<Machine> NodesList>`
+#`SearchDHT(String filename,Integer target)`
+SearchDHT handles two scenarios:
+    1. If the machine resides in the DHT 
+    2. Return a machine in the fingertable with the ID less than or equal to the target. 
 
+If the machine resides in the DHT then it will return that a object that contains information to connect to that machine.
+If the machine does not reside in the DHT then the table will need to make a network hop to a successor machine. So the the fingertable
+will return the first machine with a ID less than or equal to the target machine.
+
+SearchDHT is called whenever a node joins the system so the recursive nature of this call allows the nodes in the system to reindex
+to account for new members joining the system.
+
+#`Update(List<Machine> NodesList>`
+Given a NodesList then the machine will perform the calculation,
+
+`successor = (v + 2^i) % number of machines`, for each index up to the number of indexes. 
+
+Where `number of indexes = lg2 number of machines`.
+
+and put the successor into that index and thus forms the finger table.
 
 #Client
 
