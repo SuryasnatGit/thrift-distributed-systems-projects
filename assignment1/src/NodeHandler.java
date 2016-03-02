@@ -82,15 +82,25 @@ public class NodeHandler implements Node.Iface{
     
     @Override
     public String read(String filename) throws TException {
-	int hash = filename.hashCode();
-	
-	// Getting which machine the file is ours.
-	int target = hash % numMachines;
-	
-	// getMachine(filename)
-	
-	// return file contents from that machine
-	return "";
+        Machine m = findMachine(filename,new ArrayList<Integer>());
+        if(m.ipAddress.equals("NULL")) {
+            System.out.println("   THIS SHOULD NOT HAPPEN BUT IT HAPPENED, TAKE A LOOK     ");
+            return false;
+        }
+	    else if(m.equals(self)) {
+            return fs.get(filename);
+        }
+	    else {
+            // RPC the write call
+            TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
+            nodeTransport.open();
+            TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
+            Node.Client node = new Node.Client(nodeProtocol);
+            System.out.println("Machine("+nodeID+") Calling write on Machine(" + m.id+")");
+            String contents = node.read(filename);
+            nodeTransport.close();
+            return contents;
+        }
     }
     
     
