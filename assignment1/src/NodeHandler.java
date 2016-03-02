@@ -27,6 +27,7 @@ public class NodeHandler implements Node.Iface{
         }
 	else if(m.equals(self)) {
             fs.put(filename,contents);
+            System.out.println("file name wrote to" + self.id);
             return true;
         }
 	else {
@@ -57,7 +58,7 @@ public class NodeHandler implements Node.Iface{
         // Hash the file name
         int hash = filename.hashCode();
         // Getting which machine the file is ours.
-        int target = hash % table.numMachines;
+        int target = Math.abs(hash) % table.numMachines;
         
         //we have the file
         if (nodeID == target) 
@@ -91,15 +92,20 @@ public class NodeHandler implements Node.Iface{
             return "";
         }
 	    else if(m.equals(self)) {
+			System.out.println("we gots it");
             return fs.get(filename);
         }
 	    else {
-            // RPC the write call
+			System.out.println("M :" + m.toString());
+			System.out.println("SELF :" + self.toString());
+				
+            // RPC the read call
+            System.out.println("rpc the read");
             TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
             nodeTransport.open();
             TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
             Node.Client node = new Node.Client(nodeProtocol);
-            System.out.println("Machine("+nodeID+") Calling write on Machine(" + m.id+")");
+            System.out.println("Machine("+nodeID+") Calling read on Machine(" + m.id+")");
             String contents = node.read(filename);
             nodeTransport.close();
             return contents;
@@ -153,7 +159,7 @@ public class NodeHandler implements Node.Iface{
 	TProtocol superNodeProtocol = new TBinaryProtocol(new TFramedTransport(superNodeTransport));
 	SuperNode.Client superNode = new SuperNode.Client(superNodeProtocol);
 	
-	System.out.println("Machine("+nodeID+") Connected to SuperNode.");
+	System.out.println("Machine has Connected to the SuperNode.");
 	
 	//Create a Machine data type representing ourselves
 	self = new Machine();
@@ -165,7 +171,7 @@ public class NodeHandler implements Node.Iface{
 	
 	//keep trying until we can join (RPC calls)
 	while(!listOfNodes.isEmpty() && listOfNodes.get(0).ipAddress.equals("NULL")){
-	    System.err.println("Machine("+nodeID+") Could not join, retrying ..");
+	    System.err.println(" Could not join, retrying ..");
 	    Thread.sleep(1000);
 	    listOfNodes = superNode.join(self);
 	}
