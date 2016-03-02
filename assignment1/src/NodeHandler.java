@@ -16,7 +16,7 @@ public class NodeHandler implements Node.Iface{
     Machine self; //thrft struct for information about ourselves  
     Integer nodeID;
     Integer port;
-	HashMap<String,String> fs;
+    HashMap<String,String> fs;
     
     @Override
     public boolean write(String filename, String contents) throws org.apache.thrift.TException {
@@ -79,6 +79,7 @@ public class NodeHandler implements Node.Iface{
         //TODO print the chain
         return sucessor;
 	} catch (Exception e) {
+	    System.out.println("###############FIND MACHINE HAS CRASHED ###################");
 	    e.printStackTrace();
 	}
 	return new Machine();
@@ -87,20 +88,22 @@ public class NodeHandler implements Node.Iface{
     @Override
     public String read(String filename) throws TException {
         Machine m = findMachine(filename,new ArrayList<Integer>());
-        if(m.ipAddress.equals("NULL")) {
+        
+	System.out.println("M :" + m.toString());
+	System.out.println("SELF :" + self.toString());
+	   
+	if(m.ipAddress.equals("NULL")) {
             System.out.println("   THIS SHOULD NOT HAPPEN BUT IT HAPPENED, TAKE A LOOK     ");
             return "";
         }
-	    else if(m.equals(self)) {
-			System.out.println("we gots it");
+	else if(m.equals(self)) {
+	    if(fs.get(filename) == null)
+		return "\n======  DHT: ERROR 404 FILE NOT FOUND IN DHT. ======\n";
             return fs.get(filename);
         }
-	    else {
-			System.out.println("M :" + m.toString());
-			System.out.println("SELF :" + self.toString());
-				
+	else { 
             // RPC the read call
-            System.out.println("rpc the read");
+	    System.out.println("RPC the read @ " + m.toString());
             TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
             nodeTransport.open();
             TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));

@@ -18,6 +18,8 @@ public class Client {
     TTransport nodeTransport;
     Node.Client node;
 
+    String defaultDir = "./upload/"; //default upload directory
+
     //Connect to the superNode
     public Client(String host, Integer port) throws TException{
 	sc = new Scanner(System.in);
@@ -65,7 +67,7 @@ public class Client {
 		Thread.sleep(1000);
 	    }
 	    //we are connected.
-	    System.out.println("\n\n -------- Welcome to the DHT Cluster Terminal, use: <get> <put> <putAll> <exit> --------\n");
+	    System.out.println("\n\n -------- Welcome to the DHT Cluster Terminal, use: <get> <ls> <put> <putAll> <exit> --------\n");
 	    while(true) {
 		if(client.getAndProcessUserInput() == false)
 		    break;
@@ -123,17 +125,17 @@ public class Client {
 	    break;
 	case "put":
 	    System.out.println("Client: Writing " + input[1] + " to DHT");
-	    System.out.println("Success: " + writeFile("./upload/" + input[1].trim()));
+	    System.out.println("Success: " + writeFile(defaultDir + input[1].trim()));
 	    break;
 	case "put-all":
 	    System.out.println("Loading all files in current directory to DHT..");
-	    for(String filename : listAllFiles(new File("./upload/")))
-		if(!writeFile(filename))
+	    for(String filename : listAllFiles(new File(defaultDir)))
+		if(!writeFile(defaultDir + filename))
 		    break;
 	    break;
 	case "ls":
-	    System.out.println("Files in ./upload/");
-	    for(String filename : listAllFiles(new File("./upload/")))
+	    System.out.println("Files in " + defaultDir);
+	    for(String filename : listAllFiles(new File(defaultDir)))
 		System.out.println(filename);
 	    break;
 	}

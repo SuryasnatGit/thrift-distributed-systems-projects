@@ -58,7 +58,7 @@ public class SuperNodeHandler implements SuperNode.Iface {
 
 	//return random node.
 	//stop new nodes from joining once a client get a node to connect to.
-	System.out.println("SuperNode: No new nodes can join the network.");
+	System.out.println("SuperNode: DHT set up complete. No new nodes can join the network.");
 	lastJoiningNode = cluster.get(cluster.size() - 1);
 	return cluster.get(random.nextInt(cluster.size()));
     }
