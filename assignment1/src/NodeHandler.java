@@ -15,7 +15,6 @@ public class NodeHandler implements Node.Iface{
     DHT table;
     Machine self; //thrft struct for information about ourselves  
     Integer nodeID;
-    Integer numMachines;
     Integer port;
 	HashMap<String,String> fs;
     
@@ -45,6 +44,7 @@ public class NodeHandler implements Node.Iface{
     
     @Override
     public Machine findMachine(String filename, List<Integer> chain)throws org.apache.thrift.TException {
+	try {
         if(chain.contains(nodeID)){
             //back at step one, return null machine
             
@@ -57,7 +57,7 @@ public class NodeHandler implements Node.Iface{
         // Hash the file name
         int hash = filename.hashCode();
         // Getting which machine the file is ours.
-        int target = hash % numMachines;
+        int target = hash % table.numMachines;
         
         //we have the file
         if (nodeID == target) 
@@ -77,7 +77,10 @@ public class NodeHandler implements Node.Iface{
         nodeTransport.close();
         //TODO print the chain
         return sucessor;
-
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
+	return new Machine();
     }
     
     @Override
