@@ -85,7 +85,7 @@ public class NodeHandler implements Node.Iface{
         Machine m = findMachine(filename,new ArrayList<Integer>());
         if(m.ipAddress.equals("NULL")) {
             System.out.println("   THIS SHOULD NOT HAPPEN BUT IT HAPPENED, TAKE A LOOK     ");
-            return false;
+            return "";
         }
 	    else if(m.equals(self)) {
             return fs.get(filename);
