@@ -91,7 +91,7 @@ public class Client {
 	    return true;
 
 	case "ls":
-	    fileOperation(input, "list-files");
+	    fileOperation(input, "ls");
 	    return true;
 
 	case "exit":
@@ -110,19 +110,18 @@ public class Client {
     }
 
     private void fileOperation(String[] input, String op) throws Exception {
-
-	if(input.length != 2 && (!op.equals("put-all")) || !op.equals("ls")) {
+	if(input.length != 2 && !op.equals("put-all") && !op.equals("ls")) {
 	    System.out.println("Usage: [<get> OR <put> <filename> ]");
 	    return;
 	}
 
         switch(op) {
 	case "get":
-	    System.out.println("Client: Reading " + input[1] + "from DHT");
+	    System.out.println("Client: Reading " + input[1] + " from DHT");
 	    System.out.println(node.read(input[1]));
 	    break;
 	case "put":
-	    System.out.println("Client: Writing " + input[1] + "to DHT");
+	    System.out.println("Client: Writing " + input[1] + " to DHT");
 	    System.out.println("Success: " + writeFile(input[1]));
 	    break;
 	case "put-all":
@@ -135,20 +134,24 @@ public class Client {
 
     private boolean writeFile(String filename) throws Exception {
 	//check if file exists
+	byte[] contents = null; //lol initializing, amirite
 	File file = new File(filename);
+
 	if(!file.exists() || file.isDirectory()) {
 	    System.out.println("Client: Not a file or file doesn't exist.");
 	    return false;
 	}
 	try {
 	    //load the contents into a byte array
-	    byte[] contents = Files.readAllBytes(Paths.get(filename));
-	
-	    //send it over the wire
-	    return node.write(filename, new String(contents, "utf-8"));
+	    contents = Files.readAllBytes(Paths.get(filename));
 	}
 	catch(Exception e) {
 	    System.out.println("Client: Failed to read file contents");
+	}
+	finally {
+	    if(contents != null)
+		//send it over the wire
+		return node.write(filename, new String(contents, "utf-8"));
 	    return false;
 	}
     }
@@ -156,11 +159,12 @@ public class Client {
     //Thank you http://stackoverflow.com/a/1846349
     private void listAllFiles(final File folder) {
 	for (final File fileEntry : folder.listFiles()) {
-	    if (fileEntry.isDirectory()) {
+	    /*if (fileEntry.isDirectory()) {
 		listAllFiles(fileEntry);
 	    } else {
 		System.out.println(fileEntry.getName());
-	    }
+	    } */
+	    System.out.println(fileEntry.getName());
 	}
     }
     
