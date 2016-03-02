@@ -3,6 +3,7 @@ import org.apache.thrift.protocol.*;
 import org.apache.thrift.transport.*;
 
 import java.util.Scanner;
+import java.util.ArrayList;
 import java.io.File;
 import java.nio.file.Paths;
 import java.nio.file.Files;
@@ -118,17 +119,23 @@ public class Client {
         switch(op) {
 	case "get":
 	    System.out.println("Client: Reading " + input[1] + " from DHT");
-	    System.out.println(node.read(input[1]));
+	    System.out.println(node.read(input[1].trim())); //just the filename, no paths allowed
 	    break;
 	case "put":
 	    System.out.println("Client: Writing " + input[1] + " to DHT");
-	    System.out.println("Success: " + writeFile(input[1]));
+	    System.out.println("Success: " + writeFile("./upload/" + input[1].trim()));
 	    break;
 	case "put-all":
-	    System.out.println("Loading all files in current directory to DHT");
+	    System.out.println("Loading all files in current directory to DHT..");
+	    for(String filename : listAllFiles(new File("./upload/")))
+		if(!writeFile(filename))
+		    break;
 	    break;
 	case "ls":
-	    listAllFiles(new File("."));
+	    System.out.println("Files in ./upload/");
+	    for(String filename : listAllFiles(new File("./upload/")))
+		System.out.println(filename);
+	    break;
 	}
     }
 
@@ -149,23 +156,29 @@ public class Client {
 	    System.out.println("Client: Failed to read file contents");
 	}
 	finally {
-	    if(contents != null)
+	    if(contents != null) {
+		filename = Paths.get(filename).getFileName().toString(); //strip any relative paths, just get filenames
 		//send it over the wire
+		System.out.println("New file name " + filename);
 		return node.write(filename, new String(contents, "utf-8"));
+	    }
 	    return false;
 	}
     }
 
     //Thank you http://stackoverflow.com/a/1846349
-    private void listAllFiles(final File folder) {
+    private ArrayList<String> listAllFiles(final File folder) {
+	ArrayList<String> filenames = new ArrayList<>();
 	for (final File fileEntry : folder.listFiles()) {
-	    /*if (fileEntry.isDirectory()) {
+	    /* Scans subdirectories recursively
+	      if (fileEntry.isDirectory()) {
 		listAllFiles(fileEntry);
 	    } else {
 		System.out.println(fileEntry.getName());
 	    } */
-	    System.out.println(fileEntry.getName());
+	    filenames.add(fileEntry.getName());
 	}
+	return filenames;
     }
     
 }

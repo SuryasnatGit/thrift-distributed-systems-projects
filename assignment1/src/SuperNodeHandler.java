@@ -40,9 +40,11 @@ public class SuperNodeHandler implements SuperNode.Iface {
 	cluster.add(node);
 	lastJoiningNode = null;
 
+	System.out.println();
 	System.out.println("---- Current Nodes in DHT ----");
 	for(Machine m : cluster)
 	    System.out.println(m.toString());
+	System.out.println();
 
 	return true;
     }
@@ -50,10 +52,14 @@ public class SuperNodeHandler implements SuperNode.Iface {
     @Override
     /* Function called by client to get a node to talk to */
     public Machine getNode() throws TException {
-	System.out.println("Get node called.");
-	if(cluster.size() != capacity) //not enough nodes to start up, return null marker value
+	System.out.println("Get node called by a client.");
+	if(cluster.size() < capacity) //not enough nodes to start up, return null marker value
 	    return new Machine();
+
 	//return random node.
+	//stop new nodes from joining once a client get a node to connect to.
+	System.out.println("SuperNode: No new nodes can join the network.");
+	lastJoiningNode = cluster.get(cluster.size() - 1);
 	return cluster.get(random.nextInt(cluster.size()));
     }
 

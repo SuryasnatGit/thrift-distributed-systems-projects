@@ -139,15 +139,7 @@ public class NodeHandler implements Node.Iface{
 	System.out.println("Ping called on " + nodeID);
 	return nodeID;
     }
-    
-    private Node.Client connectToNode(Machine node) throws TException {
-	TTransport nodeTransport = new TSocket(node.ipAddress, node.port);
-	nodeTransport.open();
-	TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
-	return new Node.Client(nodeProtocol);
-    } 
-    
-    
+        
     /* Constructor for a Node, a Thrift connection is made to the SuperNode as well */
     public NodeHandler(String superNodeIP, Integer superNodePort, Integer port) throws Exception {
 	
