@@ -36,6 +36,7 @@
 	 <echo>Launching SuperNode, Node and Client on localhost</echo>
 	 <echo>Starting SuperNode on Port ${superNode.port} with Minimum of ${superNode.minNode} nodes</echo>
 	 <parallel>
+	   <daemons>
 	   <sequential>
 	     <java classname="SuperNodeHandler" fork="true">
 	       <classpath refid="master-classpath"/>
@@ -43,48 +44,50 @@
 	     </java>
 	   </sequential>
 	   <sequential>
-	     <sleep milliseconds="500"/>
+	     <!-- <sleep milliseconds="500"/> -->
 	     <antcall target="start-node">
 	       <param name="superNode.address" value="localhost" />
 	       <param name="node.port" value="8000"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
-	     <sleep milliseconds="500"/>
+	     <!-- <sleep milliseconds="500"/> -->
 	     <antcall target="start-node">
 	       <param name="superNode.address" value="localhost" />
-	       <param name="node.port" value="8080"/>
+	       <param name="node.port" value="8001"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
-	     <sleep milliseconds="500"/>
+	     <!-- <sleep milliseconds="500"/> -->
 	     <antcall target="start-node">
 	       <param name="superNode.address" value="localhost" />
-	       <param name="node.port" value="8800"/>
+	       <param name="node.port" value="8002"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
-	     <sleep milliseconds="500"/>
+	     <!-- <sleep milliseconds="500"/> -->
 	     <antcall target="start-node">
 	       <param name="superNode.address" value="localhost" />
-	       <param name="node.port" value="8008"/>
+	       <param name="node.port" value="8003"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
-	     <sleep milliseconds="500"/>
+	     <!-- <sleep milliseconds="500"/> -->
 	     <antcall target="start-node">
 	       <param name="superNode.address" value="localhost" />
-	       <param name="node.port" value="8888"/>
+	       <param name="node.port" value="8884"/>
 	     </antcall>
 	   </sequential>
+	 </daemons>
 	   <sequential>
-	     <sleep milliseconds="500"/>
+	     <sleep milliseconds="4000"/>
 	     <echo>Starting Client ... </echo>
-	     <antcall target="start">
+	     <antcall target="start-client">
 	       <param name="superNode.address" value="localhost"/>
 	     </antcall>
 	   </sequential>
 	 </parallel>
+
        </target>
 
        <target name="start-supernode" depends="build" description="Start SuperNode">

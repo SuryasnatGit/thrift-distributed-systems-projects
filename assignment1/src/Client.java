@@ -3,12 +3,18 @@ import org.apache.thrift.protocol.*;
 import org.apache.thrift.transport.*;
 
 import java.util.Scanner;
+import java.io.File;
+import java.nio.file.Paths;
 
 public class Client {
 
     Scanner sc; 
     SuperNode.Client superNode;
     TTransport superNodeTransport;
+    Machine machine; 
+
+    TTransport nodeTransport;
+    Node.Client node;
 
     //Connect to the superNode
     public Client(String host, Integer port) throws TException{
@@ -24,12 +30,21 @@ public class Client {
     public boolean connectToNode() throws TException {
 	//perform call to superNode for a node.
 	//get a node, and kill the connection to the supernode
-	Machine node = superNode.getNode();
-	if(node.ipAddress.equals("NULL"))
-	   System.out.println("NULL NODE!!!!!");
+	machine = superNode.getNode();
+	if(machine.ipAddress.equals("NULL")) {
+	    return false;
+	}
+	//we have a node, kill superNode connection
+	superNodeTransport.close();
+
+	nodeTransport = new TSocket(machine.ipAddress, machine.port);
+	nodeTransport.open();
+	TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
+	node = new Node.Client(nodeProtocol);
+
+	System.out.println("Client: Successfully connected to Node : " + m.id);
 	return true;
     }
-
     
     public static void main(String[] args) {
 	if(args.length < 2) {
@@ -43,11 +58,12 @@ public class Client {
 	    Client client = new Client(host, port);
 	    System.out.println("Contacted SuperNode at " + host + ":" + port);
 
-	    if(!client.connectToNode()) {
-		System.err.println("Failed to connect to a node on cluster, shutting down.:");
-		return;
+	    while(!client.connectToNode()) {
+		System.err.println("Client: Failed to connect to a node on cluster, retrying ...");
+		Thread.sleep(1000);
 	    }
-	    System.out.println("Connected to Node at : ");
+	    //we are connected.
+	    System.out.println("\n\n -------- Welcome to the DHT Cluster Terminal, use: <get> <put> <putAll> <exit> --------\n");
 	    while(true) {
 		if(client.getAndProcessUserInput() == false)
 		    break;
@@ -62,17 +78,81 @@ public class Client {
 	String[] input = sc.nextLine().split(" ");
 	switch(input[0]) {
 	case "get" :
+	    fileOperation(input, "get");
 	    return true;
 
 	case "put" :
+	    fileOperation(input, "put");
+	    return true;
+
+	case "put-all":
+	    fileOperation(input, "put-all");
+	    return true;
+
+	case "ls":
+	    fileOperation(input, "list-files");
 	    return true;
 
 	case "exit":
+	    cleanUp();
 	    return false;
 
 	default:
-	    System.out.println("Usage: <get>/<put> <filename> OR <exit>");
+	    System.out.println("Usage: [<get> OR <put> <filename> ] | <ls> | <put-all> | <exit>");
 	    return true;
 	}
     }
+
+    private void cleanUp() {
+	System.out.println("------- Client: Leaving DHT -------");
+	nodeTransport.close();
+    }
+
+    private void fileOperation(String[] input, String op) {
+
+	if(input.length != 2 && (!op.equals("put-all")) || !op.equals("ls")) {
+	    System.out.println("Usage: [<get> OR <put> <filename> ]");
+	    return;
+	}
+
+        switch(op) {
+	case "get":
+	    System.out.println("Client: Reading " + input[1] + "from DHT");
+	    System.out.println(node.read(input[1]));
+	    break;
+	case "put":
+	    System.out.println("Client: Writing " + input[1] + "to DHT");
+	    System.out.println("Success: " + writeFile(input[1]));
+	    break;
+	case "put-all":
+	    System.out.println("Loading all files in current directory to DHT");
+	    break;
+	case "ls":
+	    listAllFiles();
+	}
+    }
+
+    private boolean writeFile(String filename) {
+	//check if file exists
+	File file = new File(filename);
+	if(!file.exists() || file.isDirectory()) {
+	    System.out.println("Client: Not a file or file doesn't exist.");
+	    return false;
+	}
+	try {
+	    //load the contents into a byte array
+	    byte[] contents = Files.readAllBytes(Paths.get(filename));
+	
+	    //send it over the wire
+	    return node.write(filename, new String(contents, "utf-8"));
+	}
+	catch(IOException e) {
+	    System.out.println("Client: Failed to read file contents");
+	    return false;
+	}
+    }
+
+    private void listAllFiles() {
+    }
+    
 }
