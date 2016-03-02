@@ -7,8 +7,7 @@ import org.apache.thrift.server.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.net.InetAddress;
 
 public class NodeHandler implements Node.Iface{
@@ -45,7 +44,7 @@ public class NodeHandler implements Node.Iface{
     
     
     @Override
-    public void updateDHT(List<Machine> NodesList,Set<Integer> chain) throws TException{
+    public void updateDHT(List<Machine> NodesList,List<Integer> chain) throws TException{
         // Update your own dht
         table.update(NodesList);
         table.print();
@@ -119,7 +118,7 @@ public class NodeHandler implements Node.Iface{
 	listOfNodes.add(self);
 
 	// populate our own DHT and recursively update others
-	updateDHT(listOfNodes,new HashSet<Integer>());
+	updateDHT(listOfNodes,new ArrayList<Integer>());
 
 	// call post join after all DHTs are updated.
 	if(!superNode.postJoin(self))
