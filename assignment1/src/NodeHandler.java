@@ -29,7 +29,7 @@ public class NodeHandler implements Node.Iface{
     }
     
     @Override
-    public String read(String filename) throws org.apache.thrift.TException {
+    public String read(String filename) throws TException {
 	int hash = filename.hashCode();
 	
 	// Getting which machine the file is ours.
@@ -43,7 +43,7 @@ public class NodeHandler implements Node.Iface{
     
     
     @Override
-    public void updateDHT(List<Machine> NodesList) throws org.apache.thrift.TException{
+    public void updateDHT(List<Machine> NodesList) throws TException{
 	if(table.equals(NodesList)){
 		    return;    
 	}
@@ -53,13 +53,26 @@ public class NodeHandler implements Node.Iface{
 	for (int i=0; i<NodesList.size() ;i++){
 	    if(table.contains(i) > -1){
 		System.out.println("Doing a recursive call from Machine: " + nodeID);
-		connectToNode(NodesList.get(i)).updateDHT(NodesList);
+		Machine m = NodesList.get(i);
+		TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
+		nodeTransport.open();
+		TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
+		Node.Client node = new Node.Client(nodeProtocol);
+		System.out.println("Calling ping on remote machine " + m.id);
+		System.out.println(node.ping() + " ---- ");
+		nodeTransport.close();
 	    }
 	} 
 	table.print();
     }
+
+    @Override
+    public int ping() throws TException {
+	System.out.println("Ping called on " + nodeID);
+	return nodeID;
+    }
     
-    Node.Client connectToNode(Machine node) throws TException {
+    private Node.Client connectToNode(Machine node) throws TException {
 	TTransport nodeTransport = new TSocket(node.ipAddress, node.port);
 	nodeTransport.open();
 	TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));

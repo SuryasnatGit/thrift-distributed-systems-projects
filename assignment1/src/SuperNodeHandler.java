@@ -20,7 +20,7 @@ public class SuperNodeHandler implements SuperNode.Iface {
 	//check if we're at capacity, null, no last joining node
 	if(cluster.size() != capacity && !node.ipAddress.equals("NULL") && lastJoiningNode == null) {
 	    lastJoiningNode = node;
-	    System.out.println("New Node Wants to Join: " + node.ipAddress);
+	    System.out.println("New Node Wants to Join: " + node.ipAddress + ":" + node.port);
 	    return cluster;
 	}
 	Machine NULL = new Machine();
