@@ -44,7 +44,7 @@ public class SuperNodeHandler implements SuperNode.Iface {
 	System.out.println("---- Current Nodes in DHT ----");
 	for(Machine m : cluster)
 	    System.out.println(m.toString());
-	System.out.println();
+	System.out.println("------------------------------");
 
 	return true;
     }
@@ -72,7 +72,7 @@ public class SuperNodeHandler implements SuperNode.Iface {
 
     public static void main(String[] args) {
 	if(args.length < 2) {
-	    System.err.println("Please enter minimum number of nodes to start DHT ..");
+	    System.err.println("Please enter minimum number of nodes to start DHT.");
 	    System.err.println("Usage: java SuperNodeHandler <port> <min-nodes>");
 	    return;
 	}

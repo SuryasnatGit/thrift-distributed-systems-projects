@@ -27,7 +27,7 @@ public class NodeHandler implements Node.Iface{
         }
 	else if(m.equals(self)) {
             fs.put(filename,contents);
-            System.out.println("file name wrote to" + self.id);
+            System.out.println(filename + " was written to Node" + self.id);
             return true;
         }
 	else {
@@ -36,7 +36,7 @@ public class NodeHandler implements Node.Iface{
             nodeTransport.open();
             TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
             Node.Client node = new Node.Client(nodeProtocol);
-            System.out.println("Machine("+nodeID+") Calling write on Machine(" + m.id+")");
+            // System.out.println("Machine("+nodeID+") Calling write on Machine(" + m.id+")");
             boolean success = node.write(filename,contents);
             nodeTransport.close();
             return success;
@@ -46,69 +46,67 @@ public class NodeHandler implements Node.Iface{
     @Override
     public Machine findMachine(String filename, List<Integer> chain)throws org.apache.thrift.TException {
 	try {
-        if(chain.contains(nodeID)){
-            //back at step one, return null machine
-            
-            //TODO print the chain
-            
-            return new Machine();
-        }
-        chain.add(nodeID);
+	    if(chain.contains(nodeID)) {
+		//back at step one, return null machine
+		return new Machine();
+	    }
+	    chain.add(nodeID);
         
-        // Hash the file name
-        int hash = filename.hashCode();
-        // Getting which machine the file is ours.
-        int target = Math.abs(hash) % table.numMachines;
+	    // Hash the file name
+	    int hash = filename.hashCode();
+	    // Getting which machine the file is ours.
+	    int target = Math.abs(hash) % table.numMachines;
         
-        //we have the file
-        if (nodeID == target) 
-            //TODO print the chain
-            return self;
-            
-        // Go look in the DHT
-        Machine m = table.searchDHT(filename,target);
+	    //we have the file
+	    if (nodeID == target)
+		return self;
+
+	    // Go look in the DHT
+	    Machine m = table.searchDHT(filename, target);
         
-        // Traverse the DHT by RPC
-        TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
-        nodeTransport.open();
-        TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
-        Node.Client node = new Node.Client(nodeProtocol);
-        System.out.println("Machine("+nodeID+") Calling findMachine on Machine(" + m.id+")");
-        Machine sucessor = node.findMachine(filename,chain);
-        nodeTransport.close();
-        //TODO print the chain
-        return sucessor;
-	} catch (Exception e) {
-	    System.out.println("###############FIND MACHINE HAS CRASHED ###################");
-	    e.printStackTrace();
+	    // Traverse the DHT by RPC
+	    TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
+	    nodeTransport.open();
+	    TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
+	    Node.Client node = new Node.Client(nodeProtocol);
+	    //System.out.println("Machine("+nodeID+") Calling findMachine on Machine(" + m.id+")");
+	    Machine sucessor = node.findMachine(filename,chain);
+	    nodeTransport.close();
+    
+	    return sucessor;
+	}
+	catch(Exception e) {
+	    //suppress anything that went wrong.
+	    //e.printStackTrace();
 	}
 	return new Machine();
     }
     
     @Override
     public String read(String filename) throws TException {
-        Machine m = findMachine(filename,new ArrayList<Integer>());
-        
-	System.out.println("M :" + m.toString());
-	System.out.println("SELF :" + self.toString());
-	   
+	List<Integer> chain = new ArrayList<Integer>();
+        Machine m = findMachine(filename, chain);
+	
+	if(!chain.isEmpty())
+	    System.out.println("Contacted Node ID " + chain.toString());
+
 	if(m.ipAddress.equals("NULL")) {
             System.out.println("   THIS SHOULD NOT HAPPEN BUT IT HAPPENED, TAKE A LOOK     ");
             return "";
         }
 	else if(m.equals(self)) {
 	    if(fs.get(filename) == null)
-		return "\n======  DHT: ERROR 404 FILE NOT FOUND IN DHT. ======\n";
+		return "\n========  DHT: ERROR 404 FILE NOT FOUND IN DHT. ========\n";
             return fs.get(filename);
         }
 	else { 
             // RPC the read call
-	    System.out.println("RPC the read @ " + m.toString());
+	    // System.out.println("RPC the read @ " + m.toString());
             TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
             nodeTransport.open();
             TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
             Node.Client node = new Node.Client(nodeProtocol);
-            System.out.println("Machine("+nodeID+") Calling read on Machine(" + m.id+")");
+            //System.out.println("Machine("+nodeID+") Calling read on Machine(" + m.id+")");
             String contents = node.read(filename);
             nodeTransport.close();
             return contents;
@@ -120,8 +118,9 @@ public class NodeHandler implements Node.Iface{
     public void updateDHT(List<Machine> NodesList,List<Integer> chain) throws TException{
         // Update your own dht
         table.update(NodesList);
-        table.print();
-        chain.add(nodeID);
+	table.print(); //print the finger table
+	
+	chain.add(nodeID);
         //Connect to each machine and call UpdateDHT
         for (int i=0; i<NodesList.size() ;i++){
             if(table.contains(i) > -1 && !chain.contains(i)){
@@ -130,11 +129,11 @@ public class NodeHandler implements Node.Iface{
                 nodeTransport.open();
                 TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
                 Node.Client node = new Node.Client(nodeProtocol);
-                System.out.println("Machine("+nodeID+") Calling updateDHT on Machine(" + m.id+")");
-                node.updateDHT(NodesList,chain);
+                System.out.println("Node ("+nodeID+") : Calling updateDHT on Node (" + m.id+")");
+                node.updateDHT(NodesList, chain);
                 nodeTransport.close();
-            }
-        } 
+	    }
+        }
     }
 
     @Override
@@ -154,7 +153,7 @@ public class NodeHandler implements Node.Iface{
 	TProtocol superNodeProtocol = new TBinaryProtocol(new TFramedTransport(superNodeTransport));
 	SuperNode.Client superNode = new SuperNode.Client(superNodeProtocol);
 	
-	System.out.println("Machine has Connected to the SuperNode.");
+	System.out.println("Node has Connected to the SuperNode.");
 	
 	//Create a Machine data type representing ourselves
 	self = new Machine();
@@ -175,7 +174,7 @@ public class NodeHandler implements Node.Iface{
 	// New Node ID is +1 in the index of Nodes
 	this.nodeID = listOfNodes.size();
 	this.table = new DHT(this.nodeID);
-    this.fs = new HashMap<String,String>();
+	this.fs = new HashMap<String,String>();
 
 	//set selfID
 	self.id = this.nodeID;
@@ -184,11 +183,11 @@ public class NodeHandler implements Node.Iface{
 	listOfNodes.add(self);
 
 	// populate our own DHT and recursively update others
-	updateDHT(listOfNodes,new ArrayList<Integer>());
+	updateDHT(listOfNodes, new ArrayList<Integer>());
 
 	// call post join after all DHTs are updated.
 	if(!superNode.postJoin(self))
-	    System.err.println("Machine("+nodeID+") Could not perform postJoin call");
+	    System.err.println("Machine("+nodeID+") Could not perform postJoin call.");
 	
 	superNodeTransport.close();
     }

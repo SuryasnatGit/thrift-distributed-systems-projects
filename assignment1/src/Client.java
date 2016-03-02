@@ -121,7 +121,7 @@ public class Client {
         switch(op) {
 	case "get":
 	    System.out.println("Client: Reading " + input[1] + " from DHT");
-	    System.out.println(node.read(input[1].trim())); //just the filename, no paths allowed
+	    System.out.println("Content :\n    " + node.read(input[1].trim())); //just the filename, no paths allowed
 	    break;
 	case "put":
 	    System.out.println("Client: Writing " + input[1] + " to DHT");
