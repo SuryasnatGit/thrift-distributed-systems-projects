@@ -69,7 +69,7 @@ public class NodeHandler implements Node.Iface{
 	    nodeTransport.open();
 	    TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
 	    Node.Client node = new Node.Client(nodeProtocol);
-	    //System.out.println("Machine("+nodeID+") Calling findMachine on Machine(" + m.id+")");
+	    System.out.println("Machine("+nodeID+") Contacting Machine(" + m.id+")");
 	    Machine sucessor = node.findMachine(filename,chain);
 	    nodeTransport.close();
     
@@ -86,9 +86,6 @@ public class NodeHandler implements Node.Iface{
     public String read(String filename) throws TException {
 	List<Integer> chain = new ArrayList<Integer>();
         Machine m = findMachine(filename, chain);
-	
-	if(!chain.isEmpty())
-	    System.out.println("Contacted Node ID " + chain.toString());
 
 	if(m.ipAddress.equals("NULL")) {
             System.out.println("   THIS SHOULD NOT HAPPEN BUT IT HAPPENED, TAKE A LOOK     ");
