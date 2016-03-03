@@ -1,13 +1,51 @@
-# Distributed Hash Table Implementation
+# Distributed Hash Table
+### A Chord-based DHT Implementation using the Apache Thrift Library
 
-#SuperNode
+For a quick overview on how to run the project as as well test, please go to the **How to Run the Project section**, as well reading the **Client** section regarding the UI commands.
 
-##Main
-##Join
-##PostJoin
-##GetNode
+# Overall Design
+The SuperNode holds a master list of nodes a new node must contact in order to be part of the cluster. Nodes immediately close their connection to the SuperNode after they have successfully joined the cluster and updated the finger tables of all other nodes.
 
+A finger table is stored in every node, it is based on the Chord lookup to allow a node to contact other nodes spread across the cluster in a ring like fashion. Each node is ordered in the ring equentially from zero to the total number of nodes on the cluster.
 
+Clients interact with the distributed hash table through a randomly assigned node by the SuperNode. The node connected to by the client will perform the actual recursive look ups across the entire network to find a file or to write a file.
+
+The minimal supervision of the SuperNode ensures that there isn't too much of intelligence on the SuperNode that the entire network must rely on. We designed to SuperNode as an index and entry point for Nodes and Clients, as well as act as the gatekeeper to the cluster.
+
+The entire DHT is consists of single threaded processes using `join` and `postjoin` on the SuperNode as a mutex lock. This allowed us to avoid most race conditions that may occur in a distributed environment.
+
+Recursive look ups on the DHT are `O(log 2^n)` and uses `O(log 2^n)` memory. While we can achieve `O(1)` lookup, each node would have to keep a large table containing the entire cluster, which does not scale. 
+
+Marker values indicating a null or empty were also used as Apache Thrift does not support null values.
+
+# SuperNode (`SuperNodeHandler.java`)
+
+## `main(String[] args)`
+The superNode starts with at a speficied port and an expected number of Nodes that will join the cluster is passed into `main`. A Thrift Server is initialized, allowing Nodes and Clients to connect to the SuperNode. 
+
+The SuperNode only allows one node to join the DHT at any one time. Using this blocking method we simplify the need to handle race conditions. On a single thread, we simply keep track of the last node that wants to join the DHT, and disallow other nodes to join until the node has updated the Finger Table across other nodes and perform a `postJoin` call. 
+
+The SuperNode also allows a client to connect and receive a node to talk to. Clients should not call `Join` or `PostJoin` on the SuperNode. While Nodes should never call `GetNode`. 
+
+## `join(Machine node)`
+
+Nodes that want to join the cluster identify themselves using a Machine object containing their own IP Address and Port.
+
+The join function is called by a new Node that wants to join the cluster. The SuperNode returns a list of other nodes if there isn't another node in the process of joining the network. Else a list with a null marker value is returned to the Node. 
+
+A variable `lastJoiningNode` in the SuperNode is set by this function to act as a 'mutex lock' to avoid other nodes attempting to join the node. Synchrony across multiple machines/process is achieved through this method. (As a node will call `postJoin`).
+
+## `postJoin(Machine node)`
+
+After a node has contacted all other nodes on the cluster (if any), this function `postJoin` is called. PostJoin first performs another safety check to see if the node that has called `postJoin` is equal to the `lastJoiningNode`, if it is, the superNode adds the node to the master list of nodes on the cluster and sets the `lastJoiningNode` to `null`, allowing the next node to join.
+
+The master list of nodes is also printed for an overview of the current system.
+
+## `getNode()`
+
+Function called by a Client after it has connected to the SuperNode. This function keeps the promise that a Client is not allowed to join until the minimum number of nodes specified have joined the cluster. This is done by returning a null Machine (a Thrift object with a null marker value) if there are not enough nodes on the cluster yet.
+
+Once there are at least the minimum specified number of nodes on the cluster, a Client will be allowed to join the cluster. The call to `getNode` will also prevent future nodes from attempting to join the cluster, as the scope of this project does not include addtional nodes joining after the client has joined.
 
 
 #Node
@@ -75,6 +113,17 @@ a chain is passed throughout the process to keep track of machines that have alr
 
 ## `Main`
 
+The node first starts up by connecting to the SuperNode and making a `join` call through Thrift. If there are no other nodes joining the SuperNode will return a list of nodes for the node to contact.
+
+If the SuperNode returns a null marker value to `join`, the Node will go to sleep (by forcing the Thread to sleep) for a second before performing the call to SuperNode again.
+
+Upon Node performaing a successful call to `join`, the node then initializes itself witha nodeID that is equal to the size of the list, and then perform recursive calls to each node on the list through a single-threaded process. Each node then also opens connections to other nodes. All nodes on the cluster and notified and the recursive call exists when the chain of contacted nodes contain the nodes that made the call.
+
+After this, the SuperNode's `postJoin` is called to notify the SuperNode it has successfully contacted all nodes on the network, and closes the connection to the SuperNode. 
+
+The Node then starts it's own Thrift Server allowing Clients to connect to them, and waits.
+
+
 # DHT
 # `SearchDHT(String filename,Integer target)`
 SearchDHT handles two scenarios:
@@ -98,6 +147,21 @@ Where `number of indexes = lg2 number of machines`.
 and put the successor into that index and thus forms the finger table.
 
 # Client
+
+The Client is a terminal to the Distributed Hash Table. 
+The Client will establish a connection to the SuperNode and perform a `getNode()` Thrift call. This will either succeed (with the SuperNode returning a random Node to contact), or fail (as there are not enough nodes on the cluster yet.
+
+If the Client is successful, the connection to the SuperNode is closed and the Client connects to the Node provided by the SuperNode, an simple interactive terminal asking for user input is then launched.
+
+If the Client is unsuccessful, the Client will go to sleep for one second before retrying indefinitely.
+
+The terminal contains a few simple commands to interact with the DHT.
+
+ - `get <filename>` - requests a file from the DHT (Thrift call is made to the Node, which the Node then does the lookup recursively.
+ - `put <filename>` - reads a file stored in `uploads` and uploads it to the Node, which the Node then does the lookup recursively to decide which Node should store the file and contents.
+ - `ls` - lists all files in the `uploads` directory
+ - `put-all` - performs a batch upload operation to put all files stored in `uploads` into the DHT.
+ - `exit` - closes the connection to the Node and quits the interactive terminal
 
 
 # How to Run the Project
