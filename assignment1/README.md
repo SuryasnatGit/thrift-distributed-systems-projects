@@ -195,7 +195,7 @@ Alternatively open up `build.xml` and edit the properties by hand:
     
     Machine 3:
     Index | Machine
-    0     | 3 = (3 + 2^0 % 5)
+    0     | 4 = (3 + 2^0 % 5)
     1     | 0 = (3 + 2^1 % 5)
     
     
@@ -204,17 +204,96 @@ Alternatively open up `build.xml` and edit the properties by hand:
     0     | 0 = (4 + 2^0 % 5)
     1     | 1 = (4 + 2^1 % 5)
 
-## Sunny Day Scenarios
-###Put in the machine 
-###Put in a machine in the DHT
-###Put in a machine in a network hop
+## Positive Scenarios
 
-###Get in the machine
-###Get in a machine in the DHT
-###Get in a machine in a network hop
+###Put a file in the machine
 
-## Rainy Day Scenarios
+Keep putting in different files until you find a file that was put in the same node you were given.
+The expected result if the machine the client is talking to is 2:
+
+    put Bet.txt
+    [java] Client: Writing Bet.txt to DHT
+    [java] New file name Bet.txt
+    [java] Success: true
+    [java] Bet.txt was written to Node2
+
+
+    
+###Put a file in a successor machine in the DHT
+Look at your machine's finger table and add files until you find a file that is added to a successor.
+
+    put Staunch.txt
+    [java] Client: Writing Staunch.txt to DHT
+    [java] New file name Staunch.txt
+    [java] Success: true
+    [java] Staunch.txt was written to Node3
+
+
+
+###Put a file in a successor machine of a successor machine
+Since finger table for Machine 2 contains pointers to Machines 3 & 4. When a file is put,
+then it has taken two successor hops.
+
+    put Myopia.txt
+    [java] Client: Writing Myopia.txt to DHT
+    [java] New file name Myopia.txt
+    [java] Success: true
+    [java] Myopia.txt was written to Node0
+
+
+
+
+###Get a file in the machine
+The only node that should be traversed is Node 4(the current machine).
+
+    get Bet.txt
+    [java] Client: Reading Bet.txt from DHT
+    [java] Content :
+    [java]     Bet
+
+
+
+
+
+###Get a file in the successor machine in the DHT
+
+    get Staunch.txt
+    [java] Client: Reading Staunch.txt from DHT
+    [java] Content :
+    [java]     Staunch
+    [java] Machine(2) Contacting Machine(3)
+
+
+
+###Get a file in a successor machine of a successor machine
+
+    get Myopia.txt
+    [java] Client: Reading Myopia.txt from DHT
+    [java] Content :
+    [java]     Myopia
+    [java] Machine(2) Contacting Machine(4)
+    [java] Machine(4) Contacting Machine(0)
+
+
+
+
+## Negative Scenarios
 
 ###Put a file you dont have.
-###Read a file that doesn't exist
+    put helloworld.txt
+    [java] Client: Writing helloworld.txt to DHT
+    [java] Client: Not a file or file doesn't exist.
+    [java] Success: false
+
+
+###Read a file that hasnt been put
+    get Myopia.txt
+    [java] Client: Reading Myopia.txt from DHT
+    [java] Machine(2) Contacting Machine(4)
+    [java] Machine(4) Contacting Machine(0)
+    [java] Content :
+    [java]     
+    [java] ========  DHT: ERROR 404 FILE NOT FOUND IN DHT. ========
+    [java] 
+
 
