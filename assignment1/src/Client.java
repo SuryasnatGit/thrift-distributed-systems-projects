@@ -67,7 +67,7 @@ public class Client {
 		Thread.sleep(1000);
 	    }
 	    //we are connected.
-	    System.out.println("\n\n -------- Welcome to the DHT Cluster Terminal, use: <get> <ls> <put> <putAll> <exit> --------\n");
+	    System.out.println("\n\n -------- Welcome to the DHT Cluster Terminal, use: <get> <ls> <put> <put-all> <exit> --------\n");
 	    while(true) {
 		if(client.getAndProcessUserInput() == false)
 		    break;

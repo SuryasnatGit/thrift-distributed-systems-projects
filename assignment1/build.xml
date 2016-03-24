@@ -3,7 +3,7 @@
 
 
      <!--Default SuperNode and Node properties-->   
-     <property name="superNode.address" value="localhost" />
+     <property name="superNode.address" value="x32-05" />
      <property name="superNode.port" value="9090"/>
      <property name="superNode.minNode" value="5"/>
      <property name="node.port" value="8080"/>
