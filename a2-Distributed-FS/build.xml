@@ -12,7 +12,7 @@
      <property name="thrift.install" value="/usr/local/Thrift/" />
 
        <target name="info">
-	 <echo>A Distributed File System Based on the Chord System</echo>
+	 <echo>A Quorum Based Distributed File System</echo>
        </target>
 
        <path id="master-classpath">
@@ -31,7 +31,7 @@
 	 </delete>
        </target>
 
-       <target name="start-all" depends="build" description="Starts SuperNode, 5 Nodes, 1 Client All Locally ">
+       <target name="start-all" depends="build" description=" ">
 	 <echo>Launching SuperNode, Node and Client on localhost</echo>
 	 <echo>Starting SuperNode on Port ${superNode.port} with Minimum of ${superNode.minNode} nodes</echo>
 	 <parallel>
@@ -116,14 +116,15 @@
 
        <target name="thrift">
 	 <antcall target="thrift-gen">
-	   <param name="file" value="SuperNode.thrift"/>
+	   <param name="file" value="Server.thrift"/>
 	 </antcall>
 	 <antcall target="thrift-gen">
 	   <param name="file" value="shared.thrift"/>
 	 </antcall>
-	 <antcall target="thrift-gen">
+	<!-- <antcall target="thrift-gen">
 	   <param name="file" value="Node.thrift"/>
 	 </antcall>
+	-->
        </target>
 
        <target name="thrift-gen">
