@@ -1,0 +1,174 @@
+<?xml version="1.0"?>
+   <project name="CSci 5105: Quorum Based Distributed File System" default="build">
+
+
+     <!--Default SuperNode and Node properties-->   
+     <property name="coordinator.address" value="x32-05" />
+     <property name="coordinator.port" value="9090"/>
+     <property name="numservers" value="5"/>
+    
+     <property name="src.dir" value="src" />
+     <property name="build.dir" value = "bin"/>
+     <property name="thrift.install" value="/usr/local/Thrift/" />
+
+       <target name="info">
+	 <echo>A Distributed File System Based on the Chord System</echo>
+       </target>
+
+       <path id="master-classpath">
+	 <fileset dir="${thrift.install}">
+           <include name="*.jar"/>
+	 </fileset>
+	 <pathelement path="${thrift.install}"/>
+	 <pathelement path="${build.dir}" />
+       </path>
+       
+       <target name="clean" description="Clean output directories">
+	 <delete>
+           <fileset dir="${build.dir}">
+             <include name="**/*.class"/>
+           </fileset>
+	 </delete>
+       </target>
+
+       <target name="start-all" depends="build" description="Starts SuperNode, 5 Nodes, 1 Client All Locally ">
+	 <echo>Launching SuperNode, Node and Client on localhost</echo>
+	 <echo>Starting SuperNode on Port ${superNode.port} with Minimum of ${superNode.minNode} nodes</echo>
+	 <parallel>
+	   <daemons>
+	   <sequential>
+	     <java classname="SuperNodeHandler" fork="true">
+	       <classpath refid="master-classpath"/>
+	       <arg line="${superNode.port} ${superNode.minNode}"/>
+	     </java>
+	   </sequential>
+	   <sequential>
+	     <!-- <sleep milliseconds="500"/> -->
+	     <antcall target="start-node">
+	       <param name="superNode.address" value="localhost" />
+	       <param name="node.port" value="8000"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <!-- <sleep milliseconds="500"/> -->
+	     <antcall target="start-node">
+	       <param name="superNode.address" value="localhost" />
+	       <param name="node.port" value="8001"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <!-- <sleep milliseconds="500"/> -->
+	     <antcall target="start-node">
+	       <param name="superNode.address" value="localhost" />
+	       <param name="node.port" value="8002"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <!-- <sleep milliseconds="500"/> -->
+	     <antcall target="start-node">
+	       <param name="superNode.address" value="localhost" />
+	       <param name="node.port" value="8003"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <!-- <sleep milliseconds="500"/> -->
+	     <antcall target="start-node">
+	       <param name="superNode.address" value="localhost" />
+	       <param name="node.port" value="8884"/>
+	     </antcall>
+	   </sequential>
+	 </daemons>
+	   <sequential>
+	     <echo>Starting client in 4 seconds ... </echo>
+	     <sleep milliseconds="4000"/>
+	     <echo>Starting Client ... </echo>
+	     <antcall target="start-client">
+	       <param name="superNode.address" value="localhost"/>
+	     </antcall>
+	   </sequential>
+	 </parallel>
+
+       </target>
+
+       <target name="start-supernode" depends="build" description="Start SuperNode">
+	 <echo>Starting SuperNode on Port ${superNode.port} with Minimum of ${superNode.minNode} Nodes</echo>
+	 <java classname="SuperNodeHandler" fork="true">
+	   <classpath refid="master-classpath"/>
+	   <arg line="${superNode.port} ${superNode.minNode}"/>
+	 </java>
+       </target>
+
+       <target name="start-client" depends="build" description="Start Client">
+	 <echo>Starting Client to connect to SuperNode at "${superNode.address}:${superNode.port}"</echo>
+	 <java classname="Client">
+	   <classpath refid="master-classpath"/>
+	   <arg line="${superNode.address} ${superNode.port}"/>
+	 </java>
+       </target>
+
+       <target name="start-node" depends="build" description="Start Node">
+	 <echo>Starting Node on Port ${node.port} to connect to SuperNode at "${superNode.address}:${superNode.port}"</echo>
+	 <java classname="NodeHandler" fork="true">
+	   <classpath refid="master-classpath"/>
+	   <arg line="${superNode.address} ${superNode.port} ${node.port}"/>
+	 </java>
+       </target>
+
+       <target name="thrift">
+	 <antcall target="thrift-gen">
+	   <param name="file" value="SuperNode.thrift"/>
+	 </antcall>
+	 <antcall target="thrift-gen">
+	   <param name="file" value="shared.thrift"/>
+	 </antcall>
+	 <antcall target="thrift-gen">
+	   <param name="file" value="Node.thrift"/>
+	 </antcall>
+       </target>
+
+       <target name="thrift-gen">
+	 <echo> Generating Java files for ${file} </echo>
+       <exec executable="thrift">
+	 <arg line="-o ${src.dir} --gen java ${src.dir}/${file}"/>
+       </exec>
+       </target>
+
+       <!-- Remember to manually rebuild thrift files if they have changed! -->
+       <target name="build" description="Compile source tree java files">
+	 <mkdir dir="${build.dir}"/>
+	 <javac includeantruntime="false" destdir="${build.dir}" 
+		source="1.7" target="1.7" debug="true"
+		bootclasspath="/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/rt.jar"
+	 >
+           <src path="${src.dir}"/>
+	   <compilerarg value="-Xlint:unchecked"/>
+           <classpath>
+	     <path refid="master-classpath"/>
+	     <path path="${build.dir}"/>
+	   </classpath>
+	 </javac>
+       </target>
+
+       <!-- http://stackoverflow.com/questions/14406288/ant-javac-classpathref-not-working -->
+       <target name="diagnostics">
+	 <pathconvert property="classpathProp" refid="master-classpath"/>
+
+	 <echo>Classpath is ${classpathProp}</echo>
+       </target>
+
+       <target name="thriftAll" description="Uses thrift compiler to generate java files, doesn't work because vanilla ant doesn't have foreach">
+	 <!-- Define fileset of thrift files -->
+	 <fileset id="thrift.src.files" dir="${src.dir}">
+           <include name="**/*.thrift"/>
+	 </fileset>
+	    <apply executable="thrift" parallel="true">
+	      <arg value="-o"/>
+              <arg value="${src.dir}"/>
+              <arg value="--gen"/>
+              <arg value="java"/>
+              <srcfile/>
+              <fileset refid="thrift.src.files"/>
+            </apply>
+       </target>
+
+   </project>
