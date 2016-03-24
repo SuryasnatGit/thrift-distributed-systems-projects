@@ -10,44 +10,31 @@ import java.nio.file.Files;
 
 public class Client {
 
-    Scanner sc; 
-    SuperNode.Client superNode;
-    TTransport superNodeTransport;
-    Machine machine; 
+    Scanner sc;
 
-    TTransport nodeTransport;
-    Node.Client node;
+    TTransport serverTransport;
+    Server.Client server;
 
     String defaultDir = "./upload/"; //default upload directory
 
     //Connect to the superNode
-    public Client(String host, Integer port) throws TException{
+    public Client(Machine serverInfo) throws TException{
 	sc = new Scanner(System.in);
 	
-	superNodeTransport = new TSocket(host, port);
-	superNodeTransport.open();
-	TProtocol superNodeProtocol = new TBinaryProtocol(new TFramedTransport(superNodeTransport));
-	superNode = new SuperNode.Client(superNodeProtocol);
-
+	serverTransport = new TSocket(serverInfo.ipAddress, serverInfo.port);
     }
 
-    public boolean connectToNode() throws TException {
-	//perform call to superNode for a node.
-	//get a node, and kill the connection to the supernode
-	machine = superNode.getNode();
-	if(machine.ipAddress.equals("NULL")) {
+    private boolean connectToServer() {
+	try {
+	    serverTransport.open();
+	    TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+	    server = new SuperNode.Client(serverProtocol);
+	    return true;
+	}
+	catch(TException e) {
+	    e.printStackTrace();
 	    return false;
 	}
-	//we have a node, kill superNode connection
-	superNodeTransport.close();
-
-	nodeTransport = new TSocket(machine.ipAddress, machine.port);
-	nodeTransport.open();
-	TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
-	node = new Node.Client(nodeProtocol);
-
-	System.out.println("Client: Successfully connected to Node : " + machine.id);
-	return true;
     }
     
     public static void main(String[] args) {
@@ -56,18 +43,19 @@ public class Client {
 	    return;
 	}
 	try {
-	    String host = args[0];
-	    Integer port = Integer.parseInt(args[1]);
+	    Machine serverInfo = new Machine();
+	    serverInfo.ipAddress = args[0];
+	    serverInfo.port = Integer.parseInt(args[1]);
 
-	    Client client = new Client(host, port);
-	    System.out.println("Contacted SuperNode at " + host + ":" + port);
+	    Client client = new Client(serverInfo);
+	    System.out.println("Contacted server at " + serverInfo.ipAddress + ":" + serverInfo.port);
 
-	    while(!client.connectToNode()) {
-		System.err.println("Client: Failed to connect to a node on cluster, retrying ...");
-		Thread.sleep(1000);
+	    while(!client.connectToServer()) {
+		    System.err.println("Client: Failed to connect to a server on cluster, retrying ...");
+		    Thread.sleep(1000);
 	    }
 	    //we are connected.
-	    System.out.println("\n\n -------- Welcome to the DHT Cluster Terminal, use: <get> <ls> <put> <put-all> <exit> --------\n");
+	    System.out.println("\n\n -------- Welcome to the Distributed File System Terminal, use: <get> <ls> <put> <put-all> <exit> --------\n");
 	    while(true) {
 		if(client.getAndProcessUserInput() == false)
 		    break;
