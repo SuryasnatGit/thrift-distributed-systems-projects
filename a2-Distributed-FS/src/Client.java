@@ -49,12 +49,14 @@ public class Client {
 	    serverInfo.port = Integer.parseInt(args[1]);
 
 	    Client client = new Client(serverInfo);
-	    System.out.println("Contacted server at " + serverInfo.ipAddress + ":" + serverInfo.port);
-
+	
 	    while(!client.connectToServer()) {
 		    System.err.println("Client: Failed to connect to a server on cluster, retrying ...");
 		    Thread.sleep(1000);
 	    }
+        
+        System.out.println("Contacted server at " + serverInfo.ipAddress + ":" + serverInfo.port);
+
 	    //we are connected.
 	    System.out.println("\n\n -------- Welcome to the Distributed File System Terminal, use: <get> <ls> <put> <put-all> <exit> --------\n");
 	    while(true) {
