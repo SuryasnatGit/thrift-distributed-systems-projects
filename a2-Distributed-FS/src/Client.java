@@ -58,7 +58,7 @@ public class Client {
         System.out.println("Contacted server at " + serverInfo.ipAddress + ":" + serverInfo.port);
 
 	    //we are connected.
-	    System.out.println("\n\n -------- Welcome to the Distributed File System Terminal, use: <get> <ls> <put> <put-all> <exit> --------\n");
+	    System.out.println("\n\n -------- Welcome to the Distributed File System Terminal, use: <read> <ls> <write> <exit> --------\n");
 	    while(true) {
 		if(client.getAndProcessUserInput() == false)
 		    break;
@@ -72,16 +72,12 @@ public class Client {
     private boolean getAndProcessUserInput() throws Exception {
 	String[] input = sc.nextLine().split(" ");
 	switch(input[0]) {
-	case "get" :
-	    fileOperation(input, "get");
+	case "read" :
+	    fileOperation(input, "read");
 	    return true;
 
-	case "put" :
-	    fileOperation(input, "put");
-	    return true;
-
-	case "put-all":
-	    fileOperation(input, "put-all");
+	case "write" :
+	    fileOperation(input, "write");
 	    return true;
 
 	case "ls":
@@ -93,37 +89,32 @@ public class Client {
 	    return false;
 
 	default:
-	    System.out.println("Usage: [<get> OR <put> <filename> ] | <ls> | <put-all> | <exit>");
+	    System.out.println("Usage: [<read> OR <write> <filename> ] | <ls> | <exit>");
 	    return true;
 	}
     }
 
     private void cleanUp() {
-	System.out.println("------- Client: Leaving DHT -------");
+	System.out.println("------- Client: Leaving FileSystem -------");
 	serverTransport.close();
     }
 
     private void fileOperation(String[] input, String op) throws Exception {
-	if(input.length != 2 && !op.equals("put-all") && !op.equals("ls")) {
-	    System.out.println("Usage: [<get> OR <put> <filename> ]");
+	if(input.length != 2 && !op.equals("ls")) {
+	    System.out.println("Usage: [<read> OR <write> <filename> ]");
 	    return;
 	}
 
         switch(op) {
-	case "get":
-	    System.out.println("Client: Reading " + input[1] + " from DHT");
+	case "read":
+	    System.out.println("Client: Reading " + input[1]);
 	    System.out.println("Content :\n    " + server.read(input[1].trim())); //just the filename, no paths allowed
 	    break;
-	case "put":
-	    System.out.println("Client: Writing " + input[1] + " to DHT");
+	case "write":
+	    System.out.println("Client: Writing " + input[1]);
 	    System.out.println("Success: " + writeFile(defaultDir + input[1].trim()));
 	    break;
-	case "put-all":
-	    System.out.println("Loading all files in current directory to DHT..");
-	    for(String filename : listAllFiles(new File(defaultDir)))
-		if(!writeFile(defaultDir + filename))
-		    break;
-	    break;
+
 	case "ls":
 	    System.out.println("Files in " + defaultDir);
 	    for(String filename : listAllFiles(new File(defaultDir)))
@@ -132,31 +123,12 @@ public class Client {
 	}
     }
 
-    private boolean writeFile(String filename) throws Exception {
-	//check if file exists
-	byte[] contents = null; //lol initializing, amirite
-	File file = new File(filename);
-
-	if(!file.exists() || file.isDirectory()) {
-	    System.out.println("Client: Not a file or file doesn't exist.");
+    private boolean writeFile(String filename) throws TException {
+	//writing to DFS first requires reading
+	ByteBuffer contents = Utils.read(filename);
+	if(contents == null)
 	    return false;
-	}
-	try {
-	    //load the contents into a byte array
-	    contents = Files.readAllBytes(Paths.get(filename));
-	}
-	catch(Exception e) {
-	    System.out.println("Client: Failed to read file contents");
-	}
-	finally {
-	    if(contents != null) {
-		filename = Paths.get(filename).getFileName().toString(); //strip any relative paths, just get filenames
-		//send it over the wire
-		System.out.println("New file name " + filename);
-		return server.write(filename, ByteBuffer.wrap(contents));
-	    }
-	    return false;
-	}
+	return server.write(filename, contents);
     }
 
     //Thank you http://stackoverflow.com/a/1846349
