@@ -100,10 +100,10 @@
        </target>
 
        <target name="start-client" depends="build" description="Start Client">
-	 <echo>Starting Client to connect to SuperNode at "${superNode.address}:${superNode.port}"</echo>
+	 <echo>Starting Client to connect to Server/Coordinator at "${coordinator.address}:${coordinator.port} (Coordinator)"</echo>
 	 <java classname="Client">
 	   <classpath refid="master-classpath"/>
-	   <arg line="${superNode.address} ${superNode.port}"/>
+	   <arg line="${coordinator.address} ${coordinator.port}"/>
 	 </java>
        </target>
 
