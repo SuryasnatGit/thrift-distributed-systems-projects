@@ -65,12 +65,12 @@ public class ServerHandler implements Server.Iface{
         Server.Processor processor = new Server.Processor<>(this);
 
         //Set Server Arguments
-        TServer.Args serverArgs = new TServer.Args(serverTransport);
+        TThreadPoolServer.Args serverArgs = new TThreadPoolServer.Args(serverTransport);
         serverArgs.processor(processor); //Set handler
         serverArgs.transportFactory(factory); //Set FramedTransport (for performance)
 
         //Run server with multiple threads
-        TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
+        TServer server = new TThreadPoolServer(serverArgs);
         
         server.serve();
     }
