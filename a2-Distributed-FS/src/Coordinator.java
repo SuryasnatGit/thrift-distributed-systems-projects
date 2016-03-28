@@ -7,19 +7,44 @@ import org.apache.thrift.server.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Queue;
 import java.util.ArrayList;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 
 
+// Request Data objects
+abstract class Request{
+    String type;
+    Machine origin;
+}
+
+class WriteRequest extends Request{
+    public WriteRequest(Machine origin,String filename,ByteBuffer[] contents){
+        this.type = "write";
+    }
+}
+class ReadRequest extends Request{
+    public ReadRequest(Machine origin,String filename){
+        this.type="read";
+    }
+}
+
 public class Coordinator implements Server.Iface {
     HashMap<String,Integer> fs;
     ArrayList<Machine> servers;
     Machine self;
+    // Request Queue
+    Queue<Request> requests;
+    
+    // Variables used for quorum
+    int nr = 0;
+    int nw = 0;
 
     public Coordinator(Integer port) throws Exception {
-	servers = new ArrayList<>();
-
+        // Init Coordinator Data Structures
+	    servers = new ArrayList<>();
+        requests = new Queue<>();
 
         System.out.println("I am the Coordinator");
         
@@ -33,21 +58,43 @@ public class Coordinator implements Server.Iface {
 
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
+        // Get Nr Machines
+        
+        // Lol.
+        
         return false;
     }
     
     @Override
     public String read(String filename) throws TException {
+        // Get Nr Machines 
+        
+        // Find the most recent version number
+        
+        // Connect to the machine read its contents and return it back.
         return "";
     }
 
     @Override
     public boolean enroll(Machine machine) throws TException {
-	System.out.println("ENROLL CALLED ON COORDINAOTR");
-	servers.add(machine);
-	System.out.println(servers.toString());
-	return true;
+        System.out.println("ENROLL CALLED ON COORDINAOTR");
+        servers.add(machine);
+        
+        // Set the quorum variables.
+        nw = servers.size() / 2 + 1
+        nr = nw;
+        
+        System.out.println(servers.toString());
+        return true;
     }
+    
+    // We return a array of references to random machines
+    public ArrayList<Machine> getMachines(n){
+        return null;
+    }
+    
+    
+    
 
     public static void main(String[] args) {
         if(args.length < 1) {
@@ -63,6 +110,10 @@ public class Coordinator implements Server.Iface {
             
 	    //spin up server
             coordinator.start();
+            
+        // Start Looping through and handling request queue.
+            // Depending on request 
+            // Handle it differently.
         }
         catch(Exception e) {
             e.printStackTrace();

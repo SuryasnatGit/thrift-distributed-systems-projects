@@ -17,12 +17,20 @@ public class ServerHandler implements Server.Iface{
 
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
+        // Ask the coordinator
+        
+        // Busy Wait
         return false;
     }
     
     
     @Override
     public String read(String filename) throws TException {
+        // Ask the coordinator
+        
+        // Block till our own content queue has what we want       
+        
+        // Return shit in the content queue that corresponds to us.
         return "";
     }
     
