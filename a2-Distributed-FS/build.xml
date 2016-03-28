@@ -3,8 +3,9 @@
 
 
      <!--Default SuperNode and Node properties-->   
-     <property name="coordinator.address" value="x32-05" />
+     <property name="coordinator.address" value="localhost" />
      <property name="coordinator.port" value="9090"/>
+     <property name="server.port" value="5000" />
      <property name="numservers" value="5"/>
     
      <property name="src.dir" value="src" />
@@ -37,7 +38,7 @@
 	 <parallel>
 	   <daemons>
 	   <sequential>
-	     <java classname="SuperNodeHandler" fork="true">
+	     <java classname="ServerHandler" fork="true">
 	       <classpath refid="master-classpath"/>
 	       <arg line="${superNode.port} ${superNode.minNode}"/>
 	     </java>
@@ -90,11 +91,11 @@
 
        </target>
 
-       <target name="start-supernode" depends="build" description="Start SuperNode">
-	 <echo>Starting SuperNode on Port ${superNode.port} with Minimum of ${superNode.minNode} Nodes</echo>
-	 <java classname="SuperNodeHandler" fork="true">
+       <target name="start-coordinator" depends="build" description="Start Coordinator">
+	 <echo>Starting Coordinator on Port ${coordinator.port} ...</echo>
+	 <java classname="Coordinator" fork="true">
 	   <classpath refid="master-classpath"/>
-	   <arg line="${superNode.port} ${superNode.minNode}"/>
+	   <arg line="${coordinator.port}"/>
 	 </java>
        </target>
 
@@ -106,11 +107,11 @@
 	 </java>
        </target>
 
-       <target name="start-node" depends="build" description="Start Node">
-	 <echo>Starting Node on Port ${node.port} to connect to SuperNode at "${superNode.address}:${superNode.port}"</echo>
-	 <java classname="NodeHandler" fork="true">
+       <target name="start-server" depends="build" description="Start Server">
+	 <echo>Starting Server on Port ${server.port} to connect to Coordinator at "${coordinator.address}:${coordinator.port}"</echo>
+	 <java classname="ServerHandler" fork="true">
 	   <classpath refid="master-classpath"/>
-	   <arg line="${superNode.address} ${superNode.port} ${node.port}"/>
+	   <arg line="${coordinator.address} ${coordinator.port} ${server.port}"/>
 	 </java>
        </target>
 

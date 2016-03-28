@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.io.File;
 import java.nio.file.Paths;
 import java.nio.file.Files;
+import java.nio.ByteBuffer;
 
 public class Client {
 
@@ -28,7 +29,7 @@ public class Client {
 	try {
 	    serverTransport.open();
 	    TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
-	    server = new SuperNode.Client(serverProtocol);
+	    server = new Server.Client(serverProtocol);
 	    return true;
 	}
 	catch(TException e) {
@@ -97,7 +98,7 @@ public class Client {
 
     private void cleanUp() {
 	System.out.println("------- Client: Leaving DHT -------");
-	nodeTransport.close();
+	serverTransport.close();
     }
 
     private void fileOperation(String[] input, String op) throws Exception {
@@ -109,7 +110,7 @@ public class Client {
         switch(op) {
 	case "get":
 	    System.out.println("Client: Reading " + input[1] + " from DHT");
-	    System.out.println("Content :\n    " + node.read(input[1].trim())); //just the filename, no paths allowed
+	    System.out.println("Content :\n    " + server.read(input[1].trim())); //just the filename, no paths allowed
 	    break;
 	case "put":
 	    System.out.println("Client: Writing " + input[1] + " to DHT");
@@ -150,7 +151,7 @@ public class Client {
 		filename = Paths.get(filename).getFileName().toString(); //strip any relative paths, just get filenames
 		//send it over the wire
 		System.out.println("New file name " + filename);
-		return node.write(filename, new String(contents, "utf-8"));
+		return server.write(filename, ByteBuffer.wrap(contents));
 	    }
 	    return false;
 	}
