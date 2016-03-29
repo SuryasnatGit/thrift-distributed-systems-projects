@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.nio.ByteBuffer;
 import java.net.InetAddress;
 
@@ -57,9 +58,10 @@ public class ServerHandler implements Server.Iface{
         // call enroll on superNode to enroll.
         boolean success = coordinator.enroll(self);
 
-	System.out.println("Out of enroll");
 	if(success)
 	    	System.out.println("Node has reported to Coordinator");
+	else
+	    System.out.println("Could not report to Coordinator... damn.");
 
 	coordinatorTransport.close();
     }

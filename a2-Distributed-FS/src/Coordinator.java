@@ -9,33 +9,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 
 
-// Request Data objects
-abstract class Request{
-    String type;
-    Machine origin;
-}
-
-class WriteRequest extends Request{
-    public WriteRequest(Machine origin,String filename,ByteBuffer[] contents){
-        this.type = "write";
-    }
-}
-class ReadRequest extends Request{
-    public ReadRequest(Machine origin,String filename){
-        this.type="read";
-    }
-}
-
 public class Coordinator implements Server.Iface {
     HashMap<String,Integer> fs;
     ArrayList<Machine> servers;
-    Machine self;
     // Request Queue
     Queue<Request> requests;
+    Machine self;
     
     // Variables used for quorum
     int nr = 0;
@@ -43,10 +27,10 @@ public class Coordinator implements Server.Iface {
 
     public Coordinator(Integer port) throws Exception {
         // Init Coordinator Data Structures
-	    servers = new ArrayList<>();
-        requests = new Queue<>();
+	servers = new ArrayList<>();
+        requests = new LinkedList<>();
 
-        System.out.println("I am the Coordinator");
+        System.out.println("I am the Coordinator.");
         
         //Create a Machine data type representing ourselves
         self = new Machine();
@@ -81,7 +65,7 @@ public class Coordinator implements Server.Iface {
         servers.add(machine);
         
         // Set the quorum variables.
-        nw = servers.size() / 2 + 1
+        nw = servers.size() / 2 + 1;
         nr = nw;
         
         System.out.println(servers.toString());
@@ -89,7 +73,7 @@ public class Coordinator implements Server.Iface {
     }
     
     // We return a array of references to random machines
-    public ArrayList<Machine> getMachines(n){
+    public ArrayList<Machine> getMachines(int n){
         return null;
     }
     

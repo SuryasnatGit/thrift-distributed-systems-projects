@@ -4,10 +4,9 @@ import org.apache.thrift.transport.*;
 
 import java.util.Scanner;
 import java.util.ArrayList;
-import java.io.File;
-import java.nio.file.Paths;
-import java.nio.file.Files;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.io.File;
 
 public class Client {
 
@@ -58,7 +57,7 @@ public class Client {
         System.out.println("Contacted server at " + serverInfo.ipAddress + ":" + serverInfo.port);
 
 	    //we are connected.
-	    System.out.println("\n\n -------- Welcome to the Distributed File System Terminal, use: <read> <ls> <write> <exit> --------\n");
+	    System.out.println("\n\n -------- Welcome to the Distributed File System Terminal, use: <read> <write-all> <ls> <write> <exit> --------\n");
 	    while(true) {
 		if(client.getAndProcessUserInput() == false)
 		    break;
@@ -76,6 +75,10 @@ public class Client {
 	    fileOperation(input, "read");
 	    return true;
 
+	case "write-all":
+	    fileOperation(input, "write-all");
+	    return true;
+
 	case "write" :
 	    fileOperation(input, "write");
 	    return true;
@@ -89,7 +92,7 @@ public class Client {
 	    return false;
 
 	default:
-	    System.out.println("Usage: [<read> OR <write> <filename> ] | <ls> | <exit>");
+	    System.out.println("Usage: [<read> OR <write> <filename> ] | <ls> | <write-all> | <exit>");
 	    return true;
 	}
     }
@@ -100,7 +103,7 @@ public class Client {
     }
 
     private void fileOperation(String[] input, String op) throws Exception {
-	if(input.length != 2 && !op.equals("ls")) {
+	if(input.length != 2 && !op.equals("ls") && !op.equals("write-all")) {
 	    System.out.println("Usage: [<read> OR <write> <filename> ]");
 	    return;
 	}
@@ -110,6 +113,7 @@ public class Client {
 	    System.out.println("Client: Reading " + input[1]);
 	    System.out.println("Content :\n    " + server.read(input[1].trim())); //just the filename, no paths allowed
 	    break;
+
 	case "write":
 	    System.out.println("Client: Writing " + input[1]);
 	    System.out.println("Success: " + writeFile(defaultDir + input[1].trim()));
@@ -119,6 +123,15 @@ public class Client {
 	    System.out.println("Files in " + defaultDir);
 	    for(String filename : listAllFiles(new File(defaultDir)))
 		System.out.println(filename);
+	    break;
+
+	case "write-all":
+	    System.out.println("Writing all files in " + defaultDir);
+	    for(String filename : listAllFiles(new File(defaultDir)))
+		if(!writeFile(defaultDir + filename)) {
+		    System.out.println("Something went wrong with writing all files`");
+		    break;
+		}
 	    break;
 	}
     }
