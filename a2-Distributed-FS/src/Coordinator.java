@@ -18,6 +18,9 @@ public class Coordinator implements Server.Iface {
     HashMap<String,Integer> fs;
     ArrayList<Machine> servers;
     Queue<Request> requests; // Request Queue
+    HashMap<Request, response> response; //place to keep checking for response
+
+    Random rand;
     Machine self;
     
     // Variables used for quorum
@@ -28,6 +31,7 @@ public class Coordinator implements Server.Iface {
         // Init Coordinator Data Structures
 	servers = new ArrayList<>();
         requests = new LinkedList<>();
+	rand = new Random();
 
         System.out.println("I am the Coordinator.");
         
@@ -42,15 +46,21 @@ public class Coordinator implements Server.Iface {
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
         // Get Nr Machines
+	List<Machine> quorum = getMachines(nw);
         
-        // Lol.
-        
+        // Check versions of each machine.
+	Integer mostUpdated = -1;
+	for(Machine m : quorum) {
+	    
+	}
+
         return false;
     }
-    
+
     @Override
     public String read(String filename) throws TException {
         // Get Nr Machines 
+	List<Machine> quorum = getMachines(nr);
         
         // Find the most recent version number
         
@@ -60,7 +70,7 @@ public class Coordinator implements Server.Iface {
 
     @Override
     public boolean enroll(Machine machine) throws TException {
-        System.out.println("ENROLL CALLED ON COORDINAOTR");
+        System.out.println("ENROLL CALLED ON COORDINATOR");
         servers.add(machine);
         
         // Set the quorum variables.
@@ -72,12 +82,22 @@ public class Coordinator implements Server.Iface {
     }
     
     // We return a array of references to random machines
-    public ArrayList<Machine> getMachines(int n){
-        return null;
+    // used to assemble a quorum
+    public List<Machine> getMachines(int n){
+	if(n > servers.size())
+	    n = servers.size(); //avoid requesting for more than what we have
+
+	List<Machine> machineList = new ArrayList<>();
+        while(n > 0) {
+	    Machine machine = rand.nextInt(servers.size());
+	    while(machineList.contains(machine))
+		continue;
+	    machineList.add(machine);
+	    n--;
+	}
+
+	return machineList;
     }
-    
-    
-    
 
     public static void main(String[] args) {
         if(args.length < 1) {
@@ -103,7 +123,7 @@ public class Coordinator implements Server.Iface {
         }
     }
 
-        //Begin Thrift Server instance for a Node and listen for connections on our port
+    //Begin Thrift Server instance for a Node and listen for connections on our port
     private void start() throws TException {
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);
@@ -121,4 +141,19 @@ public class Coordinator implements Server.Iface {
         
         server.serve();
     }
+
+    //Processes the Queue
+    private Runnable QueueWatcher = 
+	new Runnable() {
+	    public void run() {
+		while(true) {
+		    synchronized(requests) {
+			while(requests.isEmpty())
+			    requests.wait();
+		  
+		    
+		    }
+		}
+	    }
+	};
 }
