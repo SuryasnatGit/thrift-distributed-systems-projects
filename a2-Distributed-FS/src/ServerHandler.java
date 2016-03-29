@@ -15,7 +15,8 @@ public class ServerHandler implements Server.Iface{
     HashMap<String,Integer> fs;
     Machine self;
     String directory; //name of folder to be written/read to by server
-
+    Machine coordinator;
+    
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
         // Ask the coordinator
@@ -26,13 +27,19 @@ public class ServerHandler implements Server.Iface{
     
     
     @Override
-    public String read(String filename) throws TException {
-        // Ask the coordinator
+    public ByteBuffer read(String filename) throws TException {
+        // Ask the coordinator for a quorum which will return a machine with the file we want to read from.
+        TTransport coordinatorTransport = new TSocket(coordinator.ipAddress, coordinator.port);
+        coordinatorTransport.open();
+        TProtocol coordinatorProtocol = new TBinaryProtocol(new TFramedTransport(coordinatorTransport));
+        Coordinator.Client coord  = new Coordinator.Client(coordinatorProtocol);
         
-        // Block till our own content queue has what we want       
+        // This will block till the quorum is done.
+        ByteBuffer contents = coord.readQuorum(filename);
+        coordinatorTransport.close();        
+        serverTransport.close();
         
-        // Return shit in the content queue that corresponds to us.
-        return "";
+        return contents;
     }
     
     /* only used by the Coordinator, stub */
@@ -42,30 +49,45 @@ public class ServerHandler implements Server.Iface{
         return false;
     }
     
+    @Override
+    public ByteBuffer readQuorum(String filename) throws TException{
+        System.out.println("readQuorum called on server. This should not happen.");
+        return null;
+    }
+    
+    @Override
+    public String writeQuorum(String filename,ByteBuffer contents) throws TException{
+        System.out.println("readQuorum called on server. This should not happen.");
+        return false;
+    }
+    
     /* Constructor for a Server, a Thrift connection is made to the coordinator as well */
     public ServerHandler(String coordinatorIP, Integer coordinatorPort, Integer port) throws Exception {    
         // connect to the coordinator as a client
         TTransport coordinatorTransport = new TSocket(coordinatorIP, coordinatorPort);
         coordinatorTransport.open();
         TProtocol coordinatorProtocol = new TBinaryProtocol(new TFramedTransport(coordinatorTransport));
-        Server.Client coordinator = new Server.Client(coordinatorProtocol);    
-                
+        Server.Client coordinatorClient = new Server.Client(coordinatorProtocol);    
+        this.coordinator = new Machine();
+        this.coordinator.ipAddress = coordinatorIP;
+        this.coordinator.port = coordinatorPort;
+        
         //Create a Machine data type representing ourselves
         self = new Machine();
         self.ipAddress = InetAddress.getLocalHost().getHostName().toString();		
         self.port = port; //yay safe type casting
         
         // call enroll on superNode to enroll.
-        boolean success = coordinator.enroll(self);
+        boolean success = coordinatorClient.enroll(self);
 
-	if(success)
-	    	System.out.println("Node has reported to Coordinator");
-	else
-	    System.out.println("Could not report to Coordinator... damn.");
+        if(success)
+            System.out.println("Node has reported to Coordinator");
+        else
+            System.out.println("Could not report to Coordinator... damn.");
+        
+        directory = Utils.initializeFolder(self);
 
-	directory = Utils.initializeFolder(self);
-
-	coordinatorTransport.close();
+        coordinatorTransport.close();
     }
     	
     //Begin Thrift Server instance for a Node and listen for connections on our port
@@ -99,7 +121,7 @@ public class ServerHandler implements Server.Iface{
             String coordinatorIP = args[0];
             Integer coordinatorPort = Integer.parseInt(args[1]);
            
-	    //port number used by this node.
+	        //port number used by this node.
             Integer port = Integer.parseInt(args[2]);
             
             ServerHandler server = new ServerHandler(coordinatorIP, coordinatorPort,port);
