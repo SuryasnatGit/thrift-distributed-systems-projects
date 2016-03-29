@@ -8,13 +8,13 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.nio.ByteBuffer;
 import java.net.InetAddress;
 
 public class ServerHandler implements Server.Iface{
     HashMap<String,Integer> fs;
     Machine self;
+    String directory; //name of folder to be written/read to by server
 
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
@@ -38,7 +38,7 @@ public class ServerHandler implements Server.Iface{
     /* only used by the Coordinator, stub */
     @Override
     public boolean enroll(Machine machine) throws TException {
-	System.out.println("This should not happen.");
+	System.out.println("Enroll called on server. This should not happen.");
         return false;
     }
     
@@ -63,11 +63,14 @@ public class ServerHandler implements Server.Iface{
 	else
 	    System.out.println("Could not report to Coordinator... damn.");
 
+	directory = Utils.initializeFolder(self);
+
 	coordinatorTransport.close();
     }
     	
     //Begin Thrift Server instance for a Node and listen for connections on our port
     private void start() throws TException {
+
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);
         TTransportFactory factory = new TFramedTransport.Factory();

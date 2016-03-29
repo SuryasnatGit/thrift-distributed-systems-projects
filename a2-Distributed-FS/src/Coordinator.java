@@ -17,8 +17,7 @@ import java.nio.ByteBuffer;
 public class Coordinator implements Server.Iface {
     HashMap<String,Integer> fs;
     ArrayList<Machine> servers;
-    // Request Queue
-    Queue<Request> requests;
+    Queue<Request> requests; // Request Queue
     Machine self;
     
     // Variables used for quorum

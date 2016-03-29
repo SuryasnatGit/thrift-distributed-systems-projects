@@ -60,4 +60,14 @@ public final class Utils {
 	    return null;
 	}
     }
+
+    //Creates a directory using foldername in the current directory
+    // returns the Path name to the dir
+    public static String initializeFolder(Machine self) {
+	File dir = new File(self.ipAddress + "_" + self.port);
+	if(dir.mkdir())
+	    return dir.getName();
+	else 
+	    return null;
+    }
 }
