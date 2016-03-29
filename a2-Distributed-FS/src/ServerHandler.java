@@ -20,9 +20,15 @@ public class ServerHandler implements Server.Iface{
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
         // Ask the coordinator
+        TTransport coordinatorTransport = new TSocket(coordinator.ipAddress, coordinator.port);
+        coordinatorTransport.open();
+        TProtocol coordinatorProtocol = new TBinaryProtocol(new TFramedTransport(coordinatorTransport));
+        Server.Client coord  = new Server.Client(coordinatorProtocol);
         
-        // Busy Wait
-        return false;
+        boolean status = coord.write(filename,contents);
+        coordinatorTransport.close();
+        
+        return status;
     }
     
     
@@ -32,12 +38,12 @@ public class ServerHandler implements Server.Iface{
         TTransport coordinatorTransport = new TSocket(coordinator.ipAddress, coordinator.port);
         coordinatorTransport.open();
         TProtocol coordinatorProtocol = new TBinaryProtocol(new TFramedTransport(coordinatorTransport));
-        Coordinator.Client coord  = new Coordinator.Client(coordinatorProtocol);
+        Server.Client coord  = new Server.Client(coordinatorProtocol);
         
         // This will block till the quorum is done.
-        ByteBuffer contents = coord.readQuorum(filename);
-        coordinatorTransport.close();        
-        serverTransport.close();
+        ByteBuffer contents = coord.read(filename);
+        
+        coordinatorTransport.close();
         
         return contents;
     }
@@ -46,18 +52,6 @@ public class ServerHandler implements Server.Iface{
     @Override
     public boolean enroll(Machine machine) throws TException {
 	System.out.println("Enroll called on server. This should not happen.");
-        return false;
-    }
-    
-    @Override
-    public ByteBuffer readQuorum(String filename) throws TException{
-        System.out.println("readQuorum called on server. This should not happen.");
-        return null;
-    }
-    
-    @Override
-    public String writeQuorum(String filename,ByteBuffer contents) throws TException{
-        System.out.println("readQuorum called on server. This should not happen.");
         return false;
     }
     
