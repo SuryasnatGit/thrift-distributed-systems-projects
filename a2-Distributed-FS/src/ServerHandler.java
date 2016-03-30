@@ -103,6 +103,7 @@ public class ServerHandler implements Server.Iface{
             System.out.println("Could not report to Coordinator... damn.");
         
         directory = Utils.initializeFolder(self);
+	fs = new HashMap<>();
 
         coordinatorTransport.close();
     }

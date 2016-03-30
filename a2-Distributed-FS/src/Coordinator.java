@@ -23,7 +23,6 @@ public class Coordinator implements Server.Iface {
     private Set<Request> subscriptions; //place to keep checking for subscriptions
     private String directory;
 
-
     Random rand;
     Machine self;
     
@@ -48,6 +47,7 @@ public class Coordinator implements Server.Iface {
         servers.add(self);
 
         directory = Utils.initializeFolder(self);
+	fs = new HashMap<>();
     }
 
     @Override
@@ -71,33 +71,43 @@ public class Coordinator implements Server.Iface {
 	//remove since we got the signal
 	subscriptions.remove(req);
 
-	System.out.println("GETTING QUORUM");
+	System.out.println("GETTING QUORUM with nw=" + nw);
 
-        // Get Nr Machines
+        // Get Nw Machines
 	List<Machine> quorum = getMachines(nw);
         
         // Check versions of each machine.
         Integer mostUpdated = -1;
         Machine updatedMachine = null;
-        
+        System.out.println("Machines fetched, go in loop");
         // Loop through each machine in NW and get the latest version.
         for(Machine m : quorum) {
-            TTransport serverTransport = new TSocket(m.ipAddress, m.port);
-            serverTransport.open();
-            TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
-            Server.Client server  = new Server.Client(serverProtocol);
+
+	    Integer version = null;
+
+	    if(!m.equals(self)) {
+
+		System.out.println("Contacting " + m.toString());
+		TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+		serverTransport.open();
+		TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+		Server.Client server  = new Server.Client(serverProtocol);
             
-            // Most Updated Version Number/Machine
-            Integer version = server.getLatestVersion(filename);
+		// Most Updated Version Number/Machine
+		version = server.getLatestVersion(filename);
+		serverTransport.close();
+	    }
+	    else 
+		version = getLatestVersion(filename);
+
+	    System.out.println("version reported is: " + version);
             if(version > mostUpdated){
                 updatedMachine = m;
                 mostUpdated = version;
-            }
-       
-            serverTransport.close();
+            }       
         }
         
-        
+        System.out.println("most updated copy: " + mostUpdated);
         // Update the most updated number
         mostUpdated += 1;
         
@@ -113,7 +123,7 @@ public class Coordinator implements Server.Iface {
             
             serverTransport.close();
         }
-
+	System.out.println("All updated. returning...");
         return true;
     }
 
@@ -206,12 +216,13 @@ public class Coordinator implements Server.Iface {
     public List<Machine> getMachines(int n){
 	if(n > servers.size())
 	    n = servers.size(); //avoid requesting for more than what we have
-
+	System.out.println("getMachines : " + n);
 	List<Machine> machineList = new ArrayList<>();
         while(n > 0) {
 	    Machine machine = servers.get(rand.nextInt(servers.size()));
 	    while(machineList.contains(machine))
-		continue;
+		machine = servers.get(rand.nextInt(servers.size()));
+
 	    machineList.add(machine);
 	    n--;
 	}
