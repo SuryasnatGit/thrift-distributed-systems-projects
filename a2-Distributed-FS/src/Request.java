@@ -10,7 +10,7 @@ public abstract class Request{
 class WriteRequest extends Request{
     
     //holds the data we want to write
-    private ByteBuffer contents;
+    public final ByteBuffer contents;
 
     public WriteRequest(Machine origin, String filename, ByteBuffer contents){
         this.type = "write";

@@ -50,7 +50,7 @@ public class ServerHandler implements Server.Iface{
     
     
     @Override
-    public Boolean update(String filename,Integer version, ByteBuffer contents) throws TException {
+    public boolean update(String filename, int version, ByteBuffer contents) throws TException {
        fs.put(filename,version);
        return Utils.write(directory+filename,contents);
     }
@@ -65,8 +65,8 @@ public class ServerHandler implements Server.Iface{
     
     
     @Override
-    public Integer getLatestVersion(String filename){
-        return fs.get(filename);
+    public int getLatestVersion(String filename){
+        return (fs.containsValue(filename)) ? fs.get(filename) : -1;
     }
     
     @Override

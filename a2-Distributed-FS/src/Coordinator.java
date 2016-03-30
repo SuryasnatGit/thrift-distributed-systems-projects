@@ -12,13 +12,15 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-
+import java.util.Random;
 
 public class Coordinator implements Server.Iface {
     private HashMap<String,Integer> fs;
     private ArrayList<Machine> servers;
     private Queue<Request> requests; // Request Queue
     private HashMap<Request, Response> response; //place to keep checking for response
+    private String directory;
+
 
     Random rand;
     Machine self;
@@ -32,7 +34,7 @@ public class Coordinator implements Server.Iface {
 	servers = new ArrayList<>();
         requests = new LinkedList<>();
 	rand = new Random();
-    response = new HashMap<>();
+	response = new HashMap<>();
 
         System.out.println("I am the Coordinator.");
         
@@ -42,6 +44,8 @@ public class Coordinator implements Server.Iface {
         self.port = port;
         
         servers.add(self);
+
+        directory = Utils.initializeFolder(self);
     }
 
     @Override
@@ -61,7 +65,7 @@ public class Coordinator implements Server.Iface {
             Server.Client server  = new Server.Client(serverProtocol);
             
             // Most Updated Version Number/Machine
-            Integer version = Integer.parseInt(server.getLatestVersion(filename));
+            Integer version = server.getLatestVersion(filename);
             if(version > mostUpdated){
                 updatedMachine = m;
                 mostUpdated = version;
@@ -71,8 +75,8 @@ public class Coordinator implements Server.Iface {
         }
         
         
-        // Update the version number
-        version += 1;
+        // Update the most updated number
+        mostUpdated += 1;
         
        // Loop through each machine in NW and update
         for(Machine m : quorum) {
@@ -82,7 +86,7 @@ public class Coordinator implements Server.Iface {
             Server.Client server  = new Server.Client(serverProtocol);
             
             // Updates all contents in NW.
-            server.update(filename,version,contents);
+            server.update(filename, mostUpdated, contents);
             
             serverTransport.close();
         }
@@ -91,7 +95,7 @@ public class Coordinator implements Server.Iface {
     }
 
     @Override
-    public String read(String filename) throws TException {
+    public ByteBuffer read(String filename) throws TException {
         // Get Nr Machines
 	List<Machine> quorum = getMachines(nr);
         
@@ -107,7 +111,7 @@ public class Coordinator implements Server.Iface {
             Server.Client server  = new Server.Client(serverProtocol);
             
             // Version number
-            Integer version = Integer.parseInt(server.getLatestVersion(filename));
+            Integer version = server.getLatestVersion(filename);
             if(version > mostUpdated){
                 updatedMachine = m;
                 mostUpdated = version;
@@ -128,6 +132,13 @@ public class Coordinator implements Server.Iface {
         return contents;   
     }
 
+    
+    @Override
+    public boolean update(String filename, int version, ByteBuffer contents) throws TException {
+       fs.put(filename,version);
+       return Utils.write(directory+filename,contents);
+    }
+
     @Override
     public boolean enroll(Machine machine) throws TException {
         System.out.println("ENROLL CALLED ON COORDINATOR");
@@ -141,6 +152,18 @@ public class Coordinator implements Server.Iface {
         return true;
     }
     
+    @Override
+    public ByteBuffer directRead(String filename) {
+	System.err.println("Direct Read on Coordinator Not implemented");
+	return null;
+    }
+
+
+    @Override
+    public int getLatestVersion(String filename){
+        return (fs.containsValue(filename)) ? fs.get(filename) : -1;
+    }
+
     // We return a array of references to random machines
     // used to assemble a quorum
     public List<Machine> getMachines(int n){
@@ -149,7 +172,7 @@ public class Coordinator implements Server.Iface {
 
 	List<Machine> machineList = new ArrayList<>();
         while(n > 0) {
-	    Machine machine = rand.nextInt(servers.size());
+	    Machine machine = servers.get(rand.nextInt(servers.size()));
 	    while(machineList.contains(machine))
 		continue;
 	    machineList.add(machine);

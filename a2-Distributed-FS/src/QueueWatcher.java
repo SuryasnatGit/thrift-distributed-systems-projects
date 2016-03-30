@@ -2,6 +2,7 @@
 //let's just do one for now because more threads and runnables on top of Thrift's mutlithreading
 //  is a scary beast I have not tamed.
 import java.util.*;
+import java.nio.ByteBuffer;
 
 class QueueWatcher extends Thread {
     private static int instance = 0;
@@ -29,14 +30,14 @@ class QueueWatcher extends Thread {
 		    process(req);
 		}
 	    }
-	    catch(InterruptedException ie) {
-		ie.printStackTrace();
+	    catch(Exception e) {
+		e.printStackTrace();
 		break;
 	    }
 	}
     }
 
-    private void process(Request req) {
+    private void process(Request req) throws Exception {
 	if(req.type.equals("read")) {
 	    ByteBuffer result = coordinatorInstance.read(req.filename);
 	    Boolean success = (result != null) ? true : false;
@@ -45,7 +46,9 @@ class QueueWatcher extends Thread {
 	}
 
 	else if(req.type.equals("write")) {
-	    Boolean success = coordinatorInstance.write(req.filename, req.contents);
+	    //type cast to access member variable
+	    WriteRequest wreq = (WriteRequest) req;
+	    Boolean success = coordinatorInstance.write(wreq.filename, wreq.contents);
 	    response.put(req, new WriteResponse(req.origin, success));
 	}
 

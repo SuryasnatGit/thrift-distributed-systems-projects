@@ -7,14 +7,7 @@ public abstract class Response {
     Boolean status;
 }
 
-class WriteResponse extends Response{
-    
-    public WriteResponse(Machine origin, Boolean status){
-        this.type = "write";
-        this.origin = origin;
-        this.status = status;
-    }
-}
+
 
 class ReadResponse extends Response {
     //holds the data we want to write
