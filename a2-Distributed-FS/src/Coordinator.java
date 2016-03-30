@@ -98,7 +98,7 @@ public class Coordinator implements Server.Iface {
 		serverTransport.close();
 	    }
 	    else 
-		version = getLatestVersion(filename);
+		version = this.getLatestVersion(filename);
 
 	    System.out.println("version reported is: " + version);
             if(version > mostUpdated){
@@ -113,16 +113,22 @@ public class Coordinator implements Server.Iface {
         
        // Loop through each machine in NW and update
         for(Machine m : quorum) {
-            TTransport serverTransport = new TSocket(m.ipAddress, m.port);
-            serverTransport.open();
-            TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
-            Server.Client server  = new Server.Client(serverProtocol);
+
+	    if(!m.equals(self)) {
+
+		TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+		serverTransport.open();
+		TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+		Server.Client server  = new Server.Client(serverProtocol);
             
-            // Updates all contents in NW.
-            server.update(filename, mostUpdated, contents);
+		// Updates all contents in NW.
+		server.update(filename, mostUpdated, contents);
             
-            serverTransport.close();
-        }
+		serverTransport.close();
+	    }
+	    else 
+		this.update(filename, mostUpdated, contents);
+	}
 	System.out.println("All updated. returning...");
         return true;
     }
@@ -148,34 +154,53 @@ public class Coordinator implements Server.Iface {
         // Check versions of each machine.
         Integer mostUpdated = -1;
         Machine updatedMachine = null;
-        
+        System.out.println("read: looping all machines ");
         // Loop through each machine in NR and get the latest version.
         for(Machine m : quorum) {
-            TTransport serverTransport = new TSocket(m.ipAddress, m.port);
-            serverTransport.open();
-            TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
-            Server.Client server  = new Server.Client(serverProtocol);
-            
-            // Version number
-            Integer version = server.getLatestVersion(filename);
 
+	    Integer version = null;
+
+	    if(!m.equals(self)) {
+
+		System.out.println("Contacting " + m.toString());
+		TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+		serverTransport.open();
+		TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+		Server.Client server  = new Server.Client(serverProtocol);
+            
+		// Most Updated Version Number/Machine
+		version = server.getLatestVersion(filename);
+		serverTransport.close();
+	    }
+	    else 
+		version = getLatestVersion(filename);
+
+	    System.out.println("version reported is: " + version);
             if(version > mostUpdated){
                 updatedMachine = m;
                 mostUpdated = version;
-            }
-            
-            serverTransport.close();
+            }       
         }
+
+	ByteBuffer contents = null;
+
+	if(mostUpdated == -1){ //doesn't exist
+	    System.out.println(filename + " doesn't exist in quorumed servers");
+	    return ByteBuffer.wrap("NULL".getBytes());
+	}
         
-        TTransport serverTransport = new TSocket(updatedMachine.ipAddress, updatedMachine.port);
-        serverTransport.open();
-        TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
-        Server.Client server  = new Server.Client(serverProtocol);
+	if(updatedMachine.equals(self))
+	   contents = this.directRead(filename);
+	else {
+	    TTransport serverTransport = new TSocket(updatedMachine.ipAddress, updatedMachine.port);
+	    serverTransport.open();
+	    TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+	    Server.Client server  = new Server.Client(serverProtocol);
         
-        // Get the contents of the most updated Machine
-        ByteBuffer contents = server.directRead(filename);
-        
-        serverTransport.close();
+	    // Get the contents of the most updated Machine
+	    contents = server.directRead(filename);
+	    serverTransport.close();
+	}
         return contents;   
     }
 
@@ -208,7 +233,7 @@ public class Coordinator implements Server.Iface {
 
     @Override
     public int getLatestVersion(String filename){
-        return (fs.containsValue(filename)) ? fs.get(filename) : -1;
+        return (fs.containsKey(filename)) ? fs.get(filename) : -1;
     }
 
     // We return a array of references to random machines

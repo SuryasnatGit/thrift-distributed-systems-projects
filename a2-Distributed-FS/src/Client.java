@@ -112,7 +112,11 @@ public class Client {
 	case "read":
 	    System.out.println("Client: Reading " + input[1]);
 	    ByteBuffer content = server.read(input[1].trim());
-	    System.out.println("Content :\n    " + new String(content.array())); //just the filename, no paths allowed
+	    String result = new String(content.array());
+	    if(result.equals("NULL"))
+		System.out.println("File does not exist in DFS");
+	    else
+		System.out.println("Content :\n    " + new String(content.array())); //just the filename, no paths allowed
 	    break;
 
 	case "write":

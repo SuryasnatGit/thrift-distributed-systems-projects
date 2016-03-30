@@ -46,10 +46,10 @@ public class ServerHandler implements Server.Iface{
         
         // This will block till the quorum is done.
         ByteBuffer contents = coord.read(filename);
-        
+
         coordinatorTransport.close();
         
-        return contents;
+        return contents; //can be a ByteBuffer with null byte
     }
     
     
@@ -71,7 +71,7 @@ public class ServerHandler implements Server.Iface{
     
     @Override
     public int getLatestVersion(String filename){
-        return (fs.containsValue(filename)) ? fs.get(filename) : -1;
+        return (fs.containsKey(filename)) ? fs.get(filename) : -1;
     }
     
     @Override
