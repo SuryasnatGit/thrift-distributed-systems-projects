@@ -15,11 +15,11 @@ import java.nio.ByteBuffer;
 
 
 public class Coordinator implements Server.Iface {
-    HashMap<String,Integer> fs;
-    ArrayList<Machine> servers;
-    Queue<Request> requests; // Request Queue
-    HashMap<Request, Response> response; //place to keep checking for response
-    
+    private HashMap<String,Integer> fs;
+    private ArrayList<Machine> servers;
+    private Queue<Request> requests; // Request Queue
+    private HashMap<Request, Response> response; //place to keep checking for response
+
     Random rand;
     Machine self;
     
@@ -31,8 +31,8 @@ public class Coordinator implements Server.Iface {
         // Init Coordinator Data Structures
 	servers = new ArrayList<>();
         requests = new LinkedList<>();
-	rand = new Random()
-    response = new HashMap<>();
+	rand = new Random();
+	response = new HashMap<>();
 
         System.out.println("I am the Coordinator.");
         
@@ -47,7 +47,7 @@ public class Coordinator implements Server.Iface {
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
         // Get Nr Machines
-	    List<Machine> quorum = getMachines(nw);
+	List<Machine> quorum = getMachines(nw);
         
         // Check versions of each machine.
         Integer mostUpdated = -1;
@@ -93,7 +93,7 @@ public class Coordinator implements Server.Iface {
     @Override
     public String read(String filename) throws TException {
         // Get Nr Machines
-	    List<Machine> quorum = getMachines(nr);
+	List<Machine> quorum = getMachines(nr);
         
         // Check versions of each machine.
         Integer mostUpdated = -1;
@@ -176,6 +176,10 @@ public class Coordinator implements Server.Iface {
 
     //Begin Thrift Server instance for a Node and listen for connections on our port
     private void start() throws TException {
+	// start up thread that watches a queue, explicitly pass private references
+	QueueWatcher watcher = new QueueWatcher(this.requests, this.response, this);
+	watcher.start();
+
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);
         TTransportFactory factory = new TFramedTransport.Factory();
@@ -192,19 +196,4 @@ public class Coordinator implements Server.Iface {
         
         server.serve();
     }
-
-    //Processes the Queue
-    private Runnable QueueWatcher = 
-	new Runnable() {
-	    public void run() {
-		while(true) {
-		    synchronized(requests) {
-			while(requests.isEmpty())
-			    requests.wait();
-		  
-		    
-		    }
-		}
-	    }
-	};
 }
