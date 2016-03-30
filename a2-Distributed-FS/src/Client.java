@@ -111,12 +111,13 @@ public class Client {
         switch(op) {
 	case "read":
 	    System.out.println("Client: Reading " + input[1]);
-	    System.out.println("Content :\n    " + server.read(input[1].trim())); //just the filename, no paths allowed
+	    ByteBuffer content = server.read(input[1].trim());
+	    System.out.println("Content :\n    " + new String(content.array())); //just the filename, no paths allowed
 	    break;
 
 	case "write":
 	    System.out.println("Client: Writing " + input[1]);
-	    System.out.println("Success: " + writeFile(defaultDir + input[1].trim()));
+	    System.out.println("Success: " + writeFile(input[1].trim()));
 	    break;
 
 	case "ls":
@@ -128,7 +129,7 @@ public class Client {
 	case "write-all":
 	    System.out.println("Writing all files in " + defaultDir);
 	    for(String filename : listAllFiles(new File(defaultDir)))
-		if(!writeFile(defaultDir + filename)) {
+		if(!writeFile(filename)) {
 		    System.out.println("Something went wrong with writing all files`");
 		    break;
 		}
@@ -138,7 +139,7 @@ public class Client {
 
     private boolean writeFile(String filename) throws TException {
 	//writing to DFS first requires reading
-	ByteBuffer contents = Utils.read(filename);
+	ByteBuffer contents = Utils.read(defaultDir + filename);
 	if(contents == null)
 	    return false;
 	System.out.println("Performing RPC Call to deez server");

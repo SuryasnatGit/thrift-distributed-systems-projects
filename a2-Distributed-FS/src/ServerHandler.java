@@ -55,6 +55,7 @@ public class ServerHandler implements Server.Iface{
     
     @Override
     public boolean update(String filename, int version, ByteBuffer contents) throws TException {
+	System.out.println("Updating file.");
        fs.put(filename,version);
        return Utils.write(directory+filename,contents);
     }

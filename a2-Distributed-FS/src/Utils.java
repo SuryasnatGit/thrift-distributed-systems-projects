@@ -67,7 +67,9 @@ public final class Utils {
 	File dir = new File(self.ipAddress + "_" + self.port);
 	if(dir.mkdir())
 	    return dir.getName() + "/";
-	else 
-	    return null;
+	else {
+	    System.out.println("Did not mkdir: " + dir.toString() + " maybe it already exists?");
+	    return dir.getName() + "/";
+	}
     }
 }
