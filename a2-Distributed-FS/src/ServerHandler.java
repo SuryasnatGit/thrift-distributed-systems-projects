@@ -105,7 +105,6 @@ public class ServerHandler implements Server.Iface{
     	
     //Begin Thrift Server instance for a Node and listen for connections on our port
     private void start() throws TException {
-
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);
         TTransportFactory factory = new TFramedTransport.Factory();
