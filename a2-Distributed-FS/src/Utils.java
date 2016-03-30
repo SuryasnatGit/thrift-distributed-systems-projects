@@ -45,19 +45,23 @@ public final class Utils {
 	File file = new File(filepath);
 
 	if(!file.exists() || file.isDirectory()) {
-	    System.out.println("Util: Not a file or file doesn't exist. Returning null, which could crash thrift");
-	    return null;
+	    System.out.println("UtilREAD: Not a file or file doesn't exist. Returning NULL");
+	    return ByteBuffer.wrap("NULL".getBytes());
 	}
 
 	try {
 	    //load the contents into a byte array
 	    contents = Files.readAllBytes(Paths.get(filepath));
 
+	    System.out.println("UtilREAD contents: " + new String(contents));
+
+
 	    return ByteBuffer.wrap(contents);
 	}
 	catch(Exception e) {
 	    System.out.println("Util: Failed to read file contents .. returning null");
-	    return null;
+	    e.printStackTrace();
+	    return ByteBuffer.wrap("NULL".getBytes());
 	}
     }
 

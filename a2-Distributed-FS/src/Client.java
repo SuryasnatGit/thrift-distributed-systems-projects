@@ -116,7 +116,7 @@ public class Client {
 	    if(result.equals("NULL"))
 		System.out.println("File does not exist in DFS");
 	    else
-		System.out.println("Content :\n    " + new String(content.array())); //just the filename, no paths allowed
+		System.out.println("Content :\n    " + new String(content)); //just the filename, no paths allowed
 	    break;
 
 	case "write":

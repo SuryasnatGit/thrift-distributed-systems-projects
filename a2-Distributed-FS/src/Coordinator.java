@@ -226,8 +226,7 @@ public class Coordinator implements Server.Iface {
     
     @Override
     public ByteBuffer directRead(String filename) {
-	System.err.println("Direct Read on Coordinator Not implemented");
-	return null;
+        return Utils.read(directory+filename);
     }
 
 

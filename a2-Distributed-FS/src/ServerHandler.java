@@ -70,12 +70,12 @@ public class ServerHandler implements Server.Iface{
     
     
     @Override
-    public int getLatestVersion(String filename){
+    public int getLatestVersion(String filename) {
         return (fs.containsKey(filename)) ? fs.get(filename) : -1;
     }
     
     @Override
-    public ByteBuffer directRead(String filename){
+    public ByteBuffer directRead(String filename) {
         return Utils.read(directory+filename);
     }
     
