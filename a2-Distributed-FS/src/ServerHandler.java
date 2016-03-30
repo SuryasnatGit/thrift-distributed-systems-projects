@@ -48,11 +48,25 @@ public class ServerHandler implements Server.Iface{
         return contents;
     }
     
+    
+    @Override
+    public boolean update(String filename,Integer version, ByteBuffer contents) throws TException {
+	   return 1;
+    }
+    
     /* only used by the Coordinator, stub */
     @Override
     public boolean enroll(Machine machine) throws TException {
 	System.out.println("Enroll called on server. This should not happen.");
         return false;
+    }
+    
+    
+    @Override
+    public Integer getLatestVersion(String filename){
+        String contents = Utils.read(filename);
+        String[] lines.split("\n");
+        return Interger.parseInt(lines[0]);
     }
     
     /* Constructor for a Server, a Thrift connection is made to the coordinator as well */

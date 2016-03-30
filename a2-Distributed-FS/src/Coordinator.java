@@ -47,26 +47,76 @@ public class Coordinator implements Server.Iface {
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
         // Get Nr Machines
-	List<Machine> quorum = getMachines(nw);
+	    List<Machine> quorum = getMachines(nw);
         
         // Check versions of each machine.
-	Integer mostUpdated = -1;
-	for(Machine m : quorum) {
-	    
-	}
+        Integer mostUpdated = -1;
+        Machine updatedMachine = null;
+        
+        // Loop through each machine in NW and get the latest version.
+        for(Machine m : quorum) {
+            TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+            serverTransport.open();
+            TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+            Server.Client server  = new Server.Client(serverProtocol);
+            
+            // Most Updated Version Number/Machine
+            Integer version = Integer.parseInt(server.getLatestVersion(filename));
+            if(version > mostUpdated){
+                updatedMachine = m;
+                mostUpdated = version;
+            }
+       
+            serverTransport.close();
+        }
+        
+        
+        // Update the version number
+        version += 1;
+        
+       // Loop through each machine in NW and update
+        for(Machine m : quorum) {
+            TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+            serverTransport.open();
+            TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+            Server.Client server  = new Server.Client(serverProtocol);
+            
+            // Updates all contents in NW.
+            server.update(filename,version,contents);
+            
+            serverTransport.close();
+        }
 
-        return false;
+        return true;
     }
 
     @Override
     public String read(String filename) throws TException {
-        // Get Nr Machines 
-	List<Machine> quorum = getMachines(nr);
+        // Get Nr Machines
+	    List<Machine> quorum = getMachines(nr);
         
-        // Find the most recent version number
+        // Check versions of each machine.
+        Integer mostUpdated = -1;
+        Machine updatedMachine = null;
         
-        // Connect to the machine read its contents and return it back.
-        return "";
+        // Loop through each machine in NR and get the latest version.
+        for(Machine m : quorum) {
+            TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+            serverTransport.open();
+            TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+            Server.Client server  = new Server.Client(serverProtocol);
+            
+            // Version number
+            Integer version = Integer.parseInt(server.getLatestVersion(filename));
+            if(version > mostUpdated){
+                updatedMachine = m;
+                mostUpdated = version;
+            }
+            
+            serverTransport.close();
+        }
+
+        return version;
     }
 
     @Override
