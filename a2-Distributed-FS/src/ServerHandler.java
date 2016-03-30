@@ -19,13 +19,17 @@ public class ServerHandler implements Server.Iface{
     
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
+	System.out.println("Write on server called !!!");
         // Ask the coordinator
         TTransport coordinatorTransport = new TSocket(coordinator.ipAddress, coordinator.port);
         coordinatorTransport.open();
         TProtocol coordinatorProtocol = new TBinaryProtocol(new TFramedTransport(coordinatorTransport));
         Server.Client coord  = new Server.Client(coordinatorProtocol);
         
+	System.out.println("TALKING TO COORDINATOR");
+
         boolean status = coord.write(filename,contents);
+
         coordinatorTransport.close();
         
         return status;

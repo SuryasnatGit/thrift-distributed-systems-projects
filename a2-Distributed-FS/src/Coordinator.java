@@ -6,6 +6,8 @@ import org.apache.thrift.server.*;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.ArrayList;
@@ -18,7 +20,7 @@ public class Coordinator implements Server.Iface {
     private HashMap<String,Integer> fs;
     private ArrayList<Machine> servers;
     private Queue<Request> requests; // Request Queue
-    private HashMap<Request, Response> response; //place to keep checking for response
+    private Set<Request> subscriptions; //place to keep checking for subscriptions
     private String directory;
 
 
@@ -34,7 +36,7 @@ public class Coordinator implements Server.Iface {
 	servers = new ArrayList<>();
         requests = new LinkedList<>();
 	rand = new Random();
-	response = new HashMap<>();
+	subscriptions = new HashSet<>();
 
         System.out.println("I am the Coordinator.");
         
@@ -50,6 +52,27 @@ public class Coordinator implements Server.Iface {
 
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
+
+	System.out.println("Coordinator Write called, synching req");
+
+	WriteRequest req = new WriteRequest(filename, contents);
+	//put the request into the request queue
+	synchronized(requests) {
+	    requests.add(req);
+	    requests.notify();
+	}
+
+	System.out.println("TIME TO WAIT FOR A REPLY, like Danh");
+	
+	while(!subscriptions.contains(req)); //wait
+
+	System.out.println("JIAO YUE REPLIED!!! ");
+
+	//remove since we got the signal
+	subscriptions.remove(req);
+
+	System.out.println("GETTING QUORUM");
+
         // Get Nr Machines
 	List<Machine> quorum = getMachines(nw);
         
@@ -96,6 +119,19 @@ public class Coordinator implements Server.Iface {
 
     @Override
     public ByteBuffer read(String filename) throws TException {
+	ReadRequest req = new ReadRequest(filename);
+	//put the request into the request queue
+	synchronized(requests) {
+	    requests.add(req);
+	    requests.notify();
+	}
+	
+
+	while(!subscriptions.contains(req)); //wait
+
+	//remove since we got the signal
+	subscriptions.remove(req);
+
         // Get Nr Machines
 	List<Machine> quorum = getMachines(nr);
         
@@ -112,6 +148,7 @@ public class Coordinator implements Server.Iface {
             
             // Version number
             Integer version = server.getLatestVersion(filename);
+
             if(version > mostUpdated){
                 updatedMachine = m;
                 mostUpdated = version;
@@ -209,8 +246,10 @@ public class Coordinator implements Server.Iface {
     //Begin Thrift Server instance for a Node and listen for connections on our port
     private void start() throws TException {
 	// start up thread that watches a queue, explicitly pass private references
-	QueueWatcher watcher = new QueueWatcher(this.requests, this.response, this);
+	QueueWatcher watcher = new QueueWatcher(this.requests, this.subscriptions, this);
 	watcher.start();
+
+	System.out.println("Watcher thread started ..");
 
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);
@@ -226,6 +265,7 @@ public class Coordinator implements Server.Iface {
         //Run server with multiple threads
         TServer server = new TThreadPoolServer(serverArgs);
         
+	System.out.println("Coordinator is listening ... ");
         server.serve();
     }
 }

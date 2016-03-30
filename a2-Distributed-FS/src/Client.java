@@ -141,6 +141,7 @@ public class Client {
 	ByteBuffer contents = Utils.read(filename);
 	if(contents == null)
 	    return false;
+	System.out.println("Performing RPC Call to deez server");
 	return server.write(filename, contents);
     }
 

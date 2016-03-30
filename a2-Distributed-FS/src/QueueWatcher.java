@@ -7,12 +7,12 @@ import java.nio.ByteBuffer;
 class QueueWatcher extends Thread {
     private static int instance = 0;
     private final Queue<Request> requests; //synchronized
-    private final Map<Request, Response> response; //NOT synchronized
+    private final Set<Request> subscriptions; //NOT synchronized, ServerHandler threads wait here.
     private final Coordinator coordinatorInstance;
 
-    public QueueWatcher(Queue<Request> requests, Map<Request, Response> response, Coordinator coordinatorInstance) {
+    public QueueWatcher(Queue<Request> requests, Set<Request> subscriptions, Coordinator coordinatorInstance) {
 	this.requests = requests;
-	this.response = response;
+	this.subscriptions = subscriptions;
 	this.coordinatorInstance = coordinatorInstance;
 	setName("QueueWatcher Thread: " + (instance++));
     }
@@ -22,12 +22,13 @@ class QueueWatcher extends Thread {
 	while(true) {
 	    try {
 		Request req = null;
+		System.out.println("Watcher : entering synch");
 		synchronized (requests) {
 		    while(requests.isEmpty())
 			requests.wait();
 
 		    req = requests.remove();
-		    process(req);
+		    subscriptions.add(req);
 		}
 	    }
 	    catch(Exception e) {
@@ -36,23 +37,30 @@ class QueueWatcher extends Thread {
 	    }
 	}
     }
-
+    /*
     private void process(Request req) throws Exception {
 	if(req.type.equals("read")) {
+
+	    subscriptions.put(req, new ReadResponse(req.origin, success, result));
+
 	    ByteBuffer result = coordinatorInstance.read(req.filename);
 	    Boolean success = (result != null) ? true : false;
+
+	    System.out.println("Status of read: " + success + ". Putting read Response");
 	    
-	    response.put(req, new ReadResponse(req.origin, success, result));
+	    
 	}
 
 	else if(req.type.equals("write")) {
 	    //type cast to access member variable
 	    WriteRequest wreq = (WriteRequest) req;
 	    Boolean success = coordinatorInstance.write(wreq.filename, wreq.contents);
+	    System.out.println("Status of write: " + success + ". Putting write Response");
 	    response.put(req, new WriteResponse(req.origin, success));
 	}
 
 	else 
 	    throw new Exception("Unknown Request");
     }
+    */
 }
