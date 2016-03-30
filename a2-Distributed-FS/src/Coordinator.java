@@ -31,7 +31,8 @@ public class Coordinator implements Server.Iface {
         // Init Coordinator Data Structures
 	servers = new ArrayList<>();
         requests = new LinkedList<>();
-	rand = new Random();
+	rand = new Random()
+    response = new HashMap<>();
 
         System.out.println("I am the Coordinator.");
         
