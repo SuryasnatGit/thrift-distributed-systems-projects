@@ -31,7 +31,7 @@ public class Coordinator implements Server.Iface {
         // Init Coordinator Data Structures
 	servers = new ArrayList<>();
         requests = new LinkedList<>();
-	rand = new Random()
+	rand = new Random();
     response = new HashMap<>();
 
         System.out.println("I am the Coordinator.");
@@ -115,8 +115,17 @@ public class Coordinator implements Server.Iface {
             
             serverTransport.close();
         }
-
-        return version;
+        
+        TTransport serverTransport = new TSocket(updatedMachine.ipAddress, updatedMachine.port);
+        serverTransport.open();
+        TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+        Server.Client server  = new Server.Client(serverProtocol);
+        
+        // Get the contents of the most updated Machine
+        ByteBuffer contents = server.directRead(filename);
+        
+        serverTransport.close();
+        return contents;   
     }
 
     @Override

@@ -50,9 +50,11 @@ public class ServerHandler implements Server.Iface{
     
     
     @Override
-    public boolean update(String filename,Integer version, ByteBuffer contents) throws TException {
-	   return 1;
+    public Boolean update(String filename,Integer version, ByteBuffer contents) throws TException {
+       fs.put(filename,version);
+       return Utils.write(directory+filename,contents);
     }
+    
     
     /* only used by the Coordinator, stub */
     @Override
@@ -64,9 +66,12 @@ public class ServerHandler implements Server.Iface{
     
     @Override
     public Integer getLatestVersion(String filename){
-        String contents = Utils.read(filename);
-        String[] lines.split("\n");
-        return Interger.parseInt(lines[0]);
+        return fs.get(filename);
+    }
+    
+    @Override
+    public ByteBuffer directRead(String filename){
+        return Utils.read(directory+filename);
     }
     
     /* Constructor for a Server, a Thrift connection is made to the coordinator as well */

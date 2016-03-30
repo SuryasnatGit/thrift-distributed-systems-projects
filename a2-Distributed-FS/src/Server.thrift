@@ -5,5 +5,6 @@ service Server {
     binary read(1: string filename),
     bool enroll(1: shared.Machine machine),
     i32 getLatestVersion(1: string filename),
-    bool update(1: string filename,2: i32 version,3: binary contents)
+    bool update(1: string filename,2: i32 version,3: binary contents),
+    binary directRead(1: string filename)
 }

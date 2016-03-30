@@ -66,7 +66,7 @@ public final class Utils {
     public static String initializeFolder(Machine self) {
 	File dir = new File(self.ipAddress + "_" + self.port);
 	if(dir.mkdir())
-	    return dir.getName();
+	    return dir.getName() + "/";
 	else 
 	    return null;
     }
