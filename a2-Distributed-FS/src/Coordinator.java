@@ -18,8 +18,8 @@ public class Coordinator implements Server.Iface {
     HashMap<String,Integer> fs;
     ArrayList<Machine> servers;
     Queue<Request> requests; // Request Queue
-    HashMap<Request, response> response; //place to keep checking for response
-
+    HashMap<Request, Response> response; //place to keep checking for response
+    
     Random rand;
     Machine self;
     
