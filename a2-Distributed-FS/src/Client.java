@@ -147,11 +147,11 @@ public class Client {
 
     private boolean writeFile(String filename) throws TException {
 	//writing to DFS first requires reading
-	ByteBuffer contents = Utils.read(defaultDir + filename);
-	if(contents == null)
-	    return false;
-	System.out.println("Performing RPC Call to deez server");
-	return server.write(filename, contents);
+        ByteBuffer contents = Utils.read(defaultDir + filename);
+        if(contents == null)
+            return false;
+        System.out.println("Performing RPC Call to deez server");
+        return server.write(filename, contents);
     }
 
     //Thank you http://stackoverflow.com/a/1846349

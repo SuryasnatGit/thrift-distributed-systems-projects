@@ -235,7 +235,10 @@ public class Coordinator implements Server.Iface {
     
     @Override
     public ByteBuffer directRead(String filename) {
-        return Utils.read(directory+filename);
+        ByteBuffer contents = Utils.read(directory+filename);
+        if(contents == null)
+            return ByteBuffer.wrap("NULL".getBytes());
+        return contents;
     }
 
 

@@ -41,31 +41,25 @@ public final class Utils {
     
     //raw read to local system, does not do ant RPC calls
     public static ByteBuffer read(String filepath) {
-	byte[] contents = null; //lol initializing, amirite
-	File file = new File(filepath);
+        byte[] contents = null; //lol initializing, amirite
+        File file = new File(filepath);
 
-	if(!file.exists() || file.isDirectory()) {
-	    System.out.println("UtilREAD: Not a file or file doesn't exist. Returning NULL");
-	    return ByteBuffer.wrap("NULL".getBytes());
-	}
+        if(!file.exists() || file.isDirectory())
+            return null;
 
-	try {
-	    //load the contents into a byte array
-	    contents = Files.readAllBytes(Paths.get(filepath));
+        try {
+            //load the contents into a byte array
+            contents = Files.readAllBytes(Paths.get(filepath));
 
-	    System.out.println("UtilREAD contents: " + new String(contents));
+            System.out.println("UtilREAD contents: " + new String(contents));
 
-	    ByteBuffer bb = ByteBuffer.wrap(contents);
-	    if(bb.array() != contents)
-		throw new Exception("NOT THE SAME THING ");
-
-	    return ByteBuffer.wrap(contents);
-	}
-	catch(Exception e) {
-	    System.out.println("Util: Failed to read file contents .. returning null");
-	    e.printStackTrace();
-	    return ByteBuffer.wrap("NULL".getBytes());
-	}
+            return ByteBuffer.wrap(contents);
+        }
+        catch(Exception e) {
+            System.out.println("Util: Failed to read file contents .. returning null");
+            e.printStackTrace();
+            return null;
+        }
     }
 
     //Creates a directory using foldername in the current directory
