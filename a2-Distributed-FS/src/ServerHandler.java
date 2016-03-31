@@ -79,6 +79,33 @@ public class ServerHandler implements Server.Iface{
         return Utils.read(directory+filename);
     }
     
+    @Override
+    public HashMap<String,Integer> ls() {
+        return fs;
+    }
+    
+    @Override
+    public boolean sync (HashMap<String,String> globalFS){
+        // Look into FS
+        Iterator it = globalFS.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+	        Integer version = (Integer) pair.getValue();
+            String filename = (String) pair.getKey();
+            
+            if(fs.containsKey(filename)){
+                // instant put
+            }else{
+                // compare 
+            }
+                
+            
+        }
+        // Find matching files 
+        
+        // Update your files if version > current
+    }
+    
     /* Constructor for a Server, a Thrift connection is made to the coordinator as well */
     public ServerHandler(String coordinatorIP, Integer coordinatorPort, Integer port) throws Exception {    
         // connect to the coordinator as a client
