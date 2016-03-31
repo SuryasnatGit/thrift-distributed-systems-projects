@@ -11,6 +11,10 @@
      <property name="src.dir" value="src" />
      <property name="build.dir" value = "bin"/>
      <property name="thrift.install" value="/usr/local/Thrift/" />
+     
+     <!-- CHANGE THESE VALUES -->   
+     <property name="NR" value="${numservers}"/>
+     <property name="NW" value="${numservers}"/>
 
        <target name="info">
 	 <echo>A Quorum Based Distributed File System</echo>
@@ -109,7 +113,7 @@
 	 <echo>Starting Coordinator on Port ${coordinator.port} ...</echo>
 	 <java classname="Coordinator" fork="true">
 	   <classpath refid="master-classpath"/>
-	   <arg line="${coordinator.port}"/>
+	   <arg line="${coordinator.port} ${NW} ${NR}"/>
 	 </java>
        </target>
 
