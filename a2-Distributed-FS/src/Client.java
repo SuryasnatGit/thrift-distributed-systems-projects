@@ -11,7 +11,7 @@ import java.io.File;
 public class Client {
 
     Scanner sc;
-
+    Stats stats;
     TTransport serverTransport;
     Server.Client server;
 
@@ -21,7 +21,7 @@ public class Client {
     //Connect to the superNode
     public Client(Machine serverInfo) throws TException{
 	sc = new Scanner(System.in);
-	
+	stats = new Stats();
 	serverTransport = new TSocket(serverInfo.ipAddress, serverInfo.port);
     }
 
@@ -72,8 +72,10 @@ public class Client {
     private boolean getAndProcessUserInput() throws Exception {
 	String[] input = sc.nextLine().split(" ");
 	switch(input[0]) {
-	case "read" :
+	case "read": 
+        stats.start();
 	    fileOperation(input, "read");
+        stats.logRead();
 	    return true;
 
 	case "write-all":
@@ -81,11 +83,17 @@ public class Client {
 	    return true;
 
 	case "write" :
+        stats.start();
 	    fileOperation(input, "write");
+        stats.logWrite();
 	    return true;
 
 	case "ls":
 	    fileOperation(input, "ls");
+	    return true;
+    
+    case "stats":
+	    stats.print();
 	    return true;
 
 	case "exit":
@@ -93,7 +101,7 @@ public class Client {
 	    return false;
 
 	default:
-	    System.out.println("Usage: [<read> OR <write> <filename> ] | <ls> | <write-all> | <exit>");
+	    System.out.println("Usage: [<read> OR <write> <filename> ] | <ls> | <write-all> | <stats> | <exit>");
 	    return true;
 	}
     }
