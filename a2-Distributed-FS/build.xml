@@ -44,78 +44,53 @@
          </java>
 	   </sequential>
 	   <sequential>
-	     <!-- <sleep milliseconds="500"/> -->
 	     <antcall target="start-server">
-	       <param name="coordinator.address" value="localhost" />
-	       <param name="coordinator.port" value="9090"/>
-           <param name="server.port" value="5000"/>
+               <param name="server.port" value="5000"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
-	     <!-- <sleep milliseconds="500"/> -->
 	     <antcall target="start-server">
-	       <param name="coordinator.address" value="localhost" />
-	       <param name="coordinator.port" value="9090"/>
-           <param name="server.port" value="5001"/>
+               <param name="server.port" value="5001"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
-	     <!-- <sleep milliseconds="500"/> -->
 	     <antcall target="start-server">
-	       <param name="coordinator.address" value="localhost" />
-	       <param name="coordinator.port" value="9090"/>
-           <param name="server.port" value="5002"/>
+	       <param name="server.port" value="5002"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
-	     <!-- <sleep milliseconds="500"/> -->
 	     <antcall target="start-server">
-	       <param name="coordinator.address" value="localhost" />
-	       <param name="coordinator.port" value="9090"/>
-           <param name="server.port" value="5003"/>
+	       <param name="server.port" value="5003"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
-	     <!-- <sleep milliseconds="500"/> -->
 	     <antcall target="start-server">
-	       <param name="coordinator.address" value="localhost" />
-	       <param name="coordinator.port" value="9090"/>
-           <param name="server.port" value="5004"/>
+	       <param name="server.port" value="5004"/>
 	     </antcall>
          </sequential>
          <sequential>
          <antcall target="start-server">
-	       <param name="coordinator.address" value="localhost" />
-	       <param name="coordinator.port" value="9090"/>
-           <param name="server.port" value="5005"/>
+	   <param name="server.port" value="5005"/>
 	     </antcall>
          </sequential>
          <sequential>
          <antcall target="start-server">
-	       <param name="coordinator.address" value="localhost" />
-	       <param name="coordinator.port" value="9090"/>
-           <param name="server.port" value="5006"/>
+	   <param name="server.port" value="5006"/>
 	     </antcall>
          </sequential>
          <sequential>
          <antcall target="start-server">
-	       <param name="coordinator.address" value="localhost" />
-	       <param name="coordinator.port" value="9090"/>
-           <param name="server.port" value="5007"/>
-	     </antcall>
+	   <param name="server.port" value="5007"/>
+	 </antcall>
          </sequential>
          <sequential>
-         <antcall target="start-server">
-	       <param name="coordinator.address" value="localhost" />
-	       <param name="coordinator.port" value="9090"/>
-           <param name="server.port" value="5008"/>
-	     </antcall>
+           <antcall target="start-server">
+	     <param name="server.port" value="5008"/>
+	   </antcall>
          </sequential>
          <sequential>
-         <antcall target="start-server">
-	       <param name="coordinator.address" value="localhost" />
-	       <param name="coordinator.port" value="9090"/>
-           <param name="server.port" value="5009"/>
+           <antcall target="start-server">
+	     <param name="server.port" value="5009"/>
 	     </antcall>
 	   </sequential>
 	 </daemons>
