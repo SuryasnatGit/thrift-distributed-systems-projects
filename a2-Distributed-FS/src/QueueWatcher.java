@@ -23,7 +23,6 @@ class QueueWatcher extends Thread {
 	while(true) {
 	    try {
 		Request req = null;
-		System.out.println("Watcher : entering synch");
 		synchronized (requests) {
 
 		    while(requests.isEmpty())
@@ -47,8 +46,8 @@ class QueueWatcher extends Thread {
 		    System.out.println("LEAVING CRITICAL SECTION, waiting for write req to complete.");
 		    synchronized(subscriptions) {
 			while(subscriptions.contains(req)) {
-			    System.out.println("i8mma w8, no sleep...\\t");
-			    //			    subscriptions.wait(); //wait for blocking write to complete.
+			    System.out.println("i8mma w8, no sleep...");
+			    subscriptions.wait(); //wait for blocking write to complete.
 			}
 		    }
 		    System.out.println("Watcher: released subscriptions\n\n\n");

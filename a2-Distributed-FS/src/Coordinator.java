@@ -129,11 +129,11 @@ public class Coordinator implements Server.Iface {
 	System.out.println("All updated. returning...");
 	
 	//remove since we got and finished processing the signal, allowing the QueueWatcher to process other requests
-	subscriptions.remove(req);
-	//System.out.println("Removed, notifying monitors");
-	//subscriptions.notifyAll(); //wake sleeping monitors
-
-	//System.out.println("NOTIFIED");
+	synchronized(subscriptions) {
+	    subscriptions.remove(req);
+	    subscriptions.notify(); //wake sleeping monitors
+	}
+	System.out.println("NOTIFIED");
 
         return true;
     }
