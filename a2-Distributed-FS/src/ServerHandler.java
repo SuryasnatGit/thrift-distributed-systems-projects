@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.net.InetAddress;
+import java.util.Iterator;
 
 public class ServerHandler implements Server.Iface{
     HashMap<String,Integer> fs;
@@ -80,30 +81,48 @@ public class ServerHandler implements Server.Iface{
     }
     
     @Override
-    public HashMap<String,Integer> ls() {
+    public Map<String,Integer> ls() {
         return fs;
     }
     
     @Override
-    public boolean sync (HashMap<String,String> globalFS){
+    public boolean sync (Map<String,String> globalFS) throws TException {
         // Look into FS
         Iterator it = globalFS.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-	        Integer version = (Integer) pair.getValue();
+	        String[] info = ((String) pair.getValue()).split("/");
+            Integer version = Integer.parseInt(info[2]);
             String filename = (String) pair.getKey();
             
-            if(fs.containsKey(filename)){
+            if(!fs.containsKey(filename)){
                 // instant put
-            }else{
-                // compare 
-            }
+                TTransport serverTransport = new TSocket(info[0], Integer.parseInt(info[1]));
+                serverTransport.open();
+                TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+                Server.Client server  = new Server.Client(serverProtocol);
                 
-            
+                ByteBuffer contents = server.directRead(filename);
+                serverTransport.close();
+                Utils.write(filename, contents);
+                fs.put(filename,version);
+            }else{
+                // compare versions
+                if(version > fs.get(filename)){
+                    // Update your files if version > current
+                    TTransport serverTransport = new TSocket(info[0], Integer.parseInt(info[1]));
+                    serverTransport.open();
+                    TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+                    Server.Client server  = new Server.Client(serverProtocol);
+                    
+                    ByteBuffer contents = server.directRead(filename);
+                    serverTransport.close();
+                    Utils.write(filename, contents);
+                    fs.put(filename,version);
+                }
+            }   
         }
-        // Find matching files 
-        
-        // Update your files if version > current
+        return true;  
     }
     
     /* Constructor for a Server, a Thrift connection is made to the coordinator as well */
@@ -131,7 +150,7 @@ public class ServerHandler implements Server.Iface{
             System.out.println("Could not report to Coordinator... damn.");
         
         directory = Utils.initializeFolder(self);
-	fs = new HashMap<>();
+	    fs = new HashMap<>();
 
         coordinatorTransport.close();
     }

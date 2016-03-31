@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.Random;
+import java.util.Iterator;
 
 public class Coordinator implements Server.Iface {
     private HashMap<String,Integer> fs;
@@ -233,6 +234,51 @@ public class Coordinator implements Server.Iface {
     @Override
     public int getLatestVersion(String filename){
         return (fs.containsKey(filename)) ? fs.get(filename) : -1;
+    }
+    
+    @Override
+    public Map<String,Integer> ls() {
+        return fs;
+    }
+    
+    @Override
+    public boolean sync (Map<String,String> globalFS) throws TException {
+        // Look into FS
+        Iterator it = globalFS.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+	        String[] info = ((String) pair.getValue()).split("/");
+            Integer version = Integer.parseInt(info[2]);
+            String filename = (String) pair.getKey();
+            
+            if(!fs.containsKey(filename)){
+                // instant put
+                TTransport serverTransport = new TSocket(info[0], Integer.parseInt(info[1]));
+                serverTransport.open();
+                TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+                Server.Client server  = new Server.Client(serverProtocol);
+                
+                ByteBuffer contents = server.directRead(filename);
+                serverTransport.close();
+                Utils.write(filename, contents);
+                fs.put(filename,version);
+            }else{
+                // compare versions
+                if(version > fs.get(filename)){
+                    // Update your files if version > current
+                    TTransport serverTransport = new TSocket(info[0], Integer.parseInt(info[1]));
+                    serverTransport.open();
+                    TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+                    Server.Client server  = new Server.Client(serverProtocol);
+                    
+                    ByteBuffer contents = server.directRead(filename);
+                    serverTransport.close();
+                    Utils.write(filename, contents);
+                    fs.put(filename,version);
+                }
+            }   
+        }
+        return true;  
     }
 
     // We return a array of references to random machines
