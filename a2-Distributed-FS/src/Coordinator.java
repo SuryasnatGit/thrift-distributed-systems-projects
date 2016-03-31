@@ -123,12 +123,15 @@ public class Coordinator implements Server.Iface {
 		Server.Client server  = new Server.Client(serverProtocol);
             
 		// Updates all contents in NW.
-		server.update(filename, mostUpdated, contents);
+        ByteBuffer duped = contents.duplicate();
+		server.update(filename, mostUpdated, duped);
             
 		serverTransport.close();
 	    }
-	    else 
-		this.update(filename, mostUpdated, contents);
+	    else{
+          ByteBuffer duped = contents.duplicate();
+		  this.update(filename, mostUpdated, duped);
+        }
 	}
 	System.out.println("All updated. returning...");
         return true;
@@ -260,8 +263,7 @@ public class Coordinator implements Server.Iface {
                 
                 ByteBuffer contents = server.directRead(filename);
                 serverTransport.close();
-                Utils.write(directory+filename, contents);
-                fs.put(filename,version);
+                this.update(filename,version,contents);
             }else{
                 // compare versions
                 if(version > fs.get(filename)){
@@ -273,8 +275,7 @@ public class Coordinator implements Server.Iface {
                     
                     ByteBuffer contents = server.directRead(filename);
                     serverTransport.close();
-                    Utils.write(directory+filename, contents);
-                    fs.put(filename,version);
+                    this.update(filename,version,contents);
                 }
             }   
         }
