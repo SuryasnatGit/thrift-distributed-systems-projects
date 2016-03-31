@@ -27,7 +27,7 @@ class ServerSync extends Thread {
     public void run(){
         while(true){
             try{
-                Thread.sleep(3000);
+                Thread.sleep(20000);
                 
                 synchronized(servers) {
                     if(servers.size() <= 1)
