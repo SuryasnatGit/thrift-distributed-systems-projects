@@ -65,7 +65,7 @@ public class Client {
 
 	    //we are connected.
 	System.out.println("\n\n -------- Welcome to the Distributed File System Terminal --------\n\n");
-	System.out.println("-------- Usage : <read> <load-test> <ls> <write> <exit> --------\n");
+	System.out.println("-------- Usage : <read> <load-test> <ls> <write> <stats> <exit> --------\n");
 	    while(true) {
 		if(client.getAndProcessUserInput() == false)
 		    break;
@@ -160,11 +160,16 @@ public class Client {
         ByteBuffer contents = Utils.read(defaultDir + filename);
         if(contents == null)
             return false;
-        return server.write(filename, contents);
+        stats.start();
+        boolean status =  server.write(filename, contents);
+        stats.logWrite();
+        return status;
     }
 
     private boolean readFile(String filename) throws TException {
+    stats.start();
 	ByteBuffer content = server.read(filename);
+    stats.logRead();
 	//else we can't deserialize properly, so convoluted
 	// Thanks: http://www.java2s.com/Code/Java/File-Input-Output/ConvertingtexttoandfromByteBuffers.htm
 	String result = java.nio.charset.Charset.forName(encoding).decode(content).toString();
