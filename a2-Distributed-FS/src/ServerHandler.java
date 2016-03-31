@@ -76,7 +76,7 @@ public class ServerHandler implements Server.Iface{
     
     @Override
     public ByteBuffer directRead(String filename) {
-        return Utils.read(directory+filename);
+        return Utils.read(directory + filename);
     }
     
     /* Constructor for a Server, a Thrift connection is made to the coordinator as well */

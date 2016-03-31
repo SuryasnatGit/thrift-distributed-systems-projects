@@ -16,6 +16,7 @@ public class Client {
     Server.Client server;
 
     String defaultDir = "./upload/"; //default upload directory
+    final String encoding = System.getProperty("file.encoding");
 
     //Connect to the superNode
     public Client(Machine serverInfo) throws TException{
@@ -112,11 +113,14 @@ public class Client {
 	case "read":
 	    System.out.println("Client: Reading " + input[1]);
 	    ByteBuffer content = server.read(input[1].trim());
-	    String result = new String(content.array());
+	    //else we can't deserialize properly, so convoluted
+	    // Thanks: http://www.java2s.com/Code/Java/File-Input-Output/ConvertingtexttoandfromByteBuffers.htm
+	    String result = java.nio.charset.Charset.forName(encoding).decode(content).toString();
+	    
 	    if(result.equals("NULL"))
 		System.out.println("File does not exist in DFS");
 	    else
-		System.out.println("Content :\n    " + new String(content)); //just the filename, no paths allowed
+		System.out.println("Content :\n    " + result); //just the filename, no paths allowed
 	    break;
 
 	case "write":
