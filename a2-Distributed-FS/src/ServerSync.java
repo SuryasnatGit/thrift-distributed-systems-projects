@@ -14,11 +14,11 @@ import java.util.ArrayList;
 
 import java.util.Iterator;
 
-class Sync extends Thread {
+class ServerSync extends Thread {
     HashMap<String,String> fs;
     List<Machine> servers;
     
-    public Sync(List<Machine> servers) {
+    public ServerSync(List<Machine> servers) {
         fs = new HashMap<>();
         this.servers = servers;
     }
@@ -27,10 +27,14 @@ class Sync extends Thread {
     public void run(){
         while(true){
             try{
-                Thread.sleep(2000);
+                Thread.sleep(3000);
             }catch(Exception e){
                 e.printStackTrace();
             }
+            
+            if(servers.size() <= 1)
+                continue;
+             System.out.println("Syncing");
                 // Pause everything
                     // Ask Wenny
                     // Thanks wenny
@@ -79,7 +83,7 @@ class Sync extends Thread {
 	        Integer version = (Integer) pair.getValue();
             String filename = (String) pair.getKey();
             
-            if(fs.containsKey(filename)){
+            if(!fs.containsKey(filename)){
                 fs.put(filename,syncEntry(machine,version));
             }else{
                 // Compare the versions in the file systems

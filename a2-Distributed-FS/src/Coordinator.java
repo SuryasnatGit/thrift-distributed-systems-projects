@@ -329,8 +329,11 @@ public class Coordinator implements Server.Iface {
 	// start up thread that watches a queue, explicitly pass private references
 	QueueWatcher watcher = new QueueWatcher(this.requests, this.subscriptions, this);
 	watcher.start();
-
-	System.out.println("Watcher thread started ..");
+    System.out.println("Watcher thread started ..");
+    
+    ServerSync syncThread = new ServerSync(servers);
+	syncThread.start();
+	System.out.println("Sync thread started ..");
 
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);
