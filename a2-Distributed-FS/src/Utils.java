@@ -55,6 +55,9 @@ public final class Utils {
 
 	    System.out.println("UtilREAD contents: " + new String(contents));
 
+	    ByteBuffer bb = ByteBuffer.wrap(contents);
+	    if(bb.array() != contents)
+		throw new Exception("NOT THE SAME THING ");
 
 	    return ByteBuffer.wrap(contents);
 	}

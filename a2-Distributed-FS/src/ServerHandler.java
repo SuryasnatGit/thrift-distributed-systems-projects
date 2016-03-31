@@ -76,7 +76,7 @@ public class ServerHandler implements Server.Iface{
     
     @Override
     public ByteBuffer directRead(String filename) {
-        return Utils.read(directory+filename);
+        return Utils.read(directory + filename);
     }
     
     @Override
