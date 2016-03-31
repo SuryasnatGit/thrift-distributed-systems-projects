@@ -28,10 +28,10 @@ public class Coordinator implements Server.Iface {
     Machine self;
     
     // Variables used for quorum
-    private int nr = 0;
-    private int nw = 0;
+    private Integer nr;
+    private Integer nw;
 
-    public Coordinator(Integer port,Integer nr, Integer nr) throws Exception {
+    public Coordinator(Integer port,Integer nw, Integer nr) throws Exception {
         // Init Coordinator Data Structures
 	servers = new ArrayList<>();
         requests = new LinkedList<>();

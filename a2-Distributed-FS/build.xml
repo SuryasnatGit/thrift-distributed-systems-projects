@@ -13,8 +13,8 @@
      <property name="thrift.install" value="/usr/local/Thrift/" />
      
      <!-- CHANGE THESE VALUES -->   
-     <property name="NR" value="${numservers}">
-     <property name="NW" value="${numservers}">
+     <property name="NR" value="${numservers}"/>
+     <property name="NW" value="${numservers}"/>
 
        <target name="info">
 	 <echo>A Quorum Based Distributed File System</echo>
