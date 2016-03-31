@@ -104,7 +104,7 @@ public class ServerHandler implements Server.Iface{
                 
                 ByteBuffer contents = server.directRead(filename);
                 serverTransport.close();
-                Utils.write(filename, contents);
+                Utils.write(directory+filename, contents);
                 fs.put(filename,version);
             }else{
                 // compare versions
@@ -117,7 +117,7 @@ public class ServerHandler implements Server.Iface{
                     
                     ByteBuffer contents = server.directRead(filename);
                     serverTransport.close();
-                    Utils.write(filename, contents);
+                    Utils.write(directory+filename, contents);
                     fs.put(filename,version);
                 }
             }   

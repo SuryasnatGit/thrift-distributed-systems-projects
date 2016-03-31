@@ -28,51 +28,46 @@ class ServerSync extends Thread {
         while(true){
             try{
                 Thread.sleep(3000);
-            }catch(Exception e){
+                
+                synchronized(servers) {
+                    if(servers.size() <= 1)
+                        continue;
+                    System.out.println("Syncing");
+                        // Pause everything
+                            // Ask Wenny
+                            // Thanks wenny
+                            
+                        // build the global fs
+                        // loop through each machine and collect fs
+                        for(Machine m : servers) {
+                                TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+                                serverTransport.open();
+                                TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+                                Server.Client server  = new Server.Client(serverProtocol);
+                                
+                                
+                                // collects the files from servers
+                                HashMap<String,Integer> serverFS = (HashMap<String,Integer>)server.ls();
+                                
+                                // compare against current fs.
+                                merge(m,serverFS);
+                                serverTransport.close();
+                        }
+                        for(Machine m : servers) {
+                        // Send a signal to all servers.
+                            TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+                            serverTransport.open();
+                            TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+                            Server.Client server  = new Server.Client(serverProtocol);
+                            // Sync servers.
+                            server.sync(fs);
+                            serverTransport.close();
+                        }
+                }
+            } catch(Exception e){
                 e.printStackTrace();
             }
-            
-            if(servers.size() <= 1)
-                continue;
-             System.out.println("Syncing");
-                // Pause everything
-                    // Ask Wenny
-                    // Thanks wenny
-                    
-                // build the global fs
-                // loop through each machine and collect fs
-                for(Machine m : servers) {
-                    try{
-                        TTransport serverTransport = new TSocket(m.ipAddress, m.port);
-                        serverTransport.open();
-                        TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
-                        Server.Client server  = new Server.Client(serverProtocol);
-                        
-                        
-                        // collects the files from servers
-                        HashMap<String,Integer> serverFS = (HashMap<String,Integer>)server.ls();
-                        
-                        // compare against current fs.
-                        merge(m,serverFS);
-                        serverTransport.close();
-                    }catch(Exception e){
-                        e.printStackTrace();
-                    }
-                
-                // Send a signal to all servers.
-                try{
-                    TTransport serverTransport = new TSocket(m.ipAddress, m.port);
-                    serverTransport.open();
-                    TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
-                    Server.Client server  = new Server.Client(serverProtocol);
-                    // Sync servers.
-                    server.sync(fs);
-                    serverTransport.close();
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
-             }
-        }  
+        }
     }
     
     private void merge(Machine machine,HashMap<String,Integer> serverFS){
