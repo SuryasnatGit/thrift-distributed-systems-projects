@@ -62,14 +62,11 @@ public class Coordinator implements Server.Iface {
 	    requests.notify();
 	}
 
-	System.out.println("TIME TO WAIT FOR A REPLY, like Danh");
+	System.out.println("TIME TO WAIT FOR A REPLY");
 	
 	while(!subscriptions.contains(req)); //wait
 
-	System.out.println("JIAO YUE REPLIED!!! ");
-
-	//remove since we got the signal
-	subscriptions.remove(req);
+	System.out.println("REPLIED!!! ");
 
 	System.out.println("GETTING QUORUM with nw=" + nw);
 
@@ -130,6 +127,14 @@ public class Coordinator implements Server.Iface {
 		this.update(filename, mostUpdated, contents);
 	}
 	System.out.println("All updated. returning...");
+	
+	//remove since we got and finished processing the signal, allowing the QueueWatcher to process other requests
+	subscriptions.remove(req);
+	//System.out.println("Removed, notifying monitors");
+	//subscriptions.notifyAll(); //wake sleeping monitors
+
+	//System.out.println("NOTIFIED");
+
         return true;
     }
 

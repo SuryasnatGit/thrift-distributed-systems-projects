@@ -17,6 +17,7 @@ class QueueWatcher extends Thread {
 	setName("QueueWatcher Thread: " + (instance++));
     }
 
+
     @Override
     public void run() {
 	while(true) {
@@ -24,12 +25,35 @@ class QueueWatcher extends Thread {
 		Request req = null;
 		System.out.println("Watcher : entering synch");
 		synchronized (requests) {
+
 		    while(requests.isEmpty())
 			requests.wait();
-
+		    
+		    //queue is no longer empty
 		    req = requests.remove();
+
+		    if(req.type.equals("write"))
+		    {
+			System.out.println("WATCHER: GOT A WRITE REQ, WAIT FOR SUBSCRIPTIONS TO BE EMPTY");
+			while(!subscriptions.isEmpty()); //block any further additions to subsciptions, wait for all read requests to complete
+		    }
 		    subscriptions.add(req);
+
 		}
+
+		//exit critical section and allow more requests to be added to the request queue.
+		if(req.type.equals("write"))
+		{
+		    System.out.println("LEAVING CRITICAL SECTION, waiting for write req to complete.");
+		    synchronized(subscriptions) {
+			while(subscriptions.contains(req)) {
+			    System.out.println("i8mma w8, no sleep...\\t");
+			    //			    subscriptions.wait(); //wait for blocking write to complete.
+			}
+		    }
+		    System.out.println("Watcher: released subscriptions\n\n\n");
+		}
+
 	    }
 	    catch(Exception e) {
 		e.printStackTrace();
@@ -37,30 +61,4 @@ class QueueWatcher extends Thread {
 	    }
 	}
     }
-    /*
-    private void process(Request req) throws Exception {
-	if(req.type.equals("read")) {
-
-	    subscriptions.put(req, new ReadResponse(req.origin, success, result));
-
-	    ByteBuffer result = coordinatorInstance.read(req.filename);
-	    Boolean success = (result != null) ? true : false;
-
-	    System.out.println("Status of read: " + success + ". Putting read Response");
-	    
-	    
-	}
-
-	else if(req.type.equals("write")) {
-	    //type cast to access member variable
-	    WriteRequest wreq = (WriteRequest) req;
-	    Boolean success = coordinatorInstance.write(wreq.filename, wreq.contents);
-	    System.out.println("Status of write: " + success + ". Putting write Response");
-	    response.put(req, new WriteResponse(req.origin, success));
-	}
-
-	else 
-	    throw new Exception("Unknown Request");
-    }
-    */
 }
