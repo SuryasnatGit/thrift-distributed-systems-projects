@@ -28,16 +28,20 @@ public class Coordinator implements Server.Iface {
     Machine self;
     
     // Variables used for quorum
-    int nr = 0;
-    int nw = 0;
+    private int nr = 0;
+    private int nw = 0;
 
-    public Coordinator(Integer port) throws Exception {
+    public Coordinator(Integer port,Integer nr, Integer nr) throws Exception {
         // Init Coordinator Data Structures
 	servers = new ArrayList<>();
         requests = new LinkedList<>();
 	rand = new Random();
 	subscriptions = new HashSet<>();
 
+        // Init Quorum variables
+        this.nr = nr;
+        this.nw = nw;
+        
         System.out.println("I am the Coordinator.");
         
         //Create a Machine data type representing ourselves
@@ -226,9 +230,10 @@ public class Coordinator implements Server.Iface {
         servers.add(machine);
         
         // Set the quorum variables.
+        /*
         nw = servers.size() / 2 + 1;
         nr = nw;
-        
+        */
         System.out.println(servers.toString());
         return true;
     }
@@ -318,8 +323,9 @@ public class Coordinator implements Server.Iface {
             System.out.println("Our IP Address is " + InetAddress.getLocalHost().toString());
 	    //port number used by this node.
             Integer port = Integer.parseInt(args[0]);
-            
-	    Coordinator coordinator = new Coordinator(port);
+            Integer NW = Integer.parseInt(args[1]);
+            Integer NR = Integer.parseInt(args[2]);
+	    Coordinator coordinator = new Coordinator(port,NW,NR);
             
 	    //spin up server
             coordinator.start();
