@@ -6,5 +6,7 @@ service Server {
     bool enroll(1: shared.Machine machine),
     i32 getLatestVersion(1: string filename),
     bool update(1: string filename,2: i32 version,3: binary contents),
-    binary directRead(1: string filename)
+    binary directRead(1: string filename),
+    map<string,i32> ls(),
+    bool sync(1: map<string,string> fs)
 }
