@@ -32,10 +32,8 @@ class QueueWatcher extends Thread {
 		    req = requests.remove();
 
 		    if(req.type.equals("write"))
-		    {
-			System.out.println("WATCHER: GOT A WRITE REQ, WAIT FOR SUBSCRIPTIONS TO BE EMPTY");
 			while(!subscriptions.isEmpty()); //block any further additions to subsciptions, wait for all read requests to complete
-		    }
+
 		    subscriptions.add(req);
 
 		}
@@ -43,9 +41,9 @@ class QueueWatcher extends Thread {
 		//exit critical section and allow more requests to be added to the request queue.
 		if(req.type.equals("write"))
 		{
-		    System.out.println("LEAVING CRITICAL SECTION, waiting for write req to complete.");
 		    synchronized(subscriptions) {
 			while(subscriptions.contains(req)) {
+			    subscriptions.notifyAll();
 			    subscriptions.wait(); //wait for blocking write to complete.
 			}
 		    }
