@@ -1,17 +1,35 @@
-# Quorum Based Replicated File Server
+# Quorum Based Replicated Distributed File Server
 
 Team Members:  	
 - Danh Nguyen (nguy1952)
 - Wen Chuan Lee (leex7095)
 
 
-For a quick overview on how to run the project as as well test, please go to the **How to Run the Project section**, as well reading the **Client** section regarding the UI commands.
+For a quick overview on how to run the project and test, please go to the **How to Run the Project section**, as well reading the **Client** section regarding the UI commands.
 
 # Overall Design
 
 # The Coordinator
 
+The coordinator has a few primary responsibilities:
+- Acts as the entry point for queuing all Server requests.
+- Puts all read and write requests to the synchronized queue.
+- Starts one QueueWatcher thread and one ServerSync thread
+- Ensures blocking writes (no server threads can read when a write request is being processed)
+- Also acts as a server (by implementing the same Thrift interfaces as the Server)
+
+//talk about how the coordinator's read and writes assemble the quorum when the server makes the call
+//talk about how the coordinator is multithreaded, so many many threads assemble quorums for read and write simultaneously
+// talk about the synchronized and subscribed queues
+//talk about how the queue watcher works with the coordinator
+// talk about how the sync happens every few seconds 
+
+
 # Servers
+
+The server is a multithreaded Java application that services all client requests, mainly reading and writing.
+Reads and writes on the servers are done by first connecting to the well-known coordinator to make a request to read or write a file to the DFS.
+The call to the coordinator is necessary as the requests are all put into a synchronized request queue. 
 
 # Client
 
@@ -28,7 +46,7 @@ The terminal contains a few simple commands to interact with the File Server.
  - `read <filename>` - requests a file which will be the most updated file from the File Server.
  - `write <filename>` - reads a file stored in `uploads` and uploads it to the File Server and replicating it across NW machines.
  - `ls` - lists all files in the `uploads` directory
- - `load-test` - performs a batch upload operation to put all files stored in `uploads` into the File Server.
+ - `load-test <number of reads> <number of writes> <number of files>` - performs a batch upload operation to put all files stored in `uploads` into the File Server.
  - `stats` - Lists the stats of the session. This displays the read and write of all requests.
  - `exit` - closes the connection to the Node and quits the interactive terminal
 
@@ -41,7 +59,7 @@ Ant was used to handle automatic building and generation of class files (into a 
 
 ### *To start the Coordinator, Servers, and Client on localhost*
 
-(This starts all processes on one terminal using forked processes and will cause all processes to print to the same `System.out`)
+(This starts all processes on one terminal using forked processes and will cause all processes to print to the same `System.out`, which would cause very messy output as all threads attempt to print to `stdout` in an unsynchronized way.)
 
     ant start-all
 ### *To start the File Server across multiple machines*
