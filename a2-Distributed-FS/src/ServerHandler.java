@@ -5,6 +5,7 @@ import org.apache.thrift.transport.*;
 import org.apache.thrift.server.*;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -124,6 +125,8 @@ public class ServerHandler implements Server.Iface{
                 }
             }   
         }
+
+	this.exportFileSystemState();
         return true;  
     }
     
@@ -176,8 +179,23 @@ public class ServerHandler implements Server.Iface{
         server.serve();
     }
     
-    
-      public static void main(String[] args) {
+    //function that exports the FS hashtable of filename to version numbers
+    //called everytime we sync filesystems
+    private void exportFileSystemState() {
+	StringBuffer sb = new StringBuffer(fs.size() * 2);
+	sb.append("\t FILENAME \t\t VERSION NO\n\n");
+	Set set = fs.entrySet();
+	Iterator it = set.iterator();
+	while (it.hasNext()) {
+	    Map.Entry entry = (Map.Entry) it.next();
+	    sb.append(entry.getKey() + " \t:\t " + entry.getValue());
+	    sb.append('\n');
+	}
+	Utils.write(directory + "FILE_VERSIONS_" + self.hashCode() + ".txt", ByteBuffer.wrap(sb.toString().getBytes()));
+	//add hashcode to minimize possible overwriting, also lol bytebufferwrapping.
+    }
+
+    public static void main(String[] args) {
         if(args.length < 3) {
             System.err.println("Usage: java ServerHandler <coordinatorIP> <coordinatorPort> <port>");
             return;
@@ -186,8 +204,8 @@ public class ServerHandler implements Server.Iface{
             System.out.println("Our IP Address is " + InetAddress.getLocalHost().toString());
             String coordinatorIP = args[0];
             Integer coordinatorPort = Integer.parseInt(args[1]);
-           
-	        //port number used by this node.
+	    
+	    //port number used by this node.
             Integer port = Integer.parseInt(args[2]);
             
             ServerHandler server = new ServerHandler(coordinatorIP, coordinatorPort,port);

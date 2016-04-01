@@ -158,8 +158,10 @@ public class Client {
     private boolean writeFile(String filename) throws TException {
 	//writing to DFS first requires reading
         ByteBuffer contents = Utils.read(defaultDir + filename);
-        if(contents == null)
+        if(contents == null) {
+	    System.out.println(filename + " not found in : " + defaultDir);
             return false;
+
         stats.start();
         boolean status =  server.write(filename, contents);
         stats.logWrite();
@@ -167,9 +169,9 @@ public class Client {
     }
 
     private boolean readFile(String filename) throws TException {
-    stats.start();
+	stats.start();
 	ByteBuffer content = server.read(filename);
-    stats.logRead();
+	stats.logRead();
 	//else we can't deserialize properly, so convoluted
 	// Thanks: http://www.java2s.com/Code/Java/File-Input-Output/ConvertingtexttoandfromByteBuffers.htm
 	String result = java.nio.charset.Charset.forName(encoding).decode(content).toString();

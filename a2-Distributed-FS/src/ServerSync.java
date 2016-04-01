@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 class ServerSync extends Thread {
+    private final int SYNC_FREQUENCY = 2000;  //sync frequency in miliseconds 20 seconds * 1000 = 20 000 ms
     HashMap<String,String> fs;
     List<Machine> servers;
     
@@ -27,7 +28,11 @@ class ServerSync extends Thread {
     public void run(){
         while(true){
             try{
+<<<<<<< HEAD
+                Thread.sleep(SYNC_FREQUENCY);
+=======
                 Thread.sleep(2000);
+>>>>>>> 5e8a65d56180d49631b80704094ce39e75d2c59a
                 
                 synchronized(servers) {
                     if(servers.size() <= 1)
