@@ -57,7 +57,7 @@ public class Client {
 	    Client client = new Client(serverInfo);
 	
 	    while(!client.connectToServer()) {
-		    System.err.println("Client: Failed to connect to a server on cluster, retrying ...");
+		    System.err.println("Client: Failed to connect to a server on cluster, retrying in 1 second ...");
 		    Thread.sleep(1000);
 	    }
         
@@ -162,7 +162,7 @@ public class Client {
         if(contents == null) {
 	    System.out.println(filename + " not found in : " + defaultDir);
             return false;
-
+	}
         stats.start();
         boolean status =  server.write(filename, contents);
         stats.logWrite();
