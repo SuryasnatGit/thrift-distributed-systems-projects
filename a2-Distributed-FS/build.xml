@@ -3,7 +3,7 @@
 
 
      <!--Default SuperNode and Node properties-->   
-     <property name="coordinator.address" value="localhost" />
+     <property name="coordinator.address" value="x30-07" />
      <property name="coordinator.port" value="9090"/>
      <property name="server.port" value="5000" />
      <property name="numservers" value="5"/>
@@ -11,6 +11,10 @@
      <property name="src.dir" value="src" />
      <property name="build.dir" value = "bin"/>
      <property name="thrift.install" value="/usr/local/Thrift/" />
+     
+     <!-- CHANGE THESE VALUES -->   
+     <property name="NR" value="5"/>
+     <property name="NW" value="6"/>
 
        <target name="info">
 	 <echo>A Quorum Based Distributed File System</echo>
@@ -40,8 +44,8 @@
 	   <sequential>
 	     <java classname="Coordinator" fork="true">
             <classpath refid="master-classpath"/>
-            <arg line="${coordinator.port}"/>
-         </java>
+                <arg line="${coordinator.port} ${NW} ${NR}"/>
+	     </java>
 	   </sequential>
 	   <sequential>
 	     <antcall target="start-server">
@@ -109,7 +113,7 @@
 	 <echo>Starting Coordinator on Port ${coordinator.port} ...</echo>
 	 <java classname="Coordinator" fork="true">
 	   <classpath refid="master-classpath"/>
-	   <arg line="${coordinator.port}"/>
+	   <arg line="${coordinator.port} ${NW} ${NR}"/>
 	 </java>
        </target>
 

@@ -19,12 +19,12 @@ public final class Utils {
  	File file = new File(filepath);
 
 	if(file.isDirectory()) {
-	    System.out.println("Util: Filename is a directory.");
+	    //System.out.println("Util: Filename is a directory.");
 	    return false;
 	}
 
-	if(file.exists())
-	    System.out.println("Util file exists, overwriting : " + filepath);
+	//if(file.exists())
+	    //System.out.println("Util file exists, overwriting : " + filepath);
 
 	try {
 	    FileChannel channel = new FileOutputStream(file, false).getChannel();
@@ -51,7 +51,7 @@ public final class Utils {
             //load the contents into a byte array
             contents = Files.readAllBytes(Paths.get(filepath));
 
-            System.out.println("UtilREAD contents: " + new String(contents));
+            //System.out.println("UtilREAD contents: " + new String(contents));
 
             return ByteBuffer.wrap(contents);
         }

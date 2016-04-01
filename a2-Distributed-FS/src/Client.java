@@ -12,6 +12,8 @@ import java.io.File;
 public class Client {
 
     Scanner sc;
+    Stats stats;
+
     Random rand;
 
     TTransport serverTransport;
@@ -24,6 +26,7 @@ public class Client {
     //Connect to the superNode
     public Client(Machine serverInfo) throws TException{
 	sc = new Scanner(System.in);
+	stats = new Stats();
 	rand = new Random();
 	serverTransport = new TSocket(serverInfo.ipAddress, serverInfo.port);
     }
@@ -62,7 +65,7 @@ public class Client {
 
 	    //we are connected.
 	System.out.println("\n\n -------- Welcome to the Distributed File System Terminal --------\n\n");
-	System.out.println("-------- Usage : <read> <load-test> <ls> <write> <exit> --------\n");
+	System.out.println("-------- Usage : <read> <load-test> <ls> <write> <stats> <exit> --------\n");
 	    while(true) {
 		if(client.getAndProcessUserInput() == false)
 		    break;
@@ -76,8 +79,10 @@ public class Client {
     private boolean getAndProcessUserInput() throws Exception {
 	String[] input = sc.nextLine().split(" ");
 	switch(input[0]) {
-	case "read" :
+	case "read": 
+        stats.start();
 	    fileOperation(input, "read");
+        stats.logRead();
 	    return true;
 
 	case "load-test":
@@ -85,11 +90,17 @@ public class Client {
 	    return true;
 
 	case "write" :
+        stats.start();
 	    fileOperation(input, "write");
+        stats.logWrite();
 	    return true;
 
 	case "ls":
 	    fileOperation(input, "ls");
+	    return true;
+    
+    case "stats":
+	    stats.print();
 	    return true;
 
 	case "exit":
@@ -97,7 +108,7 @@ public class Client {
 	    return false;
 
 	default:
-	    System.out.println("Usage: [<read> OR <write> <filename> ] | <ls> | <load-test> <no. reads> <no. writes> <no. files> | <exit>");
+	    System.out.println("Usage: [<read> OR <write> <filename> ] | <ls> | <load-test> <no. reads> <no. writes> <no. files> | <stats> | <exit>");
 	    return true;
 	}
     }
@@ -150,12 +161,17 @@ public class Client {
         if(contents == null) {
 	    System.out.println(filename + " not found in : " + defaultDir);
             return false;
-	}
-        return server.write(filename, contents);
+
+        stats.start();
+        boolean status =  server.write(filename, contents);
+        stats.logWrite();
+        return status;
     }
 
     private boolean readFile(String filename) throws TException {
+	stats.start();
 	ByteBuffer content = server.read(filename);
+	stats.logRead();
 	//else we can't deserialize properly, so convoluted
 	// Thanks: http://www.java2s.com/Code/Java/File-Input-Output/ConvertingtexttoandfromByteBuffers.htm
 	String result = java.nio.charset.Charset.forName(encoding).decode(content).toString();
