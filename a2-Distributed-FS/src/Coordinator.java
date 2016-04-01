@@ -287,7 +287,25 @@ public class Coordinator implements Server.Iface {
                 }
             }   
         }
+	this.exportFileSystemState();
         return true;  
+    }
+
+
+    //function that exports the FS hashtable of filename to version numbers
+    //called everytime we sync filesystems
+    private void exportFileSystemState() {
+	StringBuffer sb = new StringBuffer(fs.size() * 2);
+	sb.append("\t FILENAME \t\t VERSION NO\n\n");
+	Set set = fs.entrySet();
+	Iterator it = set.iterator();
+	while (it.hasNext()) {
+	    Map.Entry entry = (Map.Entry) it.next();
+	    sb.append(entry.getKey() + " \t:\t " + entry.getValue());
+	    sb.append('\n');
+	}
+	Utils.write(directory + "FILE_VERSIONS_" + self.hashCode() + ".txt", ByteBuffer.wrap(sb.toString().getBytes()));
+	//add hashcode to minimize possible overwriting, also lol bytebufferwrapping.
     }
 
     // We return a array of references to random machines

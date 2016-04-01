@@ -147,8 +147,10 @@ public class Client {
     private boolean writeFile(String filename) throws TException {
 	//writing to DFS first requires reading
         ByteBuffer contents = Utils.read(defaultDir + filename);
-        if(contents == null)
+        if(contents == null) {
+	    System.out.println(filename + " not found in : " + defaultDir);
             return false;
+	}
         return server.write(filename, contents);
     }
 
