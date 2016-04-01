@@ -58,7 +58,7 @@ public class Coordinator implements Server.Iface {
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
 
-	System.out.println("Coordinator Write called, synching req");
+	System.out.println("Writing: " + filename);
 
 	WriteRequest req = new WriteRequest(filename, contents);
 	//put the request into the request queue
@@ -66,8 +66,6 @@ public class Coordinator implements Server.Iface {
 	    requests.add(req);
 	    requests.notifyAll();
 	}
-
-	System.out.println("TIME TO WAIT FOR A REPLY");
 	
 	synchronized(subscriptions) {
 	
@@ -78,9 +76,6 @@ public class Coordinator implements Server.Iface {
 	    catch(Exception e) {
 		e.printStackTrace();
 	    }
-	    System.out.println("REPLIED!!! ");
-	    
-	    System.out.println("GETTING QUORUM with nw=" + nw);
 
 	    // Get Nw Machines
 	    List<Machine> quorum = getMachines(nw);
@@ -88,20 +83,16 @@ public class Coordinator implements Server.Iface {
 	    // Check versions of each machine.
 	    Integer mostUpdated = -1;
 	    Machine updatedMachine = null;
-	    System.out.println("Machines fetched, go in loop");
 	    // Loop through each machine in NW and get the latest version.
 	    for(Machine m : quorum) {
-
 		Integer version = null;
-
+		
 		if(!m.equals(self)) {
-		    
-		    System.out.println("Contacting " + m.toString());
 		    TTransport serverTransport = new TSocket(m.ipAddress, m.port);
 		    serverTransport.open();
 		    TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
 		    Server.Client server  = new Server.Client(serverProtocol);
-            
+
 		    // Most Updated Version Number/Machine
 		    version = server.getLatestVersion(filename);
 		    serverTransport.close();
@@ -109,14 +100,12 @@ public class Coordinator implements Server.Iface {
 		else 
 		    version = this.getLatestVersion(filename);
 
-		System.out.println("version reported is: " + version);
+		System.out.println(m.toString()+":"+filename+"("+version+")");
 		if(version > mostUpdated){
 		    updatedMachine = m;
 		    mostUpdated = version;
-		}       
+		} 
 	    }
-        
-	    System.out.println("most updated copy: " + mostUpdated);
 	    // Update the most updated number
 	    mostUpdated += 1;
         
@@ -124,7 +113,6 @@ public class Coordinator implements Server.Iface {
 	    for(Machine m : quorum) {
 
 		if(!m.equals(self)) {
-
 		    TTransport serverTransport = new TSocket(m.ipAddress, m.port);
 		    serverTransport.open();
 		    TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
@@ -132,8 +120,9 @@ public class Coordinator implements Server.Iface {
             
 		    // Updates all contents in NW.
 		    ByteBuffer duped = contents.duplicate();
+		    System.out.println("Updating: " +m.toString()+":"+filename+"("+mostUpdated+")");
 		    server.update(filename, mostUpdated, duped);
-            
+
 		    serverTransport.close();
 		}
 		else{
@@ -141,19 +130,15 @@ public class Coordinator implements Server.Iface {
 		    this.update(filename, mostUpdated, duped);
 		}
 	    }
-	    System.out.println("All updated. returning...");
-	    //remove since we got and finished processing the signal, allowing the QueueWatcher to process other requests
-	
 	    subscriptions.remove(req);
 	    subscriptions.notifyAll(); //wake sleeping monitors
 	}
-	System.out.println("NOTIFIED");
-
         return true;
     }
 
     @Override
     public ByteBuffer read(String filename) throws TException {
+    System.out.println("Reading: " + filename);
 	ReadRequest req = new ReadRequest(filename);
 	//put the request into the request queue
 	synchronized(requests) {
@@ -168,20 +153,18 @@ public class Coordinator implements Server.Iface {
 	subscriptions.remove(req);
 
         // Get Nr Machines
+    System.out.println("GETTING QUORUM with nr=" + nr);
 	List<Machine> quorum = getMachines(nr);
         
         // Check versions of each machine.
         Integer mostUpdated = -1;
         Machine updatedMachine = null;
-        System.out.println("read: looping all machines ");
         // Loop through each machine in NR and get the latest version.
         for(Machine m : quorum) {
 
 	    Integer version = null;
 
 	    if(!m.equals(self)) {
-
-		System.out.println("Contacting " + m.toString());
 		TTransport serverTransport = new TSocket(m.ipAddress, m.port);
 		serverTransport.open();
 		TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
@@ -194,7 +177,7 @@ public class Coordinator implements Server.Iface {
 	    else 
 		version = getLatestVersion(filename);
 
-	    System.out.println("version reported is: " + version);
+	    System.out.println(m.toString()+":"+filename+"("+version+")");
             if(version > mostUpdated){
                 updatedMachine = m;
                 mostUpdated = version;
