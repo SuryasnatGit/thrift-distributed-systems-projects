@@ -34,7 +34,7 @@ public final class Utils {
 	}
 	catch(Exception e) {
 	    System.out.println("Client: Failed to read file contents");
-	    e.printStackTrace();
+	    //e.printStackTrace();
 	    return false;
 	}
     }
@@ -50,14 +50,11 @@ public final class Utils {
         try {
             //load the contents into a byte array
             contents = Files.readAllBytes(Paths.get(filepath));
-
-            //System.out.println("UtilREAD contents: " + new String(contents));
-
             return ByteBuffer.wrap(contents);
         }
         catch(Exception e) {
             System.out.println("Util: Failed to read file contents .. returning null");
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
     }
@@ -69,7 +66,7 @@ public final class Utils {
 	if(dir.mkdir())
 	    return dir.getName() + "/";
 	else {
-	    System.out.println("Did not mkdir: " + dir.toString() + " maybe it already exists?");
+	    if(!dir.exists()) System.out.println("Did not mkdir: " + dir.toString() + " something went wrong.");
 	    return dir.getName() + "/";
 	}
     }

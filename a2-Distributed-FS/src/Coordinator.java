@@ -42,7 +42,7 @@ public class Coordinator implements Server.Iface {
         this.nr = nr;
         this.nw = nw;
         
-        System.out.println("I am the Coordinator.");
+        System.out.println("Starting Coordinator ...");
         
         //Create a Machine data type representing ourselves
         self = new Machine();
@@ -57,9 +57,6 @@ public class Coordinator implements Server.Iface {
 
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
-
-	System.out.println("Writing: " + filename);
-
 	WriteRequest req = new WriteRequest(filename, contents);
 	//put the request into the request queue
 	synchronized(requests) {
@@ -74,7 +71,7 @@ public class Coordinator implements Server.Iface {
 		    subscriptions.wait(); //wait
 	    }
 	    catch(Exception e) {
-		e.printStackTrace();
+		//e.printStackTrace(); //don't care about interrupt exceptions
 	    }
 
 	    // Get Nw Machines
@@ -138,14 +135,12 @@ public class Coordinator implements Server.Iface {
 
     @Override
     public ByteBuffer read(String filename) throws TException {
-    System.out.println("Reading: " + filename);
 	ReadRequest req = new ReadRequest(filename);
 	//put the request into the request queue
 	synchronized(requests) {
 	    requests.add(req);
 	    requests.notifyAll();
-	}
-	
+	}	
 
 	while(!subscriptions.contains(req)); //wait
 
@@ -153,7 +148,7 @@ public class Coordinator implements Server.Iface {
 	subscriptions.remove(req);
 
         // Get Nr Machines
-    System.out.println("GETTING QUORUM with nr=" + nr);
+	//System.out.println("GETTING QUORUM with nr=" + nr);
 	List<Machine> quorum = getMachines(nr);
         
         // Check versions of each machine.
@@ -187,7 +182,7 @@ public class Coordinator implements Server.Iface {
 	ByteBuffer contents = null;
 
 	if(mostUpdated == -1){ //doesn't exist
-	    System.out.println(filename + " doesn't exist in quorumed servers");
+	    //System.out.println(filename + " doesn't exist in quorumed servers");
 	    return ByteBuffer.wrap("NULL".getBytes());
 	}
         
@@ -215,7 +210,6 @@ public class Coordinator implements Server.Iface {
 
     @Override
     public boolean enroll(Machine machine) throws TException {
-        System.out.println("ENROLL CALLED ON COORDINATOR");
         servers.add(machine);
         
         // Set the quorum variables.
@@ -223,7 +217,7 @@ public class Coordinator implements Server.Iface {
         nw = servers.size() / 2 + 1;
         nr = nw;
         */
-        System.out.println(servers.toString());
+        System.out.println("\n\nList of Machines In the DFS : \n\n" + servers.toString());
         return true;
     }
     
@@ -327,7 +321,7 @@ public class Coordinator implements Server.Iface {
             return;
         }
         try {
-            System.out.println("Our IP Address is " + InetAddress.getLocalHost().toString());
+            System.out.println("IP Address is " + InetAddress.getLocalHost().toString());
 	    //port number used by this node.
             Integer port = Integer.parseInt(args[0]);
             Integer NW = Integer.parseInt(args[1]);
@@ -336,13 +330,9 @@ public class Coordinator implements Server.Iface {
             
 	    //spin up server
             coordinator.start();
-            
-        // Start Looping through and handling request queue.
-            // Depending on request 
-            // Handle it differently.
         }
         catch(Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 

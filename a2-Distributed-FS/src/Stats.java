@@ -20,10 +20,12 @@ public class  Stats{
     }
     
     public void print(){
+	System.out.println("\n\n");
         System.out.println("===================================");
         System.out.println("Total Time Reads: " + t_Reads +" ms");
         System.out.println("Total Time Writes: " + t_Writes+" ms");
         System.out.println("Total Time: " + total()+" ms");
         System.out.println("===================================");
+	System.out.println("\n\n");
     }
 }

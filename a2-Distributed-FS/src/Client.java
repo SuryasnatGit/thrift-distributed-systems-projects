@@ -126,13 +126,11 @@ public class Client {
 
         switch(op) {
 	case "read":
-	    System.out.println("Client: Reading " + input[1]);
-	    System.out.println("Success: " + readFile(input[1].trim()));
+	    System.out.println("Client: Reading " + input[1] + " Success: " + readFile(input[1].trim()));
 	    break;
 
 	case "write":
-	    System.out.println("Client: Writing " + input[1]);
-	    System.out.println("Success: " + writeFile(input[1].trim()));
+	    System.out.println("Client: Writing " + input[1] + " Success: " + writeFile(input[1].trim()));
 	    break;
 
 	case "ls":
@@ -146,7 +144,7 @@ public class Client {
 		Integer num_files = Integer.parseInt(input[1]);
 		Integer num_reads = Integer.parseInt(input[2]);
 		Integer num_writes = Integer.parseInt(input[3]); 
-		System.out.println("Load testing with " + num_reads + " reads : " + num_writes + " writes across " + num_files + " files in " + defaultDir);
+		System.out.println("\nLoad testing with " + num_reads + " reads : " + num_writes + " writes across " + num_files + " files in " + defaultDir);
 		loadTest(num_files, num_reads, num_writes);
 	    }
 	    else 
@@ -157,7 +155,7 @@ public class Client {
 
     private boolean writeFile(String filename) throws TException {
 	//writing to DFS first requires reading
-        System.out.println("Writing File: " + filename);
+        //System.out.println("Writing File: " + filename);
         ByteBuffer contents = Utils.read(defaultDir + filename);
         if(contents == null) {
 	    System.out.println(filename + " not found in : " + defaultDir);
@@ -170,7 +168,7 @@ public class Client {
     }
 
     private boolean readFile(String filename) throws TException {
-    System.out.println("Reading File: " + filename);
+	//System.out.println("Reading File: " + filename);
 	stats.start();
 	ByteBuffer content = server.read(filename);
 	stats.logRead();
@@ -179,7 +177,7 @@ public class Client {
 	String result = java.nio.charset.Charset.forName(encoding).decode(content).toString();
 	    
 	if(result.equals("NULL")) {
-	    System.out.println("File does not exist in DFS");
+	    System.out.println("File not found in DFS");
 	    return false;
 	}
 	else {
@@ -215,8 +213,8 @@ public class Client {
 		System.out.println("Something went wrong with writing file: " + files.get(i));
 		break; //abort the entire operation since all files should be present
 	    }
-	    if(isRead && readFile(files.get(i))) {
-		System.out.println("Could not read file from DFS: " + files.get(i));
+	    if(isRead && !readFile(files.get(i))) {
+		//System.out.println("Could not read file from DFS: " + files.get(i));
 		//don't break since this is a common occurence, requesting a file that doesn't exist in the DFS
 	    }
 	}

@@ -21,19 +21,15 @@ public class ServerHandler implements Server.Iface{
     
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
-	System.out.println("Write on server called !!!");
         // Ask the coordinator
         TTransport coordinatorTransport = new TSocket(coordinator.ipAddress, coordinator.port);
         coordinatorTransport.open();
         TProtocol coordinatorProtocol = new TBinaryProtocol(new TFramedTransport(coordinatorTransport));
         Server.Client coord  = new Server.Client(coordinatorProtocol);
-        
-	System.out.println("TALKING TO COORDINATOR");
 
+	//System.out.println("TALKING TO COORDINATOR");
         boolean status = coord.write(filename,contents);
-
         coordinatorTransport.close();
-        
         return status;
     }
     
@@ -57,7 +53,7 @@ public class ServerHandler implements Server.Iface{
     
     @Override
     public boolean update(String filename, int version, ByteBuffer contents) throws TException {
-	System.out.println("Updating file.");
+	//System.out.println("Updating file.");
        fs.put(filename,version);
        return Utils.write(directory+filename,contents);
     }
@@ -66,7 +62,7 @@ public class ServerHandler implements Server.Iface{
     /* only used by the Coordinator, stub */
     @Override
     public boolean enroll(Machine machine) throws TException {
-	System.out.println("Enroll called on server. This should not happen.");
+	System.out.println("Enroll called on server. This should not happen. Connect to a valid Coordinator.");
         return false;
     }
     
@@ -150,7 +146,7 @@ public class ServerHandler implements Server.Iface{
         boolean success = coordinatorClient.enroll(self);
 
         if(success)
-            System.out.println("Node has reported to Coordinator");
+            System.out.println("Server has successfully reported to Coordinator");
         else
             System.out.println("Could not report to Coordinator... damn.");
         
@@ -201,7 +197,7 @@ public class ServerHandler implements Server.Iface{
             return;
         }
         try {
-            System.out.println("Our IP Address is " + InetAddress.getLocalHost().toString());
+            System.out.println("IP Address is " + InetAddress.getLocalHost().toString());
             String coordinatorIP = args[0];
             Integer coordinatorPort = Integer.parseInt(args[1]);
 	    

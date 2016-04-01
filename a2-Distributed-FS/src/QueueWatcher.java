@@ -47,12 +47,12 @@ class QueueWatcher extends Thread {
 			    subscriptions.wait(); //wait for blocking write to complete.
 			}
 		    }
-		    System.out.println("Watcher: released subscriptions\n\n\n");
+		    //System.out.println("Watcher: released subscriptions\n\n\n");
 		}
 
 	    }
 	    catch(Exception e) {
-		e.printStackTrace();
+		//e.printStackTrace();
 		break;
 	    }
 	}

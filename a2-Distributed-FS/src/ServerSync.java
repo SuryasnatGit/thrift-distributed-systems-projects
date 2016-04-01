@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 class ServerSync extends Thread {
-    public final int SYNC_FREQUENCY = 2000;  //sync frequency in miliseconds 20 seconds * 1000 = 20 000 ms
+    public final int SYNC_FREQUENCY = 5000;  //sync frequency in miliseconds 20 seconds * 1000 = 20 000 ms
     HashMap<String,String> fs;
     List<Machine> servers;
     
@@ -33,7 +33,7 @@ class ServerSync extends Thread {
                 synchronized(servers) {
                     if(servers.size() <= 1)
                         continue;
-                    //System.out.println("Syncing");
+                    System.out.println("Syncing Servers.");
                         // Pause everything
                             // Ask Wenny
                             // Thanks wenny
@@ -66,7 +66,7 @@ class ServerSync extends Thread {
                         }
                 }
             } catch(Exception e){
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
     }
@@ -76,7 +76,7 @@ class ServerSync extends Thread {
         Iterator it = serverFS.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-	        Integer version = (Integer) pair.getValue();
+	    Integer version = (Integer) pair.getValue();
             String filename = (String) pair.getKey();
             
             if(!fs.containsKey(filename)){
