@@ -78,8 +78,8 @@ files need to be read/updated.
 
 # Performance Results
 
-Read Heavy(250 Reads)
-Write Heavy(50 Writes)
+Read Heavy(250 Reads,50 Writes)
+Write Heavy(250 Writes,50 Reads)
 Mix(150 Reads,150 Writes)
 
 ## Minimum Read Server NR=1, NW=10

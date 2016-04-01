@@ -126,11 +126,13 @@ public class Client {
 
         switch(op) {
 	case "read":
-	    System.out.println("Client: Reading " + input[1] + " Success: " + readFile(input[1].trim()));
+	    System.out.println("Client: Reading " + input[1]);
+        System.out.println(" Success: " + readFile(input[1].trim()));
 	    break;
 
 	case "write":
-	    System.out.println("Client: Writing " + input[1] + " Success: " + writeFile(input[1].trim()));
+	    System.out.println("Client: Writing " + input[1]);
+        System.out.println(" Success: " + writeFile(input[1].trim()));
 	    break;
 
 	case "ls":
