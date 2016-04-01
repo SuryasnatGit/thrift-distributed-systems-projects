@@ -1,12 +1,10 @@
 <?xml version="1.0"?>
    <project name="CSci 5105: Quorum Based Distributed File System" default="build">
 
-
-     <!--Default SuperNode and Node properties-->   
+     <!--Default Coordinator and Server properties used unless provided-->   
      <property name="coordinator.address" value="localhost" />
      <property name="coordinator.port" value="9090"/>
      <property name="server.port" value="5000" />
-     <property name="numservers" value="5"/>
     
      <property name="src.dir" value="src" />
      <property name="build.dir" value = "bin"/>
@@ -37,7 +35,7 @@
        </target>
 
        <target name="start-all" depends="build" description=" ">
-	 <echo>Launching SuperNode, Node and Client on localhost</echo>
+	 <echo>Launching Coordinator, Server and Client on localhost</echo>
 	 <echo>Starting SuperNode on Port ${superNode.port} with Minimum of ${superNode.minNode} nodes</echo>
 	 <parallel>
 	   <daemons>
