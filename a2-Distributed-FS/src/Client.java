@@ -206,6 +206,9 @@ public class Client {
 		num_writes--;
 		isRead = false; //since it might be isRead = true but num_reads <0
 	    }
+	    if(isRead) System.out.println("READ : " + filename);
+	    else System.out.println("WRITE : " + filename);
+
 	    int i = 0;
 	    if(num_files % files.size() == 0)
 		i = rand.nextInt(files.size());
