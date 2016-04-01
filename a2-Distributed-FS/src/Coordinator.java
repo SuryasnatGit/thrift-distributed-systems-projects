@@ -139,7 +139,7 @@ public class Coordinator implements Server.Iface {
 	//remove since we got and finished processing the signal, allowing the QueueWatcher to process other requests
 	synchronized(subscriptions) {
 	    subscriptions.remove(req);
-	    subscriptions.notify(); //wake sleeping monitors
+	    subscriptions.notifyAll(); //wake sleeping monitors
 	}
 	System.out.println("NOTIFIED");
 
@@ -152,7 +152,7 @@ public class Coordinator implements Server.Iface {
 	//put the request into the request queue
 	synchronized(requests) {
 	    requests.add(req);
-	    requests.notify();
+	    requests.notifyAll();
 	}
 	
 
