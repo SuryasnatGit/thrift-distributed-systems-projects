@@ -31,6 +31,7 @@ The server is a multithreaded Java application that services all client requests
 Reads and writes on the servers are done by first connecting to the well-known coordinator to make a request to read or write a file to the DFS.
 The call to the coordinator is necessary as the requests are all put into a synchronized request queue. 
 
+
 # Client
 
 The Client is a terminal to the File Server. 
@@ -50,6 +51,30 @@ The terminal contains a few simple commands to interact with the File Server.
  - `stats` - Lists the stats of the session. This displays the read and write of all requests.
  - `exit` - closes the connection to the Node and quits the interactive terminal
 
+# Sync
+
+Sync between servers happens after a set amount of time. Operations on the request queue is blocked until this sync is finished. 
+The steps to how the servers are synced goes as follows:
+- The coordinator is on a timer and calls sync after a set amount of time.
+- When the sync occurs, the coordinator collects all the versions of all the files in the File Server.
+- The coordinator uses the global view of the File Server to mapping of machines with the most updated versions
+of the files.
+- This global view of the File Server is then sent around the network across all servers.
+- The servers uses the view to check which file they need to download from across the network.
+- The sync is finished  when all servers have been checked in with the global view.
+
+# Life of a Request
+
+For reads and writes from a client to a server, the following occurs:
+- First a client issues Read/Write to the server. 
+- The server makes a RPC to the coordinator to start a quorum and waits for the response.
+- On the Coordinator side, the request is put in a queue and waits till that request is ready to be served.
+- When the request reaches the front of the queue the QueueWatcher thread notifies the coordinator to start the quorum process
+- Based on NR/NW that many random machines are gathered.
+- The coordinator pings all machines in the quorum for the version numbers for file.
+- Depending on if it is a read or write the coordinator will be able to perform direct reads/writes bypassing the quorum procedure after it determines what 
+files need to be read/updated.
+- The result of the read/write is then returned back to the server that asked it.
 
 # How to Run the Project
 
