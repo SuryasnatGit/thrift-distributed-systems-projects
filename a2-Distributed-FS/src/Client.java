@@ -157,6 +157,7 @@ public class Client {
 
     private boolean writeFile(String filename) throws TException {
 	//writing to DFS first requires reading
+        System.out.println("Writing File: " + filename);
         ByteBuffer contents = Utils.read(defaultDir + filename);
         if(contents == null) {
 	    System.out.println(filename + " not found in : " + defaultDir);
@@ -169,6 +170,7 @@ public class Client {
     }
 
     private boolean readFile(String filename) throws TException {
+    System.out.println("Reading File: " + filename);
 	stats.start();
 	ByteBuffer content = server.read(filename);
 	stats.logRead();
