@@ -46,7 +46,6 @@ class QueueWatcher extends Thread {
 		    System.out.println("LEAVING CRITICAL SECTION, waiting for write req to complete.");
 		    synchronized(subscriptions) {
 			while(subscriptions.contains(req)) {
-			    System.out.println("i8mma w8, no sleep...");
 			    subscriptions.wait(); //wait for blocking write to complete.
 			}
 		    }

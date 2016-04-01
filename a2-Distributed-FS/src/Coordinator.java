@@ -58,7 +58,7 @@ public class Coordinator implements Server.Iface {
     @Override
     public boolean write(String filename, ByteBuffer contents) throws org.apache.thrift.TException {
 
-	System.out.println("Coordinator Write called, synching req");
+	System.out.println("Writing: " + filename);
 
 	WriteRequest req = new WriteRequest(filename, contents);
 	//put the request into the request queue
@@ -66,12 +66,9 @@ public class Coordinator implements Server.Iface {
 	    requests.add(req);
 	    requests.notify();
 	}
-
-	System.out.println("TIME TO WAIT FOR A REPLY");
 	
 	while(!subscriptions.contains(req)); //wait
 
-	System.out.println("REPLIED!!! ");
 
 	System.out.println("GETTING QUORUM with nw=" + nw);
 
@@ -81,15 +78,12 @@ public class Coordinator implements Server.Iface {
         // Check versions of each machine.
         Integer mostUpdated = -1;
         Machine updatedMachine = null;
-        System.out.println("Machines fetched, go in loop");
         // Loop through each machine in NW and get the latest version.
         for(Machine m : quorum) {
 
 	    Integer version = null;
 
 	    if(!m.equals(self)) {
-
-		System.out.println("Contacting " + m.toString());
 		TTransport serverTransport = new TSocket(m.ipAddress, m.port);
 		serverTransport.open();
 		TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
@@ -102,14 +96,12 @@ public class Coordinator implements Server.Iface {
 	    else 
 		version = this.getLatestVersion(filename);
 
-	    System.out.println("version reported is: " + version);
+	    System.out.println(m.toString()+":"+filename+"("+version+")");
             if(version > mostUpdated){
                 updatedMachine = m;
                 mostUpdated = version;
             }       
         }
-        
-        System.out.println("most updated copy: " + mostUpdated);
         // Update the most updated number
         mostUpdated += 1;
         
@@ -125,29 +117,30 @@ public class Coordinator implements Server.Iface {
             
 		// Updates all contents in NW.
         ByteBuffer duped = contents.duplicate();
+        System.out.println("Updating: " +m.toString()+":"+filename+"("+mostUpdated+")");
 		server.update(filename, mostUpdated, duped);
             
 		serverTransport.close();
 	    }
 	    else{
           ByteBuffer duped = contents.duplicate();
+          System.out.println("Updating: " +m.toString()+":"+filename+"("+mostUpdated+")");
 		  this.update(filename, mostUpdated, duped);
         }
 	}
-	System.out.println("All updated. returning...");
 	
 	//remove since we got and finished processing the signal, allowing the QueueWatcher to process other requests
 	synchronized(subscriptions) {
 	    subscriptions.remove(req);
 	    subscriptions.notifyAll(); //wake sleeping monitors
 	}
-	System.out.println("NOTIFIED");
 
         return true;
     }
 
     @Override
     public ByteBuffer read(String filename) throws TException {
+    System.out.println("Reading: " + filename);
 	ReadRequest req = new ReadRequest(filename);
 	//put the request into the request queue
 	synchronized(requests) {
@@ -162,20 +155,18 @@ public class Coordinator implements Server.Iface {
 	subscriptions.remove(req);
 
         // Get Nr Machines
+    System.out.println("GETTING QUORUM with nr=" + nr);
 	List<Machine> quorum = getMachines(nr);
         
         // Check versions of each machine.
         Integer mostUpdated = -1;
         Machine updatedMachine = null;
-        System.out.println("read: looping all machines ");
         // Loop through each machine in NR and get the latest version.
         for(Machine m : quorum) {
 
 	    Integer version = null;
 
 	    if(!m.equals(self)) {
-
-		System.out.println("Contacting " + m.toString());
 		TTransport serverTransport = new TSocket(m.ipAddress, m.port);
 		serverTransport.open();
 		TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
@@ -188,7 +179,7 @@ public class Coordinator implements Server.Iface {
 	    else 
 		version = getLatestVersion(filename);
 
-	    System.out.println("version reported is: " + version);
+	    System.out.println(m.toString()+":"+filename+"("+version+")");
             if(version > mostUpdated){
                 updatedMachine = m;
                 mostUpdated = version;
