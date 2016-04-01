@@ -47,6 +47,7 @@ class QueueWatcher extends Thread {
 		    synchronized(subscriptions) {
 			while(subscriptions.contains(req)) {
 			    System.out.println("i8mma w8, no sleep...");
+			    subscriptions.notifyAll();
 			    subscriptions.wait(); //wait for blocking write to complete.
 			}
 		    }

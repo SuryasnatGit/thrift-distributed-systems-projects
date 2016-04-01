@@ -64,80 +64,86 @@ public class Coordinator implements Server.Iface {
 	//put the request into the request queue
 	synchronized(requests) {
 	    requests.add(req);
-	    requests.notify();
+	    requests.notifyAll();
 	}
 
 	System.out.println("TIME TO WAIT FOR A REPLY");
 	
-	while(!subscriptions.contains(req)); //wait
-
-	System.out.println("REPLIED!!! ");
-
-	System.out.println("GETTING QUORUM with nw=" + nw);
-
-        // Get Nw Machines
-	List<Machine> quorum = getMachines(nw);
-        
-        // Check versions of each machine.
-        Integer mostUpdated = -1;
-        Machine updatedMachine = null;
-        System.out.println("Machines fetched, go in loop");
-        // Loop through each machine in NW and get the latest version.
-        for(Machine m : quorum) {
-
-	    Integer version = null;
-
-	    if(!m.equals(self)) {
-
-		System.out.println("Contacting " + m.toString());
-		TTransport serverTransport = new TSocket(m.ipAddress, m.port);
-		serverTransport.open();
-		TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
-		Server.Client server  = new Server.Client(serverProtocol);
-            
-		// Most Updated Version Number/Machine
-		version = server.getLatestVersion(filename);
-		serverTransport.close();
-	    }
-	    else 
-		version = this.getLatestVersion(filename);
-
-	    System.out.println("version reported is: " + version);
-            if(version > mostUpdated){
-                updatedMachine = m;
-                mostUpdated = version;
-            }       
-        }
-        
-        System.out.println("most updated copy: " + mostUpdated);
-        // Update the most updated number
-        mostUpdated += 1;
-        
-       // Loop through each machine in NW and update
-        for(Machine m : quorum) {
-
-	    if(!m.equals(self)) {
-
-		TTransport serverTransport = new TSocket(m.ipAddress, m.port);
-		serverTransport.open();
-		TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
-		Server.Client server  = new Server.Client(serverProtocol);
-            
-		// Updates all contents in NW.
-        ByteBuffer duped = contents.duplicate();
-		server.update(filename, mostUpdated, duped);
-            
-		serverTransport.close();
-	    }
-	    else{
-          ByteBuffer duped = contents.duplicate();
-		  this.update(filename, mostUpdated, duped);
-        }
-	}
-	System.out.println("All updated. returning...");
-	
-	//remove since we got and finished processing the signal, allowing the QueueWatcher to process other requests
 	synchronized(subscriptions) {
+	
+	    try {
+		while(!subscriptions.contains(req))
+		    subscriptions.wait(); //wait
+	    }
+	    catch(Exception e) {
+		e.printStackTrace();
+	    }
+	    System.out.println("REPLIED!!! ");
+	    
+	    System.out.println("GETTING QUORUM with nw=" + nw);
+
+	    // Get Nw Machines
+	    List<Machine> quorum = getMachines(nw);
+        
+	    // Check versions of each machine.
+	    Integer mostUpdated = -1;
+	    Machine updatedMachine = null;
+	    System.out.println("Machines fetched, go in loop");
+	    // Loop through each machine in NW and get the latest version.
+	    for(Machine m : quorum) {
+
+		Integer version = null;
+
+		if(!m.equals(self)) {
+		    
+		    System.out.println("Contacting " + m.toString());
+		    TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+		    serverTransport.open();
+		    TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+		    Server.Client server  = new Server.Client(serverProtocol);
+            
+		    // Most Updated Version Number/Machine
+		    version = server.getLatestVersion(filename);
+		    serverTransport.close();
+		}
+		else 
+		    version = this.getLatestVersion(filename);
+
+		System.out.println("version reported is: " + version);
+		if(version > mostUpdated){
+		    updatedMachine = m;
+		    mostUpdated = version;
+		}       
+	    }
+        
+	    System.out.println("most updated copy: " + mostUpdated);
+	    // Update the most updated number
+	    mostUpdated += 1;
+        
+	    // Loop through each machine in NW and update
+	    for(Machine m : quorum) {
+
+		if(!m.equals(self)) {
+
+		    TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+		    serverTransport.open();
+		    TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+		    Server.Client server  = new Server.Client(serverProtocol);
+            
+		    // Updates all contents in NW.
+		    ByteBuffer duped = contents.duplicate();
+		    server.update(filename, mostUpdated, duped);
+            
+		    serverTransport.close();
+		}
+		else{
+		    ByteBuffer duped = contents.duplicate();
+		    this.update(filename, mostUpdated, duped);
+		}
+	    }
+	    System.out.println("All updated. returning...");
+	    //remove since we got and finished processing the signal, allowing the QueueWatcher to process other requests
+	
 	    subscriptions.remove(req);
 	    subscriptions.notifyAll(); //wake sleeping monitors
 	}
@@ -362,11 +368,11 @@ public class Coordinator implements Server.Iface {
 	// start up thread that watches a queue, explicitly pass private references
 	QueueWatcher watcher = new QueueWatcher(this.requests, this.subscriptions, this);
 	watcher.start();
-    System.out.println("Watcher thread started ..");
+	System.out.println("Watcher thread started ..");
     
-    ServerSync syncThread = new ServerSync(servers);
+	ServerSync syncThread = new ServerSync(servers);
 	syncThread.start();
-	System.out.println("Sync thread started ..");
+	System.out.println("Sync thread started .. will sync every " + syncThread.SYNC_FREQUENCY + " seconds.");
 
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);

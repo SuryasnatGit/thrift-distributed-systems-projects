@@ -206,8 +206,11 @@ public class Client {
 		num_writes--;
 		isRead = false; //since it might be isRead = true but num_reads <0
 	    }
-	    
-	    int i = rand.nextInt(num_files % files.size()); //avoid crashing when num_files > files.size()
+	    int i = 0;
+	    if(num_files % files.size() == 0)
+		i = rand.nextInt(files.size());
+	    else 
+		i = rand.nextInt(num_files % files.size()); //avoid crashing when num_files > files.size()
 	    if(!isRead && !writeFile(files.get(i))) {
 		System.out.println("Something went wrong with writing file: " + files.get(i));
 		break; //abort the entire operation since all files should be present

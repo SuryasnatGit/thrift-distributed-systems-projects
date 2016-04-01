@@ -3,7 +3,7 @@
 
 
      <!--Default SuperNode and Node properties-->   
-     <property name="coordinator.address" value="x30-07" />
+     <property name="coordinator.address" value="localhost" />
      <property name="coordinator.port" value="9090"/>
      <property name="server.port" value="5000" />
      <property name="numservers" value="5"/>
