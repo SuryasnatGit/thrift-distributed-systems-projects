@@ -20,9 +20,8 @@ The coordinator has a few primary responsibilities:
 
 //talk about how the coordinator's read and writes assemble the quorum when the server makes the call
 //talk about how the coordinator is multithreaded, so many many threads assemble quorums for read and write simultaneously
-// talk about the synchronized and subscribed queues
+//talk about the synchronized and subscribed queues
 //talk about how the queue watcher works with the coordinator
-// talk about how the sync happens every few seconds 
 
 
 # Servers
@@ -75,6 +74,33 @@ For reads and writes from a client to a server, the following occurs:
 - Depending on if it is a read or write the coordinator will be able to perform direct reads/writes bypassing the quorum procedure after it determines what 
 files need to be read/updated.
 - The result of the read/write is then returned back to the server that asked it.
+
+
+# Performance Results
+
+## Minimum Read Server NR=1, NW=10
+    // Read Heavy
+    // Write Heavy
+    // Mix
+
+## Minimum Servers NR=5, NW=6
+    // Read Heavy
+    // Write Heavy
+    // Mix
+
+## Full Servers NR=10, NW=10
+    // Read Heavy
+    // Write Heavy
+    // Mix
+
+## Max Read Servers with Minimum Write Servers NR=10,NW=6
+    // Read Heavy
+    // Write Heavy
+    // Mix
+
+
+
+
 
 # How to Run the Project
 
