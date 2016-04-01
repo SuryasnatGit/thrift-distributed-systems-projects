@@ -78,26 +78,39 @@ files need to be read/updated.
 
 # Performance Results
 
+Read Heavy(250 Reads)
+Write Heavy(50 Writes)
+Mix(150 Reads,150 Writes)
+
 ## Minimum Read Server NR=1, NW=10
-    // Read Heavy
-    // Write Heavy
-    // Mix
+
+Read Heavy:
+
+Write Heavy:
+
+Mix:
 
 ## Minimum Servers NR=5, NW=6
-    // Read Heavy
-    // Write Heavy
-    // Mix
+Read Heavy:
+
+Write Heavy:
+
+Mix:
 
 ## Full Servers NR=10, NW=10
-    // Read Heavy
-    // Write Heavy
-    // Mix
+Read Heavy:
+
+Write Heavy:
+
+Mix:
 
 ## Max Read Servers with Minimum Write Servers NR=10,NW=6
-    // Read Heavy
-    // Write Heavy
-    // Mix
 
+Read Heavy:
+
+Write Heavy:
+
+Mix:
 
 
 
@@ -177,13 +190,4 @@ Note: Run commands from the project directory, where `build.xml` is localed.
 Many of the above targets depend on some known information about the SuperNode and the ports to connect to. Sometimes these constants should be overridden (for example when starting multiple nodes/clients on the same machine). **To Override these constants**, use the format:
 
     -D(propertyName)=(value) 
-
-##### Examples:
-
-# Test Cases
-
-## Positive Scenarios
-
-## Negative Scenarios
-
 
