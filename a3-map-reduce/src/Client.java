@@ -110,8 +110,8 @@ public class Client {
 		System.out.println(USAGE_STRING);
 		return;
 	    }
-	    System.out.println("Client: Submitting Sort Job " + input[1] + "with " + input[2] + " chunks.");
-	    System.out.println(" Success: " + submitJob(input[1].trim(), chunks));
+	    System.out.println("Client: Submitting Sort Job on " + defaultDir + input[1] + "with " + input[2] + " chunks.");
+	    System.out.println(" Success: " + submitJob(defaultDir + input[1].trim(), chunks));
 	    break;
 
 	case "ls":
@@ -125,6 +125,14 @@ public class Client {
 
     private boolean submitJob(String filename, Integer chunks) throws TException {
 	//System.out.println("Reading File: " + filename);
+
+	//check for existence of file
+	File file = new File(filename);
+	if(!filename.exists() || filename.isDirectory()) {
+	    System.out.println("Not a file or is a directory.");
+	    return false;
+	}
+
 	String result = server.compute(filename, chunks);
 
 	if(result.equals("NULL")) {

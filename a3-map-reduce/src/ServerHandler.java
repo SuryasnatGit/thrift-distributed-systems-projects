@@ -19,47 +19,52 @@ import java.util.Iterator;
 
 public class ServerHandler implements Server.Iface {
     
-    List<Machine> servers;
+    List<Machine> computeNodes;
     Machine self;
     
-
-    public Server(Integer port) throws Exception {
+    public ServerHandler(Integer port) throws Exception {
         servers = new ArrayList<Machine>();
         
         //Create a Machine data type representing ourselves
         self = new Machine();
         self.ipAddress = InetAddress.getLocalHost().getHostName().toString();		
-        self.port = port;
-        
+        self.port = port;   
     }
-
-    @Override
-    public boolean enroll(Machine machine) throws TException {
-        servers.add(machine);
-        System.out.println("\n\nList of Compute Nodes In the DFS : \n\n" + servers.toString());
-        return true;
-    }
-    
     
     public static void main(String[] args) {
         if(args.length < 1) {
-            System.err.println("Usage: java Coordinator <port>");
+            System.err.println("Usage: java ServerHandler <port>");
             return;
         }
         try {
             System.out.println("IP Address is " + InetAddress.getLocalHost().toString());
-	        //port number used by this node.
+	    //port number used by this node.
             Integer port = Integer.parseInt(args[0]);
+	    Server server = new ServerHandler(port);
             
-	       Coordinator coordinator = new Coordinator(port,NW,NR);
-            
-	       //spin up server
-            coordinator.start();
+	    //spin up server
+            server.start();
         }
         catch(Exception e) {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public boolean enroll(Machine machine) throws TException {
+        computerNodes.add(machine);
+        System.out.println("\n\nList of Compute Nodes : \n\n" + computeNodes.toString());
+        return true;
+    }
+
+    @Override
+    public boolean compute(String filename, int chunks) throws TException {
+	System.out.println("Starting sort job on " + filename + " with " + chunk + " chunks.");
+	return false;
+    }
+
+    /* ---- PRIVATE HELPER FUNCTIONS ---- */
+
 
     //Begin Thrift Server instance for a Node and listen for connections on our port
     private void start() throws TException {
@@ -67,7 +72,6 @@ public class ServerHandler implements Server.Iface {
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);
         TTransportFactory factory = new TFramedTransport.Factory();
-
         Server.Processor processor = new Server.Processor<>(this);
 
         //Set Server Arguments
@@ -78,7 +82,7 @@ public class ServerHandler implements Server.Iface {
         //Run server with multiple threads
         TServer server = new TThreadPoolServer(serverArgs);
         
-	    System.out.println("Server is listening ... ");
+	System.out.println("Server is listening ... ");
         server.serve();
     }
 }
