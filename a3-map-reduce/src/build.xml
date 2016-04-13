@@ -1,0 +1,192 @@
+<?xml version="1.0"?>
+   <project name="CSci 5105: Quorum Based Distributed File System" default="build">
+
+     <!--Default Coordinator and Server properties used unless provided-->   
+     <property name="coordinator.address" value="localhost" />
+     <property name="coordinator.port" value="9090"/>
+     <property name="server.port" value="5000" />
+    
+     <property name="src.dir" value="src" />
+     <property name="build.dir" value = "bin"/>
+     <property name="thrift.install" value="/usr/local/Thrift/" />
+     
+     <!-- CHANGE THESE VALUES -->   
+     <property name="NR" value="5"/>
+     <property name="NW" value="6"/>
+
+       <target name="info">
+	 <echo>A Quorum Based Distributed File System</echo>
+       </target>
+
+       <path id="master-classpath">
+	 <fileset dir="${thrift.install}">
+           <include name="*.jar"/>
+	 </fileset>
+	 <pathelement path="${thrift.install}"/>
+	 <pathelement path="${build.dir}" />
+       </path>
+       
+       <target name="clean" description="Clean output directories">
+	 <delete>
+           <fileset dir="${build.dir}">
+             <include name="**/*.class"/>
+           </fileset>
+	 </delete>
+       </target>
+
+       <target name="start-all" depends="build" description=" ">
+	 <echo>Launching Coordinator, Server and Client on localhost</echo>
+	 <echo>Starting SuperNode on Port ${superNode.port} with Minimum of ${superNode.minNode} nodes</echo>
+	 <parallel>
+	   <daemons>
+	   <sequential>
+	     <java classname="Coordinator" fork="true">
+            <classpath refid="master-classpath"/>
+                <arg line="${coordinator.port} ${NW} ${NR}"/>
+	     </java>
+	   </sequential>
+	   <sequential>
+	     <antcall target="start-server">
+               <param name="server.port" value="5000"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <antcall target="start-server">
+               <param name="server.port" value="5001"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <antcall target="start-server">
+	       <param name="server.port" value="5002"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <antcall target="start-server">
+	       <param name="server.port" value="5003"/>
+	     </antcall>
+	   </sequential>
+	   <sequential>
+	     <antcall target="start-server">
+	       <param name="server.port" value="5004"/>
+	     </antcall>
+         </sequential>
+         <sequential>
+         <antcall target="start-server">
+	   <param name="server.port" value="5005"/>
+	     </antcall>
+         </sequential>
+         <sequential>
+         <antcall target="start-server">
+	   <param name="server.port" value="5006"/>
+	     </antcall>
+         </sequential>
+         <sequential>
+         <antcall target="start-server">
+	   <param name="server.port" value="5007"/>
+	 </antcall>
+         </sequential>
+         <sequential>
+           <antcall target="start-server">
+	     <param name="server.port" value="5008"/>
+	   </antcall>
+         </sequential>
+         <sequential>
+           <antcall target="start-server">
+	     <param name="server.port" value="5009"/>
+	     </antcall>
+	   </sequential>
+	 </daemons>
+	   <sequential>
+	     <echo>Starting client in 4 seconds ... </echo>
+	     <sleep milliseconds="4000"/>
+	     <echo>Starting Client ... </echo>
+	     <antcall target="start-client">
+	     </antcall>
+	   </sequential>
+	 </parallel>
+
+       </target>
+
+       <target name="start-coordinator" depends="build" description="Start Coordinator">
+	 <echo>Starting Coordinator on Port ${coordinator.port} ...</echo>
+	 <java classname="Coordinator" fork="true">
+	   <classpath refid="master-classpath"/>
+	   <arg line="${coordinator.port} ${NW} ${NR}"/>
+	 </java>
+       </target>
+
+       <target name="start-client" depends="build" description="Start Client">
+	 <echo>Starting Client to connect to Server/Coordinator at "${coordinator.address}:${coordinator.port} (Coordinator)"</echo>
+	 <java classname="Client">
+	   <classpath refid="master-classpath"/>
+	   <arg line="${coordinator.address} ${coordinator.port}"/>
+	 </java>
+       </target>
+
+       <target name="start-server" depends="build" description="Start Server">
+	 <echo>Starting Server on Port ${server.port} to connect to Coordinator at "${coordinator.address}:${coordinator.port}"</echo>
+	 <java classname="ServerHandler" fork="true">
+	   <classpath refid="master-classpath"/>
+	   <arg line="${coordinator.address} ${coordinator.port} ${server.port}"/>
+	 </java>
+       </target>
+
+       <target name="thrift">
+	 <antcall target="thrift-gen">
+	   <param name="file" value="Server.thrift"/>
+	 </antcall>
+	 <antcall target="thrift-gen">
+	   <param name="file" value="shared.thrift"/>
+	 </antcall>
+	<!-- <antcall target="thrift-gen">
+	   <param name="file" value="Node.thrift"/>
+	 </antcall>
+	-->
+       </target>
+
+       <target name="thrift-gen">
+	 <echo> Generating Java files for ${file} </echo>
+       <exec executable="thrift">
+	 <arg line="-o ${src.dir} --gen java ${src.dir}/${file}"/>
+       </exec>
+       </target>
+
+       <!-- Remember to manually rebuild thrift files if they have changed! -->
+       <target name="build" description="Compile source tree java files">
+	 <mkdir dir="${build.dir}"/>
+	 <javac includeantruntime="false" destdir="${build.dir}" 
+		source="1.7" target="1.7" debug="true"
+		bootclasspath="/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/rt.jar"
+	 >
+           <src path="${src.dir}"/>
+	   <compilerarg value="-Xlint:unchecked"/>
+           <classpath>
+	     <path refid="master-classpath"/>
+	     <path path="${build.dir}"/>
+	   </classpath>
+	 </javac>
+       </target>
+
+       <!-- http://stackoverflow.com/questions/14406288/ant-javac-classpathref-not-working -->
+       <target name="diagnostics">
+	 <pathconvert property="classpathProp" refid="master-classpath"/>
+
+	 <echo>Classpath is ${classpathProp}</echo>
+       </target>
+
+       <target name="thriftAll" description="Uses thrift compiler to generate java files, doesn't work because vanilla ant doesn't have foreach">
+	 <!-- Define fileset of thrift files -->
+	 <fileset id="thrift.src.files" dir="${src.dir}">
+           <include name="**/*.thrift"/>
+	 </fileset>
+	    <apply executable="thrift" parallel="true">
+	      <arg value="-o"/>
+              <arg value="${src.dir}"/>
+              <arg value="--gen"/>
+              <arg value="java"/>
+              <srcfile/>
+              <fileset refid="thrift.src.files"/>
+            </apply>
+       </target>
+
+   </project>

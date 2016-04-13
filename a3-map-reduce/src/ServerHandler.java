@@ -23,7 +23,7 @@ public class ServerHandler implements Server.Iface {
     Machine self;
     
 
-    public Server(Integer port) throws Exception {
+    public ServerHandler(Integer port) throws Exception {
         servers = new ArrayList<Machine>();
         
         //Create a Machine data type representing ourselves

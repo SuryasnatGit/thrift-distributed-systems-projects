@@ -27,6 +27,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         serverTransport.open();
         TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
         Server.Client serverClient = new Server.Client(serverProtocol);    
+        
         this.server = new Machine();
         this.server.ipAddress = serverIP;
         this.server.port = serverPort;
@@ -43,11 +44,33 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
             System.out.println("Server has successfully reported to server");
         else
             System.out.println("Could not report to server... damn.");
-        
-        directory = Utils.initializeFolder(self);
-
 
         serverTransport.close();
+    }
+    
+    @Override
+    public String sort(String filename, int startChunk, int endChunk,String output) throws TException {
+        return "lol";
+    }
+    
+    @Override
+    public String merge(String f1, String f2,String output) throws TException {
+        return "lol";
+    }
+    
+    @Override
+    public boolean heartbeat() throws TException {
+        return false;
+    }
+    
+    @Override
+    public String getStats() throws TException {
+        return "";
+    }
+    
+    @Override
+    public boolean cancel(String output) throws TException {
+        return false;
     }
     	
     //Begin Thrift Server instance for a Node and listen for connections on our port
@@ -56,7 +79,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         TServerTransport serverTransport = new TServerSocket(self.port);
         TTransportFactory factory = new TFramedTransport.Factory();
 
-        Server.Processor processor = new Server.Processor<>(this);
+        ComputeNode.Processor processor = new ComputeNode.Processor<>(this);
 
         //Set Server Arguments
         TThreadPoolServer.Args serverArgs = new TThreadPoolServer.Args(serverTransport);
@@ -81,10 +104,10 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
             String serverIP = args[0];
             Integer serverPort = Integer.parseInt(args[1]);
 	    
-	    //port number used by this node.
+	        //port number used by this node.
             Integer port = Integer.parseInt(args[2]);
             
-            ServerHandler server = new ServerHandler(serverIP, serverPort,port);
+            ComputeNodeHandler server = new ComputeNodeHandler(serverIP, serverPort,port);
             
             //spin up server
             server.start();
