@@ -23,7 +23,7 @@ public class ServerHandler implements Server.Iface {
     Machine self;
     
     public ServerHandler(Integer port) throws Exception {
-        servers = new ArrayList<Machine>();
+        computeNodes = new ArrayList<Machine>();
         
         //Create a Machine data type representing ourselves
         self = new Machine();
@@ -40,7 +40,7 @@ public class ServerHandler implements Server.Iface {
             System.out.println("IP Address is " + InetAddress.getLocalHost().toString());
 	    //port number used by this node.
             Integer port = Integer.parseInt(args[0]);
-	    Server server = new ServerHandler(port);
+	    ServerHandler server = new ServerHandler(port);
             
 	    //spin up server
             server.start();
@@ -52,15 +52,15 @@ public class ServerHandler implements Server.Iface {
 
     @Override
     public boolean enroll(Machine machine) throws TException {
-        computerNodes.add(machine);
+        computeNodes.add(machine);
         System.out.println("\n\nList of Compute Nodes : \n\n" + computeNodes.toString());
         return true;
     }
 
     @Override
-    public boolean compute(String filename, int chunks) throws TException {
-	System.out.println("Starting sort job on " + filename + " with " + chunk + " chunks.");
-	return false;
+    public String compute(String filename, int chunks) throws TException {
+	System.out.println("Starting sort job on " + filename + " with " + chunks + " chunks.");
+	return "NULL";
     }
 
     /* ---- PRIVATE HELPER FUNCTIONS ---- */

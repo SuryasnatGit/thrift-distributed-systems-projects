@@ -4,7 +4,6 @@
      <!--Default server and Server properties used unless provided-->   
      <property name="server.address" value="localhost" />
      <property name="server.port" value="9090"/>
-     <property name="server.port" value="5000" />
     
      <property name="src.dir" value="src" />
      <property name="build.dir" value = "bin"/>
@@ -36,9 +35,9 @@
 	 <parallel>
 	   <daemons>
 	   <sequential>
-	     <java classname="server" fork="true">
+	     <java classname="ServerHandler" fork="true">
             <classpath refid="master-classpath"/>
-                <arg line="${server.port} ${NW} ${NR}"/>
+                <arg line="${server.port}"/>
 	     </java>
 	   </sequential>
 	   <sequential>
@@ -105,7 +104,7 @@
 
        <target name="start-server" depends="build" description="Start server">
 	 <echo>Starting server on Port ${server.port} ...</echo>
-	 <java classname="server" fork="true">
+	 <java classname="serverHandler" fork="true">
 	   <classpath refid="master-classpath"/>
 	   <arg line="${server.port}"/>
 	 </java>
@@ -121,7 +120,7 @@
 
        <target name="start-node" depends="build" description="Start Server">
 	 <echo>Starting Server on Port ${node.port} to connect to server at "${server.address}:${server.port}"</echo>
-	 <java classname="ServerHandler" fork="true">
+	 <java classname="ComputeNodeHandler" fork="true">
 	   <classpath refid="master-classpath"/>
 	   <arg line="${server.address} ${server.port} ${node.port}"/>
 	 </java>

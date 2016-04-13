@@ -16,8 +16,8 @@ public class Client {
     TTransport serverTransport;
     Server.Client server;
 
-    final String defaultDir = "./data/"; //default data directory
-    final String USAGE_STRING = "Usage: <ls> | <sort> <filename> <num_chunks> | <exit>";
+    final static String defaultDir = "./data/"; //default data directory
+    final static String USAGE_STRING = "Usage: <ls> | <sort> <filename> <num_chunks> | <exit>";
   
     //Connect to the superNode
     public Client(Machine serverInfo) throws TException{
@@ -128,7 +128,7 @@ public class Client {
 
 	//check for existence of file
 	File file = new File(filename);
-	if(!filename.exists() || filename.isDirectory()) {
+	if(!file.exists() || file.isDirectory()) {
 	    System.out.println("Not a file or is a directory.");
 	    return false;
 	}
@@ -148,6 +148,10 @@ public class Client {
     //Thank you http://stackoverflow.com/a/1846349
     private ArrayList<String> listAllFiles(final File folder) {
 	ArrayList<String> filenames = new ArrayList<>();
+	if(!folder.exists()) {
+	    System.out.println("Folder does not exist.");
+	    return filenames;
+	}
 	for (final File fileEntry : folder.listFiles())
 	    filenames.add(fileEntry.getName());
 	return filenames;
