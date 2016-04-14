@@ -13,14 +13,15 @@ import java.util.Queue;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.util.Random;
 import java.util.Iterator;
 
 public class ServerHandler implements Server.Iface {
     
     List<Machine> computeNodes;
     Machine self;
+    private Integer i_complete; // synchronized counter for completed tasks.
+    private Integer i_unique;   // synchronized counter for unique intermediate files
+
     
     public ServerHandler(Integer port) throws Exception {
         computeNodes = new ArrayList<Machine>();
@@ -63,37 +64,35 @@ public class ServerHandler implements Server.Iface {
 
 	//process the file by generating chunk metadata
 
-	//start contacting all nodes and assigning tasks
+	//start contacting all nodes and queue it all onto compute machines
 
-	//wait for all tasks to be done. 
+	// blocking wait for all tasks for it all to complete.
 
 	return "NULL";
     }
 
 
     @Override
-    public boolean announce(String uniqueName, Machine m) {
-	//acknowledge this file is done.
+    // RPC Called by the compute nodes when they have done their task
+    public boolean announce() throws TException {
+	synchronized(i_complete) {
+	    i_complete++;
+	}
+	return true;
     }
 
     /* ---- PRIVATE HELPER FUNCTIONS ---- */
-
-
-    private void chunkify(String filename) {
-	//read the file
+    private void chunkify(String filename, Integer chunks) {
+	// get the file size and do math on the chunks
+	// read the file
 
 	// divide up integer stream into chunks
-
-	// 
-
-	synchronized(taskQ) {
-	    taskQ.add(task);
-	}
-	return true;
-
     }
 
+    // reset state for next job
     private void cleanup() {
+	i_complete = 0;
+	i_unique = 0;
     }
 
 
