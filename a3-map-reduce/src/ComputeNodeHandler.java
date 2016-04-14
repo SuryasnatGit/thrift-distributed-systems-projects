@@ -18,6 +18,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     Machine self;
     String directory; //name of folder to be written/read to by server
     Machine server;
+    boolean isDead;
     
     
     /* Constructor for a Server, a Thrift connection is made to the server as well */
@@ -35,7 +36,9 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         //Create a Machine data type representing ourselves
         self = new Machine();
         self.ipAddress = InetAddress.getLocalHost().getHostName().toString();		
-        self.port = port; 
+        self.port = port;
+        
+        isDead = false; 
         
         // call enroll on superNode to enroll.
         boolean success = serverClient.enroll(self);
@@ -49,18 +52,43 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     }
     
     @Override
-    public String sort(String filename, int startChunk, int endChunk,String output) throws TException {
-        return "lol";
+    public boolean sort(String filename, int startChunk, int endChunk,String output) throws TException {
+        // Open file as a stream.
+        
+        // Jump to the startChunk offset
+        
+        // Read uptil then endChunk
+        
+        // Split by new line 
+        
+        // Convert to int arrayList
+        
+        // collections sort
+        
+        // dump to output
+        
+        // return output
+        
+        return false;
     }
     
     @Override
-    public String merge(String f1, String f2,String output) throws TException {
-        return "lol";
+    public boolean merge(String f1, String f2,String output) throws TException {
+        // Open both f1 and f2 using scanner
+        
+        // compare the next ints
+        
+        // write the next smallest
+        
+        // flush the file.
+        return false;
     }
     
     @Override
     public boolean heartbeat() throws TException {
-        return false;
+	if(isDead)
+		throw new TException();
+        return true;
     }
     
     @Override

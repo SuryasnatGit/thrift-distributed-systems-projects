@@ -37,9 +37,9 @@ public class ComputeNode {
 
   public interface Iface {
 
-    public String sort(String filename, int startChunk, int endChunk, String ouput) throws org.apache.thrift.TException;
+    public boolean sort(String filename, int startChunk, int endChunk, String ouput) throws org.apache.thrift.TException;
 
-    public String merge(String f1, String f2, String output) throws org.apache.thrift.TException;
+    public boolean merge(String f1, String f2, String output) throws org.apache.thrift.TException;
 
     public boolean heartbeat() throws org.apache.thrift.TException;
 
@@ -83,7 +83,7 @@ public class ComputeNode {
       super(iprot, oprot);
     }
 
-    public String sort(String filename, int startChunk, int endChunk, String ouput) throws org.apache.thrift.TException
+    public boolean sort(String filename, int startChunk, int endChunk, String ouput) throws org.apache.thrift.TException
     {
       send_sort(filename, startChunk, endChunk, ouput);
       return recv_sort();
@@ -99,7 +99,7 @@ public class ComputeNode {
       sendBase("sort", args);
     }
 
-    public String recv_sort() throws org.apache.thrift.TException
+    public boolean recv_sort() throws org.apache.thrift.TException
     {
       sort_result result = new sort_result();
       receiveBase(result, "sort");
@@ -109,7 +109,7 @@ public class ComputeNode {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "sort failed: unknown result");
     }
 
-    public String merge(String f1, String f2, String output) throws org.apache.thrift.TException
+    public boolean merge(String f1, String f2, String output) throws org.apache.thrift.TException
     {
       send_merge(f1, f2, output);
       return recv_merge();
@@ -124,7 +124,7 @@ public class ComputeNode {
       sendBase("merge", args);
     }
 
-    public String recv_merge() throws org.apache.thrift.TException
+    public boolean recv_merge() throws org.apache.thrift.TException
     {
       merge_result result = new merge_result();
       receiveBase(result, "merge");
@@ -250,7 +250,7 @@ public class ComputeNode {
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws org.apache.thrift.TException {
+      public boolean getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -288,7 +288,7 @@ public class ComputeNode {
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws org.apache.thrift.TException {
+      public boolean getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -425,6 +425,7 @@ public class ComputeNode {
       public sort_result getResult(I iface, sort_args args) throws org.apache.thrift.TException {
         sort_result result = new sort_result();
         result.success = iface.sort(args.filename, args.startChunk, args.endChunk, args.ouput);
+        result.setSuccessIsSet(true);
         return result;
       }
     }
@@ -445,6 +446,7 @@ public class ComputeNode {
       public merge_result getResult(I iface, merge_args args) throws org.apache.thrift.TException {
         merge_result result = new merge_result();
         result.success = iface.merge(args.f1, args.f2, args.output);
+        result.setSuccessIsSet(true);
         return result;
       }
     }
@@ -532,7 +534,7 @@ public class ComputeNode {
       return processMap;
     }
 
-    public static class sort<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, sort_args, String> {
+    public static class sort<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, sort_args, Boolean> {
       public sort() {
         super("sort");
       }
@@ -541,12 +543,13 @@ public class ComputeNode {
         return new sort_args();
       }
 
-      public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<String>() { 
-          public void onComplete(String o) {
+        return new AsyncMethodCallback<Boolean>() { 
+          public void onComplete(Boolean o) {
             sort_result result = new sort_result();
             result.success = o;
+            result.setSuccessIsSet(true);
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -578,12 +581,12 @@ public class ComputeNode {
         return false;
       }
 
-      public void start(I iface, sort_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
+      public void start(I iface, sort_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
         iface.sort(args.filename, args.startChunk, args.endChunk, args.ouput,resultHandler);
       }
     }
 
-    public static class merge<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, merge_args, String> {
+    public static class merge<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, merge_args, Boolean> {
       public merge() {
         super("merge");
       }
@@ -592,12 +595,13 @@ public class ComputeNode {
         return new merge_args();
       }
 
-      public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<String>() { 
-          public void onComplete(String o) {
+        return new AsyncMethodCallback<Boolean>() { 
+          public void onComplete(Boolean o) {
             merge_result result = new merge_result();
             result.success = o;
+            result.setSuccessIsSet(true);
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -629,7 +633,7 @@ public class ComputeNode {
         return false;
       }
 
-      public void start(I iface, merge_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
+      public void start(I iface, merge_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
         iface.merge(args.f1, args.f2, args.output,resultHandler);
       }
     }
@@ -1462,7 +1466,7 @@ public class ComputeNode {
   public static class sort_result implements org.apache.thrift.TBase<sort_result, sort_result._Fields>, java.io.Serializable, Cloneable, Comparable<sort_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sort_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -1470,7 +1474,7 @@ public class ComputeNode {
       schemes.put(TupleScheme.class, new sort_resultTupleSchemeFactory());
     }
 
-    public String success; // required
+    public boolean success; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -1531,11 +1535,13 @@ public class ComputeNode {
     }
 
     // isset id assignments
+    private static final int __SUCCESS_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sort_result.class, metaDataMap);
     }
@@ -1544,19 +1550,19 @@ public class ComputeNode {
     }
 
     public sort_result(
-      String success)
+      boolean success)
     {
       this();
       this.success = success;
+      setSuccessIsSet(true);
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public sort_result(sort_result other) {
-      if (other.isSetSuccess()) {
-        this.success = other.success;
-      }
+      __isset_bitfield = other.__isset_bitfield;
+      this.success = other.success;
     }
 
     public sort_result deepCopy() {
@@ -1565,31 +1571,31 @@ public class ComputeNode {
 
     @Override
     public void clear() {
-      this.success = null;
+      setSuccessIsSet(false);
+      this.success = false;
     }
 
-    public String getSuccess() {
+    public boolean isSuccess() {
       return this.success;
     }
 
-    public sort_result setSuccess(String success) {
+    public sort_result setSuccess(boolean success) {
       this.success = success;
+      setSuccessIsSet(true);
       return this;
     }
 
     public void unsetSuccess() {
-      this.success = null;
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
     }
 
     /** Returns true if field success is set (has been assigned a value) and false otherwise */
     public boolean isSetSuccess() {
-      return this.success != null;
+      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
     }
 
     public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
     public void setFieldValue(_Fields field, Object value) {
@@ -1598,7 +1604,7 @@ public class ComputeNode {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((String)value);
+          setSuccess((Boolean)value);
         }
         break;
 
@@ -1608,7 +1614,7 @@ public class ComputeNode {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return getSuccess();
+        return isSuccess();
 
       }
       throw new IllegalStateException();
@@ -1640,12 +1646,12 @@ public class ComputeNode {
       if (that == null)
         return false;
 
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
+      boolean this_present_success = true;
+      boolean that_present_success = true;
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
-        if (!this.success.equals(that.success))
+        if (this.success != that.success)
           return false;
       }
 
@@ -1656,7 +1662,7 @@ public class ComputeNode {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_success = true && (isSetSuccess());
+      boolean present_success = true;
       list.add(present_success);
       if (present_success)
         list.add(success);
@@ -1703,11 +1709,7 @@ public class ComputeNode {
       boolean first = true;
 
       sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
+      sb.append(this.success);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -1728,6 +1730,8 @@ public class ComputeNode {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -1753,8 +1757,8 @@ public class ComputeNode {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.success = iprot.readString();
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.success = iprot.readBool();
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -1775,9 +1779,9 @@ public class ComputeNode {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
+        if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeString(struct.success);
+          oprot.writeBool(struct.success);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -1803,7 +1807,7 @@ public class ComputeNode {
         }
         oprot.writeBitSet(optionals, 1);
         if (struct.isSetSuccess()) {
-          oprot.writeString(struct.success);
+          oprot.writeBool(struct.success);
         }
       }
 
@@ -1812,7 +1816,7 @@ public class ComputeNode {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = iprot.readString();
+          struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
         }
       }
@@ -2394,7 +2398,7 @@ public class ComputeNode {
   public static class merge_result implements org.apache.thrift.TBase<merge_result, merge_result._Fields>, java.io.Serializable, Cloneable, Comparable<merge_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("merge_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2402,7 +2406,7 @@ public class ComputeNode {
       schemes.put(TupleScheme.class, new merge_resultTupleSchemeFactory());
     }
 
-    public String success; // required
+    public boolean success; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -2463,11 +2467,13 @@ public class ComputeNode {
     }
 
     // isset id assignments
+    private static final int __SUCCESS_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(merge_result.class, metaDataMap);
     }
@@ -2476,19 +2482,19 @@ public class ComputeNode {
     }
 
     public merge_result(
-      String success)
+      boolean success)
     {
       this();
       this.success = success;
+      setSuccessIsSet(true);
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public merge_result(merge_result other) {
-      if (other.isSetSuccess()) {
-        this.success = other.success;
-      }
+      __isset_bitfield = other.__isset_bitfield;
+      this.success = other.success;
     }
 
     public merge_result deepCopy() {
@@ -2497,31 +2503,31 @@ public class ComputeNode {
 
     @Override
     public void clear() {
-      this.success = null;
+      setSuccessIsSet(false);
+      this.success = false;
     }
 
-    public String getSuccess() {
+    public boolean isSuccess() {
       return this.success;
     }
 
-    public merge_result setSuccess(String success) {
+    public merge_result setSuccess(boolean success) {
       this.success = success;
+      setSuccessIsSet(true);
       return this;
     }
 
     public void unsetSuccess() {
-      this.success = null;
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
     }
 
     /** Returns true if field success is set (has been assigned a value) and false otherwise */
     public boolean isSetSuccess() {
-      return this.success != null;
+      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
     }
 
     public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
     public void setFieldValue(_Fields field, Object value) {
@@ -2530,7 +2536,7 @@ public class ComputeNode {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((String)value);
+          setSuccess((Boolean)value);
         }
         break;
 
@@ -2540,7 +2546,7 @@ public class ComputeNode {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return getSuccess();
+        return isSuccess();
 
       }
       throw new IllegalStateException();
@@ -2572,12 +2578,12 @@ public class ComputeNode {
       if (that == null)
         return false;
 
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
+      boolean this_present_success = true;
+      boolean that_present_success = true;
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
-        if (!this.success.equals(that.success))
+        if (this.success != that.success)
           return false;
       }
 
@@ -2588,7 +2594,7 @@ public class ComputeNode {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_success = true && (isSetSuccess());
+      boolean present_success = true;
       list.add(present_success);
       if (present_success)
         list.add(success);
@@ -2635,11 +2641,7 @@ public class ComputeNode {
       boolean first = true;
 
       sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
+      sb.append(this.success);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -2660,6 +2662,8 @@ public class ComputeNode {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -2685,8 +2689,8 @@ public class ComputeNode {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.success = iprot.readString();
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.success = iprot.readBool();
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -2707,9 +2711,9 @@ public class ComputeNode {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
+        if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeString(struct.success);
+          oprot.writeBool(struct.success);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -2735,7 +2739,7 @@ public class ComputeNode {
         }
         oprot.writeBitSet(optionals, 1);
         if (struct.isSetSuccess()) {
-          oprot.writeString(struct.success);
+          oprot.writeBool(struct.success);
         }
       }
 
@@ -2744,7 +2748,7 @@ public class ComputeNode {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = iprot.readString();
+          struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
         }
       }

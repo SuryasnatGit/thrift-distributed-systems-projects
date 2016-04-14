@@ -64,7 +64,6 @@ public class ServerHandler implements Server.Iface {
 	//process the file by generating chunk metadata
 
 	//start contacting all nodes and assigning tasks
-	computeNode.merge(tsk.startchunk, tsk.endchunkm tsk,.unique); 
 
 	//wait for all tasks to be done. 
 
