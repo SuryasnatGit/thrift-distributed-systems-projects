@@ -60,10 +60,42 @@ public class ServerHandler implements Server.Iface {
     @Override
     public String compute(String filename, int chunks) throws TException {
 	System.out.println("Starting sort job on " + filename + " with " + chunks + " chunks.");
+
+	//process the file by generating chunk metadata
+
+	//start contacting all nodes and assigning tasks
+	computeNode.merge(tsk.startchunk, tsk.endchunkm tsk,.unique); 
+
+	//wait for all tasks to be done. 
+
 	return "NULL";
     }
 
+
+    @Override
+    public boolean announce(String uniqueName, Machine m) {
+	//acknowledge this file is done.
+    }
+
     /* ---- PRIVATE HELPER FUNCTIONS ---- */
+
+
+    private void chunkify(String filename) {
+	//read the file
+
+	// divide up integer stream into chunks
+
+	// 
+
+	synchronized(taskQ) {
+	    taskQ.add(task);
+	}
+	return true;
+
+    }
+
+    private void cleanup() {
+    }
 
 
     //Begin Thrift Server instance for a Node and listen for connections on our port
