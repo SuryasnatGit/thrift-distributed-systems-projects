@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Queue;
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.net.InetAddress;
@@ -17,7 +18,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
 
     Machine self;
     String directory; //name of folder to be written/read to by server
-    Machine server;
+    Queue<Task> taskQueue;
     boolean isDead;
     
     
@@ -52,7 +53,29 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     }
     
     @Override
-    public boolean sort(String filename, int startChunk, int endChunk,String output) throws TException {
+    public boolean sort(String filename, int startChunk, int endChunk, String output) throws TException {
+	// Serialize 
+	SortTask task = new SortTask(filename,startChunk,endChunk,output);
+	// Add to the queue
+	synchronized(taskQueue){
+		taskQueue.add(task);
+	}
+	return false;
+    }
+
+    @Override
+    public boolean merge(String f1, String f2,String output) throws TException {
+	// Serialize
+	MergeTask task = new MergeTask(f1,f2,output);
+	// Add to the Queue
+	synchronized(taskQueue){
+		taskQueue.add(task)
+	}
+	return false;
+    }
+
+
+    public boolean sortHelper(Task task) throws TException {
         // Open file as a stream.
         
         // Jump to the startChunk offset
@@ -72,8 +95,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         return false;
     }
     
-    @Override
-    public boolean merge(String f1, String f2,String output) throws TException {
+    public boolean mergeHelper(Task task) throws TException {
         // Open both f1 and f2 using scanner
         
         // compare the next ints
