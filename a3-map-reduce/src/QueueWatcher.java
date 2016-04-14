@@ -23,8 +23,8 @@ class QueueWatcher extends Thread {
 		    task = requests.remove();
 		}
 		if(task != null){
-			TaskHandler task = new TaskHandler(task);
-			task.start();
+			TaskHandler handler = new TaskHandler(task);
+			handler.start();
 		}  
 
 	    }

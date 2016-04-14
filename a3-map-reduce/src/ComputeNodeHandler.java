@@ -17,6 +17,7 @@ import java.util.Iterator;
 public class ComputeNodeHandler implements ComputeNode.Iface{
 
     Machine self;
+    Machine server;
     String directory; //name of folder to be written/read to by server
     Queue<Task> taskQueue;
     boolean isDead;
@@ -55,7 +56,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     @Override
     public boolean sort(String filename, int startChunk, int endChunk, String output) throws TException {
 	// Serialize 
-	SortTask task = new SortTask(filename,startChunk,endChunk,output);
+	SortTask task = new SortTask(startChunk,endChunk,filename,output);
 	// Add to the queue
 	synchronized(taskQueue){
 		taskQueue.add(task);
@@ -69,7 +70,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
 	MergeTask task = new MergeTask(f1,f2,output);
 	// Add to the Queue
 	synchronized(taskQueue){
-		taskQueue.add(task)
+		taskQueue.add(task);
 	}
 	return false;
     }

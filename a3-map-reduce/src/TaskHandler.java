@@ -13,9 +13,9 @@ class TaskHandler extends Thread {
     @Override
     public void run(){
 	if(task instanceof SortTask){
-		sort(task);
+		sort((SortTask)task);
 	} else{
-		merge(task);
+		merge((MergeTask)task);
 	}
     }
     public boolean sort(SortTask task) throws TException {
