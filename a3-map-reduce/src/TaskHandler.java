@@ -12,11 +12,15 @@ class TaskHandler extends Thread {
 
     @Override
     public void run(){
-	if(task instanceof SortTask){
-		sort((SortTask)task);
-	} else{
-		merge((MergeTask)task);
-	}
+		try{
+			if(task instanceof SortTask){
+				sort((SortTask)task);
+			} else{
+				merge((MergeTask)task);
+			}
+		} catch(TException e){
+			e.printStackTrace();
+		}
     }
     public boolean sort(SortTask task) throws TException {
         // Open file as a stream.
