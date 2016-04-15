@@ -14,17 +14,18 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.net.InetAddress;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ServerHandler implements Server.Iface {
     
-    List<Machine> computeNodes;
+    Queue<Machine> computeNodes;
     Machine self;
     private Integer i_complete; // synchronized counter for completed tasks.
     private Integer i_unique;   // synchronized counter for unique intermediate files
 
     
     public ServerHandler(Integer port) throws Exception {
-        computeNodes = new ArrayList<Machine>();
+        computeNodes = new LinkedList<Machine>();
         
         //Create a Machine data type representing ourselves
         self = new Machine();
@@ -63,12 +64,53 @@ public class ServerHandler implements Server.Iface {
 	System.out.println("Starting sort job on " + filename + " with " + chunks + " chunks.");
 
 	//process the file by generating chunk metadata
+	Queue<SortTask> mockList = new ConcurrentLinkedQueue<>();
+	
+	int totalTasks = mockList.size();
+	for(int i=0; i<totalTasks; i++){
+		SortTask task = mockList.poll();
+		Machine current = computeNodes.remove();
+		
+		// Bring it to the back of the queue
+		computeNodes.add(current);
+		// Do a RPC call.
+	}
+	
 
-	//start contacting all nodes and queue it all onto compute machines
-
-	// blocking wait for all tasks for it all to complete.
-
-	return "NULL";
+	// Watches the queuefor all tasks for it all to complete.
+	while(i_complete < totalTasks){
+		Task task = null;
+		if(mockList.isEmpty()){
+			task = mockList.poll();
+		}
+		if(task != null){
+			// Make a RPC call
+		}
+	}
+	
+	// Now merge.
+	Queue<MergeTask> mockSortedList = new ConcurrentLinkedQueue<>();
+	
+	for(int i=0; i<totalTasks; i++){
+		MergeTask task = mockSortedList.remove();
+		Machine current = computeNodes.remove();
+		
+		// Bring it to the back of the queue
+		computeNodes.add(current);
+		// Do a RPC call.
+	}
+	
+	while(i_complete > 1){
+		Task task = null;
+		if(mockSortedList.isEmpty()){
+			task = mockSortedList.poll();
+		}
+		if(task != null){
+			// Make a RPC call
+		}
+	}
+	
+		return "NULL";
     }
 
 
