@@ -143,6 +143,22 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         server.serve();
     }
     
+    private List<Integer> readFileToIntList(SortTask t) throws Exception {
+	int len = (int) (t.endOffset - t.startOffset + 1); //should never overflow since chunksize isn't going to be that big, I think.
+	List<Integer> output = new ArrayList<>((int) len);
+
+	BufferedReader rdr = new BufferedReader(new FileReader(t.filename));
+	rdr.skip(t.startOffset);
+	char[] buf = new char[(int) len];
+	rdr.read(buf, 0, (int) len);
+
+	String[] split = (new String(buf)).split(" ");
+	for(String s : split)	    
+	    output.add(Integer.parseInt(s.trim())); //trim because of EOF. Hidden, but length is +1.
+	
+	System.out.println("RESULT : " + output.toString());
+	return output;
+    }
 
 
     public static void main(String[] args) {
