@@ -54,7 +54,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     }
     
     @Override
-    public boolean sort(String filename, int startChunk, int endChunk, String output) throws TException {
+    public boolean sort(String filename, long startChunk, long endChunk, String output) throws TException {
 	// Serialize 
 	SortTask task = new SortTask(startChunk,endChunk,filename,output);
 	// Add to the queue
@@ -75,37 +75,6 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
 	return false;
     }
 
-
-    public boolean sortHelper(Task task) throws TException {
-        // Open file as a stream.
-        
-        // Jump to the startChunk offset
-        
-        // Read uptil then endChunk
-        
-        // Split by new line 
-        
-        // Convert to int arrayList
-        
-        // collections sort
-        
-        // dump to output
-        
-        // return output
-        
-        return false;
-    }
-    
-    public boolean mergeHelper(Task task) throws TException {
-        // Open both f1 and f2 using scanner
-        
-        // compare the next ints
-        
-        // write the next smallest
-        
-        // flush the file.
-        return false;
-    }
     
     @Override
     public boolean heartbeat() throws TException {

@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ServerHandler implements Server.Iface {
     
     Queue<Machine> computeNodes;
+    Map<Machine,Queue<Task>> inProgress;
     Machine self;
     private Integer i_complete; // synchronized counter for completed tasks.
     private Integer i_unique;   // synchronized counter for unique intermediate files
@@ -29,8 +30,10 @@ public class ServerHandler implements Server.Iface {
 
     
     public ServerHandler(Integer port) throws Exception {
-        computeNodes = new ArrayList<Machine>();
+        computeNodes = new LinkedList<Machine>();
+        inProgress = new HashMap<>();
         this.tasks = new LinkedList<>();
+        
 	this.i_complete = 0;
 	this.i_unique = 0;
 
@@ -84,26 +87,42 @@ public class ServerHandler implements Server.Iface {
 	//process the file by generating chunk metadata
 	Queue<SortTask> mockList = new ConcurrentLinkedQueue<>();
 	
+	
 	int totalTasks = mockList.size();
+	//start contacting all nodes and queue it all onto compute machines
 	for(int i=0; i<totalTasks; i++){
 		SortTask task = mockList.poll();
 		Machine current = computeNodes.remove();
 	
 		// Bring it to the back of the queue
 		computeNodes.add(current);
-		// Do a RPC call.
-		//start contacting all nodes and queue it all onto compute machines
+		
+		// Make RPC call
+		rpcSort(current,task);
+		
+		// Add to the progress.
+		addToProgress(current,task);
 	}
 
 	// blocking wait for all tasks for it all to complete.
 	// Watches the queuefor all tasks for it all to complete.
 	while(i_complete < totalTasks){
-		Task task = null;
+		SortTask task = null;
 		if(mockList.isEmpty()){
 			task = mockList.poll();
 		}
 		if(task != null){
-			// Make a RPC call
+			Machine current = computeNodes.remove();
+	
+			// Bring it to the back of the queue
+			computeNodes.add(current);
+			
+			// Do a RPC call.
+			rpcSort(current,task);
+			
+			// Add to the progress.
+			addToProgress(current,task);
+
 		}
 	}
 	
@@ -116,16 +135,30 @@ public class ServerHandler implements Server.Iface {
 		
 		// Bring it to the back of the queue
 		computeNodes.add(current);
+		
 		// Do a RPC call.
+		rpcMerge(current,task);
+		
+		// Add to the progress.
+		addToProgress(current,task);
 	}
 	
 	while(i_complete > 1){
-		Task task = null;
+		MergeTask task = null;
 		if(mockSortedList.isEmpty()){
 			task = mockSortedList.poll();
 		}
 		if(task != null){
+			Machine current = computeNodes.remove();
+			
+			// Bring it to the back of the queue
+			computeNodes.add(current);
+			
 			// Make a RPC call
+			rpcMerge(current,task);
+			
+			// Add to the progress.
+			addToProgress(current,task);
 		}
 	}
 	*/
@@ -141,6 +174,32 @@ public class ServerHandler implements Server.Iface {
 	}
 	return true;
     }
+    
+    private void addToProgress(Machine m,Task task){
+		Queue<Task> machineTasks = inProgress.get(m);
+		machineTasks.add(task);
+		inProgress.put(m,machineTasks);
+	}
+    
+    private void rpcSort(Machine m,SortTask task) throws TException{
+		TTransport computeTransport = new TSocket(m.ipAddress, m.port);
+		computeTransport.open();
+		TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
+		ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
+		
+		computeNode.sort(task.filename,task.startOffset,task.endOffset,task.output);
+		computeTransport.close();
+	}
+	
+	private void rpcMerge(Machine m,MergeTask task) throws TException{
+		TTransport computeTransport = new TSocket(m.ipAddress, m.port);
+		computeTransport.open();
+		TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
+		ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
+		
+		computeNode.merge(task.f1,task.f2,task.output);
+		computeTransport.close();
+	}
 
     /* ---- PRIVATE HELPER FUNCTIONS ---- */
     private void chunkify(String filename, Integer chunksize) throws Exception {
