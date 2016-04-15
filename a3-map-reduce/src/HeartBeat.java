@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 import java.util.Iterator;
 
-class Watcher extends Thread {
+class HeartBeat extends Thread {
     public final int HEARTBEAT = 5000;  //heartbeat frequency in miliseconds 20 seconds * 1000 = 20 000 ms
 
     // References
@@ -23,7 +23,7 @@ class Watcher extends Thread {
     HashMap<Machine,Queue<Task>> inProgress;    
     Queue<Task> taskQueue;
     
-    public Watcher(ArrayList<Machine> nodes,HashMap<Machine,Queue<Task>> inProgress,Queue<Task> taskQueue) {
+    public HeartBeat(ArrayList<Machine> nodes,HashMap<Machine,Queue<Task>> inProgress,Queue<Task> taskQueue) {
         this.nodes = nodes;
 	this.inProgress = inProgress;
 	this.taskQueue = taskQueue;

@@ -23,7 +23,7 @@ class QueueWatcher extends Thread {
 		    task = requests.remove();
 		}
 		if(task != null){
-			TaskHandler handler = new TaskHandler(task);
+			SortMerge handler = new SortMerge(task);
 			handler.start();
 		}  
 

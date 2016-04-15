@@ -16,11 +16,11 @@ import java.net.InetAddress;
 import java.util.Iterator;
 import java.io.File;
 import java.io.FileInputStream;
-
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ServerHandler implements Server.Iface {
     
-    List<Machine> computeNodes;
+    Queue<Machine> computeNodes;
     Machine self;
     private Integer i_complete; // synchronized counter for completed tasks.
     private Integer i_unique;   // synchronized counter for unique intermediate files
@@ -70,19 +70,65 @@ public class ServerHandler implements Server.Iface {
     public String compute(String filename, int chunks) throws TException {
 	System.out.println("SERVER: Starting sort job on " + filename + " with chunksize " + chunks);
 	try {
-	    //process the file by generating chunk metadata
-	    this.chunkify(filename, chunks);
 	    
-	    //start contacting all nodes and queue it all onto compute machines
+	    this.chunkify(filename, chunks);
+	    System.out.println("COMPLETE");
 
-	    // blocking wait for all tasks for it all to complete.
 	}
 	catch(Exception e)
 	{
 	    e.printStackTrace();
 	}
 
-	System.out.println("COMPLETE");
+	/*
+	//process the file by generating chunk metadata
+	Queue<SortTask> mockList = new ConcurrentLinkedQueue<>();
+	
+	int totalTasks = mockList.size();
+	for(int i=0; i<totalTasks; i++){
+		SortTask task = mockList.poll();
+		Machine current = computeNodes.remove();
+	
+		// Bring it to the back of the queue
+		computeNodes.add(current);
+		// Do a RPC call.
+		//start contacting all nodes and queue it all onto compute machines
+	}
+
+	// blocking wait for all tasks for it all to complete.
+	// Watches the queuefor all tasks for it all to complete.
+	while(i_complete < totalTasks){
+		Task task = null;
+		if(mockList.isEmpty()){
+			task = mockList.poll();
+		}
+		if(task != null){
+			// Make a RPC call
+		}
+	}
+	
+	// Now merge.
+	Queue<MergeTask> mockSortedList = new ConcurrentLinkedQueue<>();
+	
+	for(int i=0; i<totalTasks; i++){
+		MergeTask task = mockSortedList.remove();
+		Machine current = computeNodes.remove();
+		
+		// Bring it to the back of the queue
+		computeNodes.add(current);
+		// Do a RPC call.
+	}
+	
+	while(i_complete > 1){
+		Task task = null;
+		if(mockSortedList.isEmpty()){
+			task = mockSortedList.poll();
+		}
+		if(task != null){
+			// Make a RPC call
+		}
+	}
+	*/
 	return "NULL";
     }
 

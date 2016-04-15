@@ -4,9 +4,9 @@ import org.apache.thrift.protocol.*;
 import org.apache.thrift.transport.*;
 import org.apache.thrift.server.*;
  
-class TaskHandler extends Thread { 
+class SortMerge extends Thread { 
     Task task;
-    public TaskHandler(Task task) {
+    public SortMerge(Task task) {
         this.task = task;
     }
 
