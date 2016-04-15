@@ -18,6 +18,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+
+import java.io.RandomAccessFile;
+import java.io.BufferedReader;
+import java.io.FileReader;
+
 public class ServerHandler implements Server.Iface {
     
     Queue<Machine> computeNodes;
@@ -79,9 +84,9 @@ public class ServerHandler implements Server.Iface {
 	    for(Task t : tasks)
 		((SortTask) t).output = String.valueOf(i_unique++); 
 
-	    System.out.println("OUTPUT OF ALL TASKS IN QUEUE");
+	    System.out.println("\n\nOUTPUT OF ALL TASKS IN QUEUE");
 	    for(Task t : tasks)
-		System.out.println(t);
+		this.readFileToIntList((SortTask) t);
 
 	/*
 	//process the file by generating chunk metadata
