@@ -1,13 +1,18 @@
 class SortTask extends Task {
     
-    int startOffset;
-    int endOffset;
+    long startOffset;
+    long endOffset;
     String filename;
     
-    public SortTask(int startOffset, int endOffset, String filename, String output) {
+    public SortTask(long startOffset, long endOffset, String filename, String output) {
 	this.startOffset = startOffset;
 	this.endOffset = endOffset;
 	this.filename = filename;
 	this.output = output;
+    }
+
+    @Override
+    public String toString() {
+	return "SORT: START " + startOffset + " END: " + endOffset + " FILE: " + filename + " OUT: " + output;
     }
 }
