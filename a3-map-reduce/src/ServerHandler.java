@@ -73,15 +73,15 @@ public class ServerHandler implements Server.Iface {
     public String compute(String filename, int chunks) throws TException {
 	System.out.println("SERVER: Starting sort job on " + filename + " with chunksize " + chunks);
 	try {
-	    
 	    this.chunkify(filename, chunks);
-	    System.out.println("COMPLETE");
 
-	}
-	catch(Exception e)
-	{
-	    e.printStackTrace();
-	}
+	    //assign unique intermediate output filenames, lol one line type cast and increments
+	    for(Task t : tasks)
+		((SortTask) t).output = String.valueOf(i_unique++); 
+
+	    System.out.println("OUTPUT OF ALL TASKS IN QUEUE");
+	    for(Task t : tasks)
+		System.out.println(t);
 
 	/*
 	//process the file by generating chunk metadata
@@ -162,6 +162,12 @@ public class ServerHandler implements Server.Iface {
 		}
 	}
 	*/
+	}
+	catch(Exception e)
+	{
+	    e.printStackTrace();
+	}
+
 	return "NULL";
     }
 
@@ -209,41 +215,40 @@ public class ServerHandler implements Server.Iface {
 	long filesize = dataFile.length();
 
 	FileInputStream fis = new FileInputStream(dataFile);
-	assert fis.available() == filesize; 
-
-	// divide up integer stream into chunks, upperbound
-	// note totalchunks == total number of tasks
-	long totalChunks = filesize / chunksize + (filesize % chunksize);
+	//assert fis.available() == filesize; 
 	
-	System.out.println("CHUNKK " + chunksize);
-	long skipped; 
+	// note totalchunks == total number of tasks
+	// just realized we don't need this
+	// long totalChunks = filesize / chunksize + (filesize % chunksize);
+	
+	// divide up integer stream into chunks, upperbound
+	int b = 0;
 	long start = 0;
-	long end = 0;
+	long end = -1; //offsets start at 0, account for that increment.
 
-	while( (skipped = fis.skip(chunksize)) != -1 ) {
-	    System.out.println("Skipped " + skipped);
-	    end = skipped;
-	    
-	    //calibrate to ensure we don't chop off integers
-	    int b = fis.read();
-	    while(b != 32) //code point for a space
-	    {
-		System.out.print("!!-" + b);
+	//keep reading until EOF
+	while(b != -1) {
+	    int counter = chunksize;
+	    //move over an entire chunk size
+	    while(counter > 0 && b != -1) {
+		b = fis.read();
+		counter--;
+		end++;
+	    }
+
+	    //calibrate to ensure we don't chop off integers. 32 is ascii code point for a space.
+	    while(b != -1 && b != 32) {
 		b = fis.read();
 		end++;
 	    }
-	    
-	    //insert chunk into tasks
-	    SortTask task = new SortTask(start, end, filename, i_unique.toString());
+	    //System.out.println("REMAINING " + fis.available());
+	    //insert chunk into tasks, assign unique file names in another function.
+	    SortTask task = new SortTask(start, end, filename);
 	    tasks.add(task);
-
+ 
 	    //update start point for next chunk
-	    start = end;
-	}
-	System.out.println("what we got ...");
-	for(Task t : tasks)
-	    System.out.println(t);
-	
+	    start = end + 1;
+	}	
     }
 
     // reset state for next job
