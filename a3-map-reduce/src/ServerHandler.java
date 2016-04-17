@@ -25,19 +25,19 @@ import java.io.FileReader;
 
 public class ServerHandler implements Server.Iface {
     
-    Queue<Machine> computeNodes;
+    Queue<Machine> computeNodes; //LinkedList
     Map<Machine,Queue<Task>> inProgress;
     Machine self;
     private Integer i_complete; // synchronized counter for completed tasks.
     private Integer i_unique;   // synchronized counter for unique intermediate files
 
-    private Queue<Task> tasks;  // task queue.
+    private Queue<Task> tasks;  // task queue. ConcurrentLinkedQueue
 
     
     public ServerHandler(Integer port) throws Exception {
         computeNodes = new LinkedList<Machine>();
         inProgress = new HashMap<>();
-        this.tasks = new LinkedList<>();
+        this.tasks = new ConcurrentLinkedQueue<>();
         
 	this.i_complete = 0;
 	this.i_unique = 0;
@@ -78,38 +78,33 @@ public class ServerHandler implements Server.Iface {
     public String compute(String filename, int chunks) throws TException {
 	System.out.println("SERVER: Starting sort job on " + filename + " with chunksize " + chunks);
 	try {
+	    //process the file by generating chunk metadata
 	    this.chunkify(filename, chunks);
 
 	    //assign unique intermediate output filenames, lol one line type cast and increments
 	    for(Task t : tasks)
 		((SortTask) t).output = String.valueOf(i_unique++); 
-
-	    //	    for(Task t : tasks)
-	    //	System.out.println(t);
-
-	/*
-	//process the file by generating chunk metadata
-	Queue<SortTask> mockList = new ConcurrentLinkedQueue<>();
 	
-	
-	int totalTasks = mockList.size();
-	//start contacting all nodes and queue it all onto compute machines
-	for(int i=0; i<totalTasks; i++){
-		SortTask task = mockList.poll();
+	    int totalTasks = tasks.size();
+	    //start contacting all nodes and queue it all onto compute machines
+	    for(int i = 0; i < totalTasks; i++){
+		SortTask task = (SortTask) tasks.poll();
 		Machine current = computeNodes.remove();
 	
 		// Bring it to the back of the queue
 		computeNodes.add(current);
 		
 		// Make RPC call
-		rpcSort(current,task);
+		rpcSort(current, task);
 		
+		//TODO:
 		// Add to the progress.
-		addToProgress(current,task);
-	}
-
+		//addToProgress(current,task);
+	    }
+	
 	// blocking wait for all tasks for it all to complete.
 	// Watches the queuefor all tasks for it all to complete.
+/*
 	while(i_complete < totalTasks){
 		SortTask task = null;
 		if(mockList.isEmpty()){
@@ -126,9 +121,9 @@ public class ServerHandler implements Server.Iface {
 			
 			// Add to the progress.
 			addToProgress(current,task);
-
 		}
 	}
+
 	
 	// Now merge.
 	Queue<MergeTask> mockSortedList = new ConcurrentLinkedQueue<>();
@@ -179,6 +174,7 @@ public class ServerHandler implements Server.Iface {
     @Override
     // RPC Called by the compute nodes when they have done their task
     public boolean announce() throws TException {
+	System.out.println("SERVER: RPC ANNOUNCE CALLED");
 	synchronized(i_complete) {
 	    i_complete++;
 	}
@@ -191,15 +187,19 @@ public class ServerHandler implements Server.Iface {
 		inProgress.put(m,machineTasks);
 	}
     
-    private void rpcSort(Machine m,SortTask task) throws TException{
-		TTransport computeTransport = new TSocket(m.ipAddress, m.port);
-		computeTransport.open();
-		TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
-		ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
-		
-		computeNode.sort(task.filename,task.startOffset,task.endOffset,task.output);
-		computeTransport.close();
-	}
+    private void rpcSort(Machine m,SortTask task) throws TException {
+	
+	assert task.filename != null;
+	assert task.output != null;
+
+	TTransport computeTransport = new TSocket(m.ipAddress, m.port);
+	computeTransport.open();
+	TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
+	ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
+	
+	computeNode.sort(task.filename,task.startOffset,task.endOffset,task.output);
+	computeTransport.close();
+    }
 	
 	private void rpcMerge(Machine m,MergeTask task) throws TException{
 		TTransport computeTransport = new TSocket(m.ipAddress, m.port);

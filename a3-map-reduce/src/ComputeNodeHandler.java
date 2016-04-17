@@ -57,11 +57,13 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     public boolean sort(String filename, long startChunk, long endChunk, String output) throws TException {
 	// Serialize 
 	SortTask task = new SortTask(startChunk,endChunk,filename,output);
+	boolean success = false;
 	// Add to the queue
 	synchronized(taskQueue){
 		taskQueue.add(task);
+		success = true;
 	}
-	return false;
+	return success;
     }
 
     @Override
