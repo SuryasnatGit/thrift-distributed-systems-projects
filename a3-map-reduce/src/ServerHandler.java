@@ -84,9 +84,8 @@ public class ServerHandler implements Server.Iface {
 	    for(Task t : tasks)
 		((SortTask) t).output = String.valueOf(i_unique++); 
 
-	    System.out.println("\n\nOUTPUT OF ALL TASKS IN QUEUE");
-	    for(Task t : tasks)
-		this.readFileToIntList((SortTask) t);
+	    //	    for(Task t : tasks)
+	    //	System.out.println(t);
 
 	/*
 	//process the file by generating chunk metadata
