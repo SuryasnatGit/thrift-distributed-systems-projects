@@ -23,6 +23,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     String directory; //name of folder to be written/read to by server
     ConcurrentLinkedQueue<Task> taskQueue;
     boolean isDead;
+    double chanceToFail = 0.0;
     
     
     /* Constructor for a Server, a Thrift connection is made to the server as well */
@@ -60,11 +61,14 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     @Override
     public boolean sort(String filename, long startChunk, long endChunk, String output) throws TException {
 	
+	if(isDead)
+		throw new TException();
+	
 	// Serialize 
 	SortTask task = new SortTask(startChunk,endChunk,filename,output);
 	boolean success = false;
-	// Add to the queue
 	
+	// Add to the queue
 	synchronized(taskQueue){
 		taskQueue.add(task);
 		success = true;
@@ -73,22 +77,25 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     }
 
     @Override
-    public boolean merge(String f1, String f2,String output) throws TException {
-	// Serialize
-	MergeTask task = new MergeTask(f1,f2,output);
-	// Add to the Queue
-	synchronized(taskQueue){
-		taskQueue.add(task);
-	}
-	return false;
+    public boolean merge(String f1, String f2,String output) throws TException {		
+		if(isDead){
+			throw new TException();
+		}
+		// Serialize
+		MergeTask task = new MergeTask(f1,f2,output);
+		// Add to the Queue
+		synchronized(taskQueue){
+			taskQueue.add(task);
+		}
+		return false;
     }
 
     
     @Override
     public boolean heartbeat() throws TException {
-	if(isDead)
-		throw new TException();
-        return true;
+		if(isDead)
+			throw new TException();
+		return true;
     }
     
     @Override
@@ -104,7 +111,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     //Begin Thrift Server instance for a Node and listen for connections on our port
     private void start() throws TException {
 		
-		QueueWatcher watcher = new QueueWatcher(taskQueue);
+		QueueWatcher watcher = new QueueWatcher(this,taskQueue);
 		watcher.start();
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);
