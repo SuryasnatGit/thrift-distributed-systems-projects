@@ -14,13 +14,14 @@ import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.net.InetAddress;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ComputeNodeHandler implements ComputeNode.Iface{
 
     Machine self;
     Machine server;
     String directory; //name of folder to be written/read to by server
-    Queue<Task> taskQueue;
+    ConcurrentLinkedQueue<Task> taskQueue;
     boolean isDead;
     
     
@@ -36,6 +37,8 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         this.server.ipAddress = serverIP;
         this.server.port = serverPort;
         
+        ServerComm.set(this.server);
+        
         //Create a Machine data type representing ourselves
         self = new Machine();
         self.ipAddress = InetAddress.getLocalHost().getHostName().toString();		
@@ -45,7 +48,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         
         // call enroll on superNode to enroll.
         boolean success = serverClient.enroll(self);
-		taskQueue = new LinkedList<>();
+		taskQueue = new ConcurrentLinkedQueue<>();
         if(success)
             System.out.println("Server has successfully reported to server");
         else

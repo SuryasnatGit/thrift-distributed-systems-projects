@@ -103,7 +103,7 @@ public class ServerHandler implements Server.Iface {
 	
 	// blocking wait for all tasks for it all to complete.
 	// Watches the queuefor all tasks for it all to complete.
-
+	
 	while(i_complete < totalTasks){
 		SortTask task = null;
 		if(tasks.isEmpty()){

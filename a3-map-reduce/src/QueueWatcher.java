@@ -1,11 +1,12 @@
 import java.util.*;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 class QueueWatcher extends Thread {
-    private final Queue<Task> requests; //synchronized
+    private final ConcurrentLinkedQueue<Task> requests; //synchronized
 
-    public QueueWatcher(Queue<Task> tasks) {
-	this.requests = tasks;
+    public QueueWatcher(ConcurrentLinkedQueue<Task> tasks) {
+		this.requests = tasks;
     }
 
 
@@ -13,25 +14,22 @@ class QueueWatcher extends Thread {
     public void run() {
 	while(true) {
 	    try {
-		Task task = null;
-		synchronized (requests) {
-
-		    while(requests.isEmpty())
-			requests.wait();
+			Task task = null;
+			while(requests.isEmpty()){
+				Thread.sleep(100);
+			}
 
 		    //queue is no longer empty
 		    task = requests.remove();
-		}
-		if(task != null){
-			SortMerge handler = new SortMerge(task);
-			handler.start();
-		}  
-
+		    
+			if(task != null){
+				SortMerge handler = new SortMerge(task);
+				handler.start();
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+			break;
 	    }
-	    catch(Exception e) {
-		e.printStackTrace();
-		break;
-	    }
-	}
     }
+	}
 }

@@ -29,10 +29,25 @@ class SortMerge extends Thread {
 			} else{
 				merge((MergeTask)task);
 			}
+			
+			announce();
+			
 		} catch(TException e){
 			e.printStackTrace();
 		}
     }
+    
+    public void announce() throws TException{
+		Machine m = ServerComm.get();
+		TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+		serverTransport.open();
+		TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
+		Server.Client server  = new Server.Client(serverProtocol);
+            
+		// Most Updated Version Number/Machine
+		server.announce();
+		serverTransport.close();
+	}
 
     public boolean sort(SortTask task) throws TException {
 	//got to wrap it up because of IOExceptions.
