@@ -8,8 +8,9 @@ import java.io.File;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.Writer;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,10 +57,11 @@ class SortMerge extends Thread {
 	    System.out.println("Sorting task -> " + task );
 	    List<Integer> data = readFileToIntList(task);
 	    Collections.sort(data); //magic of abstractions!
-	    wr = new BufferedWriter(new FileWriter(new File(task.output)));
-	    
+	    //wr = new BufferedWriter(new FileWriter(new File(task.output)));
+	    System.out.println("THE SORTED DATA TO BE WRITTEN TO DISK IS " + data.toString());
+	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output),"ascii")); 
 	    for(Integer i: data){
-		wr.write(i);
+		wr.write(String.valueOf(i));
 		wr.write(" ");
 	    }
 	    wr.close(); //this should be in the finally block but nested try-catches on the top level is disgraceful
@@ -74,7 +76,7 @@ class SortMerge extends Thread {
     public boolean merge(MergeTask task) throws TException {
 	Writer wr = null;
 	try {
-	    wr = new BufferedWriter(new FileWriter(new File(task.output)));
+	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output),"ascii")); 
 	    Scanner sc1 = new Scanner(new File(task.f1));
 	    Scanner sc2 = new Scanner(new File(task.f2));
 
@@ -83,10 +85,10 @@ class SortMerge extends Thread {
 		int b = sc2.nextInt();
 		while (sc1.hasNextInt() && sc2.hasNextInt()) {
 		    if(a < b){
-			wr.write(a);
+			wr.write(String.valueOf(a));
 			a = sc1.nextInt();
 		    } else { 
-			wr.write(b);
+			wr.write(String.valueOf(b));
 			b = sc2.nextInt();
 		    }
 		    wr.write(" "); //since strings are immutable
@@ -97,13 +99,13 @@ class SortMerge extends Thread {
 	    if(sc1.hasNextInt()){
 		while(sc1.hasNextInt()){
 		    int c = sc1.nextInt();
-		    wr.write(c);
+		    wr.write(String.valueOf(c));
 		    wr.write(" ");
 		}
 	    }else{
 		while(sc2.hasNextInt()){
 		    int c = sc2.nextInt();
-		    wr.write(c);
+		    wr.write(String.valueOf(c));
 		    wr.write(" ");
 		}
 	    }
