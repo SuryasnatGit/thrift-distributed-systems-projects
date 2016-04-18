@@ -24,6 +24,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 
 public class ServerHandler implements Server.Iface {
+
+    private static final String int_dir = "intermediate_dir/"; //Intermediate Folder
     
     Queue<Machine> computeNodes; //LinkedList
     Map<Machine,ConcurrentLinkedQueue<Task>> inProgress;
@@ -45,7 +47,11 @@ public class ServerHandler implements Server.Iface {
         //Create a Machine data type representing ourselves
         self = new Machine();
         self.ipAddress = InetAddress.getLocalHost().getHostName().toString();		
-        self.port = port;	
+        self.port = port;
+
+	//initialize folder(s)
+	if(!(new File(int_dir)).mkdir()) //one line folder init mkdir bby!
+	    System.out.println("Folder already exists: " + int_dir);
     }
     
     public static void main(String[] args) {
@@ -83,7 +89,7 @@ public class ServerHandler implements Server.Iface {
 
 	    //assign unique intermediate output filenames, lol one line type cast and increments
 	    for(Task t : tasks)
-		((SortTask) t).output = String.valueOf(i_unique++); 
+		((SortTask) t).output = int_dir + String.valueOf(i_unique++); 
 	
 	    int totalTasks = tasks.size();
 	    //start contacting all nodes and queue it all onto compute machines
