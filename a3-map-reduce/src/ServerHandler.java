@@ -34,12 +34,14 @@ public class ServerHandler implements Server.Iface {
     private Integer i_unique;   // synchronized counter for unique intermediate files
 
     private Queue<Task> tasks;  // task queue. ConcurrentLinkedQueue
+    private LinkedList<String> completed; //holds unique identifier (output) for completed sort jobs
 
     
     public ServerHandler(Integer port) throws Exception {
-        computeNodes = new LinkedList<Machine>();
-        inProgress = new HashMap<>();
+        this.computeNodes = new LinkedList<Machine>();
+        this.inProgress = new HashMap<>();
         this.tasks = new ConcurrentLinkedQueue<>();
+        this.completed = new LinkedList<>();
         
 	this.i_complete = 0;
 	this.i_unique = 0;
@@ -107,69 +109,69 @@ public class ServerHandler implements Server.Iface {
 		addToProgress(current,task);
 	    }
 	
-	// blocking wait for all tasks for it all to complete.
-	// Watches the queuefor all tasks for it all to complete.
+	    // blocking wait for all tasks for it all to complete.
+	    // Watches the queuefor all tasks for it all to complete.
 	
-	while(i_complete < totalTasks){
+	    while(i_complete < totalTasks){
 		SortTask task = null;
-		if(tasks.isEmpty()){
+		synchronized(tasks) {
+		    if(tasks.isEmpty()){
 			task = (SortTask) tasks.poll();
+		    }
 		}
+
 		if(task != null){
-			Machine current = computeNodes.remove();
-	
-			// Bring it to the back of the queue
-			computeNodes.add(current);
-			
-			// Do a RPC call.
-			rpcSort(current,task);
-			
-			// Add to the progress.
-			addToProgress(current,task);
+		    Machine current = computeNodes.remove();    
+		    // Bring it to the back of the queue
+		    computeNodes.add(current);
+		    // Do a RPC call.
+		    rpcSort(current,task);    
+		    // Add to the progress.
+		    addToProgress(current,task);
 		}
-	}
-	/*
-	
-	// Now merge.
-	Queue<MergeTask> mockSortedList = new ConcurrentLinkedQueue<>();
-	
-	for(int i=0; i<totalTasks; i++){
-		MergeTask task = mockSortedList.remove();
+	    }
+
+	    // Now merge.	
+	    this.mergify(); //create MergeTasks
+
+	    // Assign Merge Tasks to Machine.
+	    for(int i = 0; i < totalTasks; i++){
+		MergeTask task = (MergeTask) tasks.poll();
 		Machine current = computeNodes.remove();
-		
 		// Bring it to the back of the queue
 		computeNodes.add(current);
-		
 		// Do a RPC call.
 		rpcMerge(current,task);
-		
 		// Add to the progress.
 		addToProgress(current,task);
-	}
-	
-	while(i_complete > 1){
+	    }
+
+
+	    //wait for it all to complete
+	    while(i_complete > 1){
+
+		this.mergify(); //see if we need to create more tasks
+
 		MergeTask task = null;
-		if(mockSortedList.isEmpty()){
-			task = mockSortedList.poll();
+		synchronized(tasks) {
+		    if(tasks.isEmpty()){
+			task = (MergeTask) tasks.poll();
+		    }
 		}
 		if(task != null){
-			Machine current = computeNodes.remove();
-			
-			// Bring it to the back of the queue
-			computeNodes.add(current);
-			
-			// Make a RPC call
-			rpcMerge(current,task);
-			
-			// Add to the progress.
-			addToProgress(current,task);
+		    Machine current = computeNodes.remove();	
+		    // Bring it to the back of the queue
+		    computeNodes.add(current);
+		    // Make a RPC call
+		    rpcMerge(current,task);
+		    // Add to the progress.
+		    addToProgress(current,task);
 		}
-	}
-	*/
+	    }
 	}
 	catch(Exception e)
 	{
-	    e.printStackTrace();
+		e.printStackTrace();
 	}
 
 	return "NULL";
@@ -178,12 +180,45 @@ public class ServerHandler implements Server.Iface {
 
     @Override
     // RPC Called by the compute nodes when they have done their task
-    public boolean announce() throws TException {
-	System.out.println("SERVER: RPC ANNOUNCE CALLED");
-	synchronized(i_complete) {
-	    i_complete++;
+    public boolean announce(Machine m, String task_output) throws TException {
+	System.out.println("SERVER: RPC COMPLETED TASK WITH OUTPUT OF: " + task_output);
+
+	//remove the completed task from the machineTask Q in inProgress
+	Queue<Task> machineTaskQ = inProgress.get(m);
+	Task completedTask = null;
+	for(Task t : machineTaskQ) {
+	    if(t.output.equals(task_output)) {
+		completedTask = t;
+		machineTaskQ.remove(t);
+		break;
+	    }
 	}
+	
+	synchronized(i_complete) {
+	    if(completedTask instanceof SortTask)
+		i_complete++;
+	    else 
+		i_complete--;
+	}
+
+	//add completed unique filename
+	completed.add(task_output);
+
 	return true;
+    }
+
+    private void mergify() {
+	//checks the completedTask List to see if we need to merge anything
+	synchronized(completed) {
+	    //don't merge anything if there's only 1 completed task
+	    while(completed.size() > 1) {
+		String first = completed.remove();
+		String second = completed.remove();
+		Task merge = new MergeTask(first, second, int_dir + String.valueOf(i_unique));
+		i_unique++;
+		tasks.add(merge);
+	    }
+	}
     }
     
     private void addToProgress(Machine m,Task task){
@@ -270,6 +305,8 @@ public class ServerHandler implements Server.Iface {
 	i_complete = 0;
 	i_unique = 0;
 	tasks.clear();
+        inProgress.clear();
+	completed.clear();
     }
 
 

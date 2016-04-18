@@ -78,16 +78,16 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
 
     @Override
     public boolean merge(String f1, String f2,String output) throws TException {		
-		if(isDead){
-			throw new TException();
-		}
-		// Serialize
-		MergeTask task = new MergeTask(f1,f2,output);
-		// Add to the Queue
-		synchronized(taskQueue){
-			taskQueue.add(task);
-		}
-		return false;
+	if(isDead){
+	    throw new TException();
+	}
+	// Serialize
+	MergeTask task = new MergeTask(f1,f2,output);
+	// Add to the Queue
+	synchronized(taskQueue){
+	    taskQueue.add(task);
+	}
+	return false;
     }
 
     
@@ -111,8 +111,8 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     //Begin Thrift Server instance for a Node and listen for connections on our port
     private void start() throws TException {
 		
-		QueueWatcher watcher = new QueueWatcher(this,taskQueue);
-		watcher.start();
+	QueueWatcher watcher = new QueueWatcher(this,taskQueue);
+	watcher.start();
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);
         TTransportFactory factory = new TFramedTransport.Factory();
