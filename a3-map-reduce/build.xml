@@ -4,6 +4,7 @@
      <!--Default server and Server properties used unless provided-->   
      <property name="server.address" value="localhost" />
      <property name="server.port" value="9090"/>
+     <property name="node.port" value="5000"/>
     
      <property name="src.dir" value="src" />
      <property name="build.dir" value = "bin"/>
@@ -104,7 +105,7 @@
 
        <target name="start-server" depends="build" description="Start server">
 	 <echo>Starting server on Port ${server.port} ...</echo>
-	 <java classname="serverHandler" fork="true">
+	 <java classname="ServerHandler" fork="true">
 	   <classpath refid="master-classpath"/>
 	   <arg line="${server.port}"/>
 	 </java>

@@ -26,7 +26,7 @@ import java.io.FileReader;
 public class ServerHandler implements Server.Iface {
     
     Queue<Machine> computeNodes; //LinkedList
-    Map<Machine,Queue<Task>> inProgress;
+    Map<Machine,ConcurrentLinkedQueue<Task>> inProgress;
     Machine self;
     private Integer i_complete; // synchronized counter for completed tasks.
     private Integer i_unique;   // synchronized counter for unique intermediate files
@@ -93,22 +93,21 @@ public class ServerHandler implements Server.Iface {
 	
 		// Bring it to the back of the queue
 		computeNodes.add(current);
-		
+		System.out.println(task);
 		// Make RPC call
 		rpcSort(current, task);
 		
-		//TODO:
-		// Add to the progress.
-		//addToProgress(current,task);
+		// Add to progress
+		addToProgress(current,task);
 	    }
 	
 	// blocking wait for all tasks for it all to complete.
 	// Watches the queuefor all tasks for it all to complete.
-/*
+
 	while(i_complete < totalTasks){
 		SortTask task = null;
-		if(mockList.isEmpty()){
-			task = mockList.poll();
+		if(tasks.isEmpty()){
+			task = (SortTask) tasks.poll();
 		}
 		if(task != null){
 			Machine current = computeNodes.remove();
@@ -123,7 +122,7 @@ public class ServerHandler implements Server.Iface {
 			addToProgress(current,task);
 		}
 	}
-
+	/*
 	
 	// Now merge.
 	Queue<MergeTask> mockSortedList = new ConcurrentLinkedQueue<>();
@@ -182,9 +181,14 @@ public class ServerHandler implements Server.Iface {
     }
     
     private void addToProgress(Machine m,Task task){
-		Queue<Task> machineTasks = inProgress.get(m);
-		machineTasks.add(task);
-		inProgress.put(m,machineTasks);
+		ConcurrentLinkedQueue<Task> machineTasks = inProgress.get(m);
+		if(machineTasks == null){
+			machineTasks = new ConcurrentLinkedQueue<>();
+			machineTasks.add(task);
+			inProgress.put(m,machineTasks);
+		}else{
+			machineTasks.add(task);
+		}
 	}
     
     private void rpcSort(Machine m,SortTask task) throws TException {

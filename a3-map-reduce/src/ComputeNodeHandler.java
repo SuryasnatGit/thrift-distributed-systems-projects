@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
+import java.util.LinkedList;
 import java.util.ArrayList;
 import java.nio.ByteBuffer;
 import java.net.InetAddress;
@@ -44,7 +45,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         
         // call enroll on superNode to enroll.
         boolean success = serverClient.enroll(self);
-
+		taskQueue = new LinkedList<>();
         if(success)
             System.out.println("Server has successfully reported to server");
         else
@@ -55,10 +56,12 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     
     @Override
     public boolean sort(String filename, long startChunk, long endChunk, String output) throws TException {
+	
 	// Serialize 
 	SortTask task = new SortTask(startChunk,endChunk,filename,output);
 	boolean success = false;
 	// Add to the queue
+	
 	synchronized(taskQueue){
 		taskQueue.add(task);
 		success = true;
@@ -97,6 +100,9 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     	
     //Begin Thrift Server instance for a Node and listen for connections on our port
     private void start() throws TException {
+		
+		QueueWatcher watcher = new QueueWatcher(taskQueue);
+		watcher.start();
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);
         TTransportFactory factory = new TFramedTransport.Factory();
@@ -128,7 +134,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
             Integer port = Integer.parseInt(args[2]);
             
             ComputeNodeHandler server = new ComputeNodeHandler(serverIP, serverPort,port);
-            
+             
             //spin up server
             server.start();
         }
