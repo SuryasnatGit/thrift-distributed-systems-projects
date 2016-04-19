@@ -22,7 +22,6 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     Machine server;
     String directory; //name of folder to be written/read to by server
     ConcurrentLinkedQueue<Task> taskQueue;
-    boolean isDead;
     double chanceToFail = 0.0;
     
     
@@ -45,7 +44,6 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         self.ipAddress = InetAddress.getLocalHost().getHostName().toString();		
         self.port = port;
         
-        isDead = false;
         this.chanceToFail = chanceToFail; 
         
         // call enroll on superNode to enroll.
@@ -94,8 +92,6 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     
     @Override
     public boolean heartbeat() throws TException {
-		if(isDead)
-			throw new TException();
 		return true;
     }
     

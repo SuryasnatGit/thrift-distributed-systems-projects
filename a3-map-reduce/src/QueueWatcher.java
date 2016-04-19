@@ -39,13 +39,13 @@ class QueueWatcher extends Thread {
 		}
 	}
 	
-	private void tryToFail() throws Exception{
+	private void tryToFail(){
 		double roll = rand.nextDouble();
 		if(roll < instance.chanceToFail){
 			//System.out.println("Roll: " + roll);
 			//System.out.println("Chance: " + instance.chanceToFail);
 			System.out.println("FAILED");
-			throw new Exception();
+			System.exit();
 		}
 	}
 }
