@@ -22,12 +22,11 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     Machine server;
     String directory; //name of folder to be written/read to by server
     ConcurrentLinkedQueue<Task> taskQueue;
-    boolean isDead;
     double chanceToFail = 0.0;
     
     
     /* Constructor for a Server, a Thrift connection is made to the server as well */
-    public ComputeNodeHandler(String serverIP, Integer serverPort, Integer port) throws Exception {    
+    public ComputeNodeHandler(String serverIP, Integer serverPort, Integer port, double chanceToFail) throws Exception {    
         // connect to the server as a client
         TTransport serverTransport = new TSocket(serverIP, serverPort);
         serverTransport.open();
@@ -46,7 +45,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         Comm.setServer(this.server);
         Comm.setSelf(self);
 
-        isDead = false; 
+        this.chanceToFail = chanceToFail; 
         
         // call enroll on superNode to enroll.
         boolean success = serverClient.enroll(self);
@@ -62,9 +61,6 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     @Override
     public boolean sort(String filename, long startChunk, long endChunk, String output) throws TException {
 	
-	if(isDead)
-		throw new TException();
-	
 	// Serialize 
 	SortTask task = new SortTask(startChunk,endChunk,filename,output);
 	boolean success = false;
@@ -79,9 +75,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
 
     @Override
     public boolean merge(String f1, String f2,String output) throws TException {		
-	if(isDead){
-	    throw new TException();
-	}
+
 	// Serialize
 	MergeTask task = new MergeTask(f1,f2,output);
 	// Add to the Queue
@@ -94,8 +88,6 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     
     @Override
     public boolean heartbeat() throws TException {
-		if(isDead)
-			throw new TException();
 		return true;
     }
     
@@ -140,11 +132,12 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
             System.out.println("IP Address is " + InetAddress.getLocalHost().toString());
             String serverIP = args[0];
             Integer serverPort = Integer.parseInt(args[1]);
-	    
+			Double temp = new Double(args[3]);
+			double chanceToFail = temp.doubleValue();
 	        //port number used by this node.
             Integer port = Integer.parseInt(args[2]);
             
-            ComputeNodeHandler server = new ComputeNodeHandler(serverIP, serverPort,port);
+            ComputeNodeHandler server = new ComputeNodeHandler(serverIP, serverPort,port, chanceToFail);
              
             //spin up server
             server.start();
