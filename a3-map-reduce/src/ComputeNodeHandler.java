@@ -27,7 +27,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     
     
     /* Constructor for a Server, a Thrift connection is made to the server as well */
-    public ComputeNodeHandler(String serverIP, Integer serverPort, Integer port) throws Exception {    
+    public ComputeNodeHandler(String serverIP, Integer serverPort, Integer port, double chanceToFail) throws Exception {    
         // connect to the server as a client
         TTransport serverTransport = new TSocket(serverIP, serverPort);
         serverTransport.open();
@@ -45,7 +45,8 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         self.ipAddress = InetAddress.getLocalHost().getHostName().toString();		
         self.port = port;
         
-        isDead = false; 
+        isDead = false;
+        this.chanceToFail = chanceToFail; 
         
         // call enroll on superNode to enroll.
         boolean success = serverClient.enroll(self);
@@ -139,11 +140,12 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
             System.out.println("IP Address is " + InetAddress.getLocalHost().toString());
             String serverIP = args[0];
             Integer serverPort = Integer.parseInt(args[1]);
-	    
+			Double temp = new Double(args[3]);
+			double chanceToFail = temp.doubleValue();
 	        //port number used by this node.
             Integer port = Integer.parseInt(args[2]);
             
-            ComputeNodeHandler server = new ComputeNodeHandler(serverIP, serverPort,port);
+            ComputeNodeHandler server = new ComputeNodeHandler(serverIP, serverPort,port, chanceToFail);
              
             //spin up server
             server.start();
