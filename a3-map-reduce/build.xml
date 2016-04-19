@@ -42,51 +42,61 @@
 	     </java>
 	   </sequential>
 	   <sequential>
+	     <sleep milliseconds="500"/>
 	     <antcall target="start-node">
                <param name="node.port" value="5000"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
+	     <sleep milliseconds="500"/>
 	     <antcall target="start-node">
                <param name="node.port" value="5001"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
+	     <sleep milliseconds="500"/>
 	     <antcall target="start-node">
 	       <param name="node.port" value="5002"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
+	     <sleep milliseconds="500"/>
 	     <antcall target="start-node">
 	       <param name="node.port" value="5003"/>
 	     </antcall>
 	   </sequential>
 	   <sequential>
+	     <sleep milliseconds="500"/>
 	     <antcall target="start-node">
 	       <param name="node.port" value="5004"/>
 	     </antcall>
          </sequential>
          <sequential>
+	     <sleep milliseconds="500"/>
 	     <antcall target="start-node">
 	       <param name="node.port" value="5005"/>
 	     </antcall>
          </sequential>
          <sequential>
+	     <sleep milliseconds="500"/>
 	     <antcall target="start-node">
 	       <param name="node.port" value="5006"/>
 	     </antcall>
          </sequential>
          <sequential>
+	     <sleep milliseconds="500"/>
 	     <antcall target="start-node">
 	       <param name="node.port" value="5007"/>
 	 </antcall>
          </sequential>
          <sequential>
+	     <sleep milliseconds="500"/>
 	     <antcall target="start-node">
 	       <param name="node.port" value="5008"/>
 	   </antcall>
          </sequential>
          <sequential>
+	     <sleep milliseconds="500"/>
 	     <antcall target="start-node">
 	       <param name="node.port" value="5009"/>
 	     </antcall>
