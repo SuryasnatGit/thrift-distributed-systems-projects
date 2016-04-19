@@ -38,7 +38,7 @@ public class ServerHandler implements Server.Iface {
 
     
     public ServerHandler(Integer port) throws Exception {
-        this.computeNodes = new LinkedList<Machine>();
+        this.computeNodes = new ConcurrentLinkedQueue<Machine>();
         this.inProgress = new HashMap<>();
         this.tasks = new ConcurrentLinkedQueue<>();
         this.completed = new ConcurrentLinkedQueue<>();
@@ -111,23 +111,34 @@ public class ServerHandler implements Server.Iface {
 	
 	    // blocking wait for all tasks for it all to complete.
 	    // Watches the queuefor all tasks for it all to complete.
-	
+		
 	    while(i_complete < totalTasks){
 		SortTask task = null;
-		synchronized(tasks) {
-		    if(tasks.isEmpty()){
+		if(!tasks.isEmpty()){
 			task = (SortTask) tasks.poll();
-		    }
 		}
 
 		if(task != null){
-		    Machine current = computeNodes.remove();    
-		    // Bring it to the back of the queue
-		    computeNodes.add(current);
-		    // Do a RPC call.
-		    rpcSort(current,task);    
-		    // Add to the progress.
-		    addToProgress(current,task);
+			Machine current = null;
+			try{
+				current = computeNodes.remove();
+			} catch(Exception e){
+				System.out.println("All nodes have died");
+				System.exit(1);
+			}
+		    System.out.println("Reassigning to: " + current);
+		    try{
+				// Do a RPC call.
+				rpcSort(current,task);
+				// Bring it to the back of the queue
+				computeNodes.add(current);
+				// Add to the progress.
+				addToProgress(current,task);
+			} catch(TException e) {
+				recover(current);
+			}
+		}{
+			Thread.sleep(100);
 		}
 	    }
 
@@ -217,6 +228,21 @@ public class ServerHandler implements Server.Iface {
 
 	return true;
     }
+    
+    public void recover(Machine m){
+		// Look into the inProgress map
+		Queue<Task> temp = inProgress.get(m);
+		
+		if(temp != null){
+			for(Task t : temp){
+				System.out.println("Server: Adding Task " + t);
+			}
+			
+			// Dump all the tasks back into the queue
+			tasks.addAll(temp);
+			System.out.println("Server: Size of current TaskQueue: " + tasks.size());
+		}
+	}
 
     private synchronized void mergify() throws Exception {
 	//checks the completedTask List to see if we need to merge anything
@@ -332,6 +358,9 @@ public class ServerHandler implements Server.Iface {
 
     //Begin Thrift Server instance for a Node and listen for connections on our port
     private void start() throws TException {
+        
+        HeartBeat heartBeatThread = new HeartBeat(computeNodes,inProgress,tasks);
+        heartBeatThread.start();
         
         //Create Thrift server socket
         TServerTransport serverTransport = new TServerSocket(self.port);

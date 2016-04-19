@@ -12,18 +12,18 @@ import java.util.Queue;
 import java.nio.ByteBuffer;
 import java.net.InetAddress;
 import java.util.ArrayList;
-
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.Iterator;
 
 class HeartBeat extends Thread {
     public final int HEARTBEAT = 5000;  //heartbeat frequency in miliseconds 20 seconds * 1000 = 20 000 ms
 
     // References
-    ArrayList<Machine> nodes;
-    HashMap<Machine,Queue<Task>> inProgress;    
-    Queue<Task> taskQueue;
+    Queue<Machine> nodes;
+    Map<Machine,ConcurrentLinkedQueue<Task>> inProgress;    
+    ConcurrentLinkedQueue<Task> taskQueue;
     
-    public HeartBeat(ArrayList<Machine> nodes,HashMap<Machine,Queue<Task>> inProgress,Queue<Task> taskQueue) {
+    public HeartBeat(Queue<Machine> nodes,Map<Machine,ConcurrentLinkedQueue<Task>> inProgress,ConcurrentLinkedQueue<Task> taskQueue) {
         this.nodes = nodes;
 	this.inProgress = inProgress;
 	this.taskQueue = taskQueue;
@@ -35,21 +35,21 @@ class HeartBeat extends Thread {
             try{
                 Thread.sleep(HEARTBEAT);
                 
-                synchronized(nodes) {
-                    for(Machine m : nodes) {
-                        TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
-                        nodeTransport.open();
-                        TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
-                        ComputeNode.Client node  = new ComputeNode.Client(nodeProtocol);
-                        
+					int totalServers = nodes.size();
+                    for(int i = 0; i < totalServers; i++){
+						Machine m = nodes.remove();
                         try{
+							TTransport nodeTransport = new TSocket(m.ipAddress, m.port);
+							nodeTransport.open();
+							TProtocol nodeProtocol = new TBinaryProtocol(new TFramedTransport(nodeTransport));
+							ComputeNode.Client node  = new ComputeNode.Client(nodeProtocol);
                             node.heartbeat();
+                            nodes.add(m);
                         }catch(TException e){
+							System.out.println("DOWN!!!!!!: Machine " + m.port);
                            recover(m);
                         }
                     }
-                                
-                }
             } catch(Exception e){
                 e.printStackTrace();
             }
@@ -59,15 +59,15 @@ class HeartBeat extends Thread {
 	public void recover(Machine m){
 		// Look into the inProgress map
 		Queue<Task> tasks = inProgress.get(m);
-
-		// Dump all the tasks back into the queue
-		synchronized(taskQueue){
+		
+		if(tasks != null){
+			for(Task t : tasks){
+				System.out.println("Heart: Adding Task " + t);
+			}
+			
+			// Dump all the tasks back into the queue
 			taskQueue.addAll(tasks);
-		}
-
-		// Remove machine from list of machines
-		synchronized(nodes){
-			nodes.remove(m);
+			System.out.println("Heart: Size of current TaskQueue: " + taskQueue.size());
 		}
 	}
 }
