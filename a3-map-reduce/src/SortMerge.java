@@ -59,7 +59,6 @@ class SortMerge extends Thread {
 	    List<Integer> data = readFileToIntList(task);
 	    Collections.sort(data); //magic of abstractions!
 	    //wr = new BufferedWriter(new FileWriter(new File(task.output)));
-	    System.out.println("THE SORTED DATA TO BE WRITTEN TO DISK IS " + data.toString());
 	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output),"ascii")); 
 	    for(Integer i: data){
 		wr.write(String.valueOf(i));
@@ -77,7 +76,7 @@ class SortMerge extends Thread {
     public boolean merge(MergeTask task) throws TException {
 	Writer wr = null;
 	try {
-	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output),"ascii")); 
+	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output), "ascii")); 
 	    Scanner sc1 = new Scanner(new File(task.f1));
 	    Scanner sc2 = new Scanner(new File(task.f2));
 

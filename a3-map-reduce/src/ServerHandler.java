@@ -34,14 +34,14 @@ public class ServerHandler implements Server.Iface {
     private Integer i_unique;   // synchronized counter for unique intermediate files
 
     private Queue<Task> tasks;  // task queue. ConcurrentLinkedQueue
-    private LinkedList<String> completed; //holds unique identifier (output) for completed sort jobs
+    private Queue<String> completed; //holds unique identifier (output) for completed sort jobs
 
     
     public ServerHandler(Integer port) throws Exception {
         this.computeNodes = new LinkedList<Machine>();
         this.inProgress = new HashMap<>();
         this.tasks = new ConcurrentLinkedQueue<>();
-        this.completed = new LinkedList<>();
+        this.completed = new ConcurrentLinkedQueue<>();
         
 	this.i_complete = 0;
 	this.i_unique = 0;
@@ -97,16 +97,16 @@ public class ServerHandler implements Server.Iface {
 	    //start contacting all nodes and queue it all onto compute machines
 	    for(int i = 0; i < totalTasks; i++){
 		SortTask task = (SortTask) tasks.poll();
-		Machine current = computeNodes.remove();
+		if(task != null) {
+		    Machine current = computeNodes.remove();
 	
-		// Bring it to the back of the queue
-		computeNodes.add(current);
-		System.out.println(task);
-		// Make RPC call
-		rpcSort(current, task);
-		
-		// Add to progress
-		addToProgress(current,task);
+		    // Bring it to the back of the queue
+		    computeNodes.add(current);
+		    // Make RPC call
+		    rpcSort(current, task);
+		    // Add to progress
+		    addToProgress(current, task);
+		}
 	    }
 	
 	    // blocking wait for all tasks for it all to complete.
@@ -134,27 +134,34 @@ public class ServerHandler implements Server.Iface {
 	    // Now merge.	
 	    this.mergify(); //create MergeTasks
 
+	    System.out.println("FIRST MERGIFY DONE NUMBER OF MERGES IS  " + tasks.size());
+	    Thread.sleep(2000);
+
 	    // Assign Merge Tasks to Machine.
-	    for(int i = 0; i < totalTasks; i++){
+	    for(int i = 0; i < tasks.size(); i++){
 		MergeTask task = (MergeTask) tasks.poll();
-		Machine current = computeNodes.remove();
-		// Bring it to the back of the queue
-		computeNodes.add(current);
-		// Do a RPC call.
-		rpcMerge(current,task);
-		// Add to the progress.
-		addToProgress(current,task);
+		if(task != null) {
+		    Machine current = computeNodes.remove();
+		    // Bring it to the back of the queue
+		    computeNodes.add(current);
+		    // Do a RPC call.
+		    rpcMerge(current,task);
+		    // Add to the progress.
+		    addToProgress(current,task);
+		}
+		else 
+		    System.out.println("TASK IS NULL");
 	    }
 
 
 	    //wait for it all to complete
 	    while(i_complete > 1){
-
-		this.mergify(); //see if we need to create more tasks
+		if(completed.size() > 1)
+		    this.mergify(); //see if we need to create more tasks
 
 		MergeTask task = null;
 		synchronized(tasks) {
-		    if(tasks.isEmpty()){
+		    if(!tasks.isEmpty()){
 			task = (MergeTask) tasks.poll();
 		    }
 		}
@@ -168,6 +175,7 @@ public class ServerHandler implements Server.Iface {
 		    addToProgress(current,task);
 		}
 	    }
+	    System.out.println("FINITO: " + completed);
 	}
 	catch(Exception e)
 	{
@@ -197,27 +205,32 @@ public class ServerHandler implements Server.Iface {
 	synchronized(i_complete) {
 	    if(completedTask instanceof SortTask)
 		i_complete++;
-	    else 
+	    else if(completedTask instanceof MergeTask)
 		i_complete--;
+	    else 
+		System.out.println("NOT A INISTNACE OF TASK???");
 	}
 
 	//add completed unique filename
 	completed.add(task_output);
+	System.out.println("in announce, completed size is " + completed.size());
 
 	return true;
     }
 
-    private void mergify() {
-	System.out.println("MERGIFY CALLED");
+    private synchronized void mergify() throws Exception {
 	//checks the completedTask List to see if we need to merge anything
 	synchronized(completed) {
 	    //don't merge anything if there's only 1 completed task
+	    System.out.println(completed);
 	    while(completed.size() > 1) {
 		String first = completed.remove();
 		String second = completed.remove();
 		Task merge = new MergeTask(first, second, int_dir + String.valueOf(i_unique));
 		i_unique++;
 		tasks.add(merge);
+		System.out.println("size of completes iss " + completed.size());
+		Thread.sleep(1000);
 	    }
 	}
     }
@@ -253,9 +266,11 @@ public class ServerHandler implements Server.Iface {
 		TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
 		ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
 		
+		assert task != null;
 		assert task.output != null;
 		assert task.f1 != null;
 		assert task.f2 != null;
+		assert computeNode != null;
 
 		computeNode.merge(task.f1,task.f2,task.output);
 		computeTransport.close();
