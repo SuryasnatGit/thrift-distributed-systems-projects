@@ -31,22 +31,23 @@ class SortMerge extends Thread {
 				merge((MergeTask)task);
 			}
 			
-			this.announce();
+			this.announce(task);
 			
 		} catch(TException e){
 			e.printStackTrace();
 		}
     }
     
-    public void announce() throws TException{
-		Machine m = ServerComm.get();
-		TTransport serverTransport = new TSocket(m.ipAddress, m.port);
+    public void announce(Task task) throws TException{
+		Machine svr = Comm.getServer();
+		Machine self = Comm.getSelf();
+		TTransport serverTransport = new TSocket(svr.ipAddress, svr.port);
 		serverTransport.open();
 		TProtocol serverProtocol = new TBinaryProtocol(new TFramedTransport(serverTransport));
 		Server.Client server  = new Server.Client(serverProtocol);
             
 		// Most Updated Version Number/Machine
-		server.announce();
+		server.announce(self, task.output);
 		serverTransport.close();
 	}
 

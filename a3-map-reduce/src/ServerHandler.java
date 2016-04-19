@@ -208,6 +208,7 @@ public class ServerHandler implements Server.Iface {
     }
 
     private void mergify() {
+	System.out.println("MERGIFY CALLED");
 	//checks the completedTask List to see if we need to merge anything
 	synchronized(completed) {
 	    //don't merge anything if there's only 1 completed task
@@ -252,6 +253,10 @@ public class ServerHandler implements Server.Iface {
 		TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
 		ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
 		
+		assert task.output != null;
+		assert task.f1 != null;
+		assert task.f2 != null;
+
 		computeNode.merge(task.f1,task.f2,task.output);
 		computeTransport.close();
 	}

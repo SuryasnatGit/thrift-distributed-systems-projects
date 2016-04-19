@@ -38,13 +38,14 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
         this.server.ipAddress = serverIP;
         this.server.port = serverPort;
         
-        ServerComm.set(this.server);
-        
         //Create a Machine data type representing ourselves
         self = new Machine();
         self.ipAddress = InetAddress.getLocalHost().getHostName().toString();		
         self.port = port;
         
+        Comm.setServer(this.server);
+        Comm.setSelf(self);
+
         isDead = false; 
         
         // call enroll on superNode to enroll.
