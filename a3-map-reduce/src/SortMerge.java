@@ -74,40 +74,46 @@ class SortMerge extends Thread {
     }
     
     public boolean merge(MergeTask task) throws TException {
+	System.out.println("MERGING TASK: " + task);
 	Writer wr = null;
 	try {
 	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output), "ascii")); 
 	    Scanner sc1 = new Scanner(new File(task.f1));
 	    Scanner sc2 = new Scanner(new File(task.f2));
 
-	    if(sc1.hasNextInt() && sc2.hasNextInt()){
-		int a = sc1.nextInt();
-		int b = sc2.nextInt();
-		while (sc1.hasNextInt() && sc2.hasNextInt()) {
-		    if(a < b){
-			wr.write(String.valueOf(a));
-			a = sc1.nextInt();
-		    } else { 
-			wr.write(String.valueOf(b));
-			b = sc2.nextInt();
-		    }
-		    wr.write(" "); //since strings are immutable
+	    Integer a = null;
+	    Integer b = null;
+
+	    while(sc1.hasNextInt() && sc2.hasNextInt()) {
+		if(a == null) a = sc1.nextInt();
+		if(b == null) b = sc2.nextInt();
+		
+		if(a < b) {
+		    wr.write(String.valueOf(a));
+		    a = null;
 		}
+		else {
+		    wr.write(String.valueOf(b));
+		    b = null;
+		}
+		wr.write(" ");
 	    }
-       
-	    //write remaining numbers
-	    if(sc1.hasNextInt()){
-		while(sc1.hasNextInt()){
-		    int c = sc1.nextInt();
-		    wr.write(String.valueOf(c));
-		    wr.write(" ");
-		}
-	    }else{
-		while(sc2.hasNextInt()){
-		    int c = sc2.nextInt();
-		    wr.write(String.valueOf(c));
-		    wr.write(" ");
-		}
+
+	    //write leftover values left in a and b, if any
+	    if(a != null) wr.write(String.valueOf(a));
+	    if(b != null) wr.write(String.valueOf(b));
+	    wr.write(" ");
+
+	    //write remaining numbers, only one of these will execute
+	    while(sc1.hasNextInt()){
+		int c = sc1.nextInt();
+		wr.write(String.valueOf(c));
+		wr.write(" ");
+	    }
+	    while(sc2.hasNextInt()){
+		int c = sc2.nextInt();
+		wr.write(String.valueOf(c));
+		wr.write(" ");
 	    }
 	    wr.close();
 	    return true;

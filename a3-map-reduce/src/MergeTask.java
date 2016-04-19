@@ -7,4 +7,9 @@ class MergeTask extends Task {
 	this.f2 = f2;
 	this.output = output;
     }
+
+    @Override
+    public String toString() {
+	return "MERGE: " + f1 + " + " + f2 + " ---> " + output; 
+    }
 }

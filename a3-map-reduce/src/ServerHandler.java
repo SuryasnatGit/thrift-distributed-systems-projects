@@ -146,8 +146,7 @@ public class ServerHandler implements Server.Iface {
 	    this.mergify(); //create MergeTasks
 
 	    System.out.println("FIRST MERGIFY DONE NUMBER OF MERGES IS  " + tasks.size());
-	    Thread.sleep(2000);
-
+	    
 	    // Assign Merge Tasks to Machine.
 	    for(int i = 0; i < tasks.size(); i++){
 		MergeTask task = (MergeTask) tasks.poll();
@@ -163,7 +162,6 @@ public class ServerHandler implements Server.Iface {
 		else 
 		    System.out.println("TASK IS NULL");
 	    }
-
 
 	    //wait for it all to complete
 	    while(i_complete > 1){
@@ -186,7 +184,7 @@ public class ServerHandler implements Server.Iface {
 		    addToProgress(current,task);
 		}
 	    }
-	    System.out.println("FINITO: " + completed);
+	    System.out.println("FINISHED COMPUTE, RESULT FOUND AT: " + completed);
 	}
 	catch(Exception e)
 	{
@@ -219,13 +217,12 @@ public class ServerHandler implements Server.Iface {
 	    else if(completedTask instanceof MergeTask)
 		i_complete--;
 	    else 
-		System.out.println("NOT A INISTNACE OF TASK???");
+		throw new TException("No instance of task found.");
 	}
 
 	//add completed unique filename
 	completed.add(task_output);
-	System.out.println("in announce, completed size is " + completed.size());
-
+	
 	return true;
     }
     
@@ -255,8 +252,6 @@ public class ServerHandler implements Server.Iface {
 		Task merge = new MergeTask(first, second, int_dir + String.valueOf(i_unique));
 		i_unique++;
 		tasks.add(merge);
-		System.out.println("size of completes iss " + completed.size());
-		Thread.sleep(1000);
 	    }
 	}
     }
@@ -267,16 +262,14 @@ public class ServerHandler implements Server.Iface {
 			machineTasks = new ConcurrentLinkedQueue<>();
 			machineTasks.add(task);
 			inProgress.put(m,machineTasks);
-		}else{
-			machineTasks.add(task);
 		}
+		else
+		    machineTasks.add(task);
+		
 	}
     
     private void rpcSort(Machine m,SortTask task) throws TException {
 	
-	assert task.filename != null;
-	assert task.output != null;
-
 	TTransport computeTransport = new TSocket(m.ipAddress, m.port);
 	computeTransport.open();
 	TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
@@ -292,12 +285,6 @@ public class ServerHandler implements Server.Iface {
 		TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
 		ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
 		
-		assert task != null;
-		assert task.output != null;
-		assert task.f1 != null;
-		assert task.f2 != null;
-		assert computeNode != null;
-
 		computeNode.merge(task.f1,task.f2,task.output);
 		computeTransport.close();
 	}

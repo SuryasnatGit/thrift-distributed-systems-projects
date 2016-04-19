@@ -21,9 +21,9 @@ class HeartBeat extends Thread {
     // References
     Queue<Machine> nodes;
     Map<Machine,ConcurrentLinkedQueue<Task>> inProgress;    
-    ConcurrentLinkedQueue<Task> taskQueue;
+    Queue<Task> taskQueue; //impl: ConcurrentLinkedQueue
     
-    public HeartBeat(Queue<Machine> nodes,Map<Machine,ConcurrentLinkedQueue<Task>> inProgress,ConcurrentLinkedQueue<Task> taskQueue) {
+    public HeartBeat(Queue<Machine> nodes,Map<Machine,ConcurrentLinkedQueue<Task>> inProgress, Queue<Task> taskQueue) {
         this.nodes = nodes;
 	this.inProgress = inProgress;
 	this.taskQueue = taskQueue;

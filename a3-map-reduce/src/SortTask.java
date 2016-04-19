@@ -21,6 +21,6 @@ class SortTask extends Task {
 
     @Override
     public String toString() {
-	return "SORT: START " + startOffset + " END: " + endOffset + " FILE: " + filename + " OUT: " + output;
+	return "SORT: START " + startOffset + " END: " + endOffset + " FILE: " + filename + " ---> " + output;
     }
 }
