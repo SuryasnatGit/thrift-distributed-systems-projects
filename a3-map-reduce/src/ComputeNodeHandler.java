@@ -60,9 +60,6 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     @Override
     public boolean sort(String filename, long startChunk, long endChunk, String output) throws TException {
 	
-	if(isDead)
-		throw new TException();
-	
 	// Serialize 
 	SortTask task = new SortTask(startChunk,endChunk,filename,output);
 	boolean success = false;
@@ -77,9 +74,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
 
     @Override
     public boolean merge(String f1, String f2,String output) throws TException {		
-	if(isDead){
-	    throw new TException();
-	}
+
 	// Serialize
 	MergeTask task = new MergeTask(f1,f2,output);
 	// Add to the Queue

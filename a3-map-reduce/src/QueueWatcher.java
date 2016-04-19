@@ -45,7 +45,7 @@ class QueueWatcher extends Thread {
 			//System.out.println("Roll: " + roll);
 			//System.out.println("Chance: " + instance.chanceToFail);
 			System.out.println("FAILED");
-			System.exit();
+			System.exit(0);
 		}
 	}
 }
