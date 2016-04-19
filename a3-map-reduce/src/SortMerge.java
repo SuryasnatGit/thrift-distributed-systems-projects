@@ -31,7 +31,7 @@ class SortMerge extends Thread {
 				merge((MergeTask)task);
 			}
 			
-			announce();
+			this.announce();
 			
 		} catch(TException e){
 			e.printStackTrace();
@@ -140,7 +140,6 @@ class SortMerge extends Thread {
 	for(String s : split)	    
 	    output.add(Integer.parseInt(s.trim())); //trim because of EOF. Hidden, but length is +1.
 	
-	System.out.println("RESULT of READFILETOINTLIST: " + output.toString());
 	return output;
     }
 
