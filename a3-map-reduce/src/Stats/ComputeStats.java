@@ -41,23 +41,25 @@ public class ComputeStats{
         System.out.println("===================================");
         System.out.println("Total Tasks: " + numOfTasks); 
         System.out.println("Total Tasks Finished: " + finishedTasks);
+        System.out.println("Total Time: " + totalTime +" ms/task");
         System.out.println("Total Average Time: " + totalTime/finishedTasks +" ms/task");
         System.out.println("================SORT===============");
         System.out.println("Total Tasks: " + numSort); 
         System.out.println("Total Tasks Finished: " + finishedSort);
+        System.out.println("Total Time: " + sortTime +" ms/task");
         System.out.println("Total Average Time: " + sortTime/finishedSort +" ms/task");
         System.out.println("===============MERGE================");
         System.out.println("Total Tasks: " + numMerge); 
         System.out.println("Total Tasks Finished: " + finishedMerge);
+        System.out.println("Total Time: " + mergeTime +" ms/task");
         System.out.println("Total Average Time: " + mergeTime/finishedMerge +" ms/task");
         System.out.println("===================================");
 	    System.out.println("\n\n");
     }
     
-    @Override
-    public String toString(){
+    public static String stats(){
         return "\n\n"+
-        "==================================="+
+        "========"+Comm.self+"========"+
         "Total Tasks: " + numOfTasks+ 
         "Total Tasks Finished: " + finishedTasks+
         "Total Average Time: " + totalTime/finishedTasks +" ms/task"+

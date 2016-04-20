@@ -97,7 +97,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     
     @Override
     public String getStats() throws TException {
-        return "";
+        return ComputeStats.stats();
     }
     
     @Override

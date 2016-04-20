@@ -94,6 +94,8 @@ public class ServerHandler implements Server.Iface {
 		((SortTask) t).output = int_dir + String.valueOf(i_unique++); 
 	
 	    int totalTasks = tasks.size();
+	    ServerStats.setTasks(totalTasks,totalTasks-1);
+	    long startTime = System.currentTimeMillis();
 	    //start contacting all nodes and queue it all onto compute machines
 	    for(int i = 0; i < totalTasks; i++){
 		SortTask task = (SortTask) tasks.poll();
@@ -135,6 +137,7 @@ public class ServerHandler implements Server.Iface {
 				// Add to the progress.
 				addToProgress(current,task);
 			} catch(TException e) {
+				ServerStats.fault("sort");
 				recover(current);
 			}
 		}{
@@ -142,12 +145,15 @@ public class ServerHandler implements Server.Iface {
 		}
 	    }
 
+		long endTime = System.currentTimeMillis();
+		ServerStats.recordTasks(startTime,endTime,"sort");
 	    // Now merge.	
 	    this.mergify(); //create MergeTasks
 
 	    System.out.println("FIRST MERGIFY DONE NUMBER OF MERGES IS  " + tasks.size());
 	    
 	    // Assign Merge Tasks to Machine.
+	    startTime = System.currentTimeMillis();
 	    for(int i = 0; i < tasks.size(); i++){
 		MergeTask task = (MergeTask) tasks.poll();
 		if(task != null) {
@@ -184,12 +190,18 @@ public class ServerHandler implements Server.Iface {
 		    addToProgress(current,task);
 		}
 	    }
+	    endTime = System.currentTimeMillis();
+		ServerStats.recordTasks(startTime,endTime,"merge");
+		ServerStats.print();
 	    System.out.println("FINISHED COMPUTE, RESULT FOUND AT: " + completed);
+	    collectStats();
 	}
 	catch(Exception e)
 	{
 		e.printStackTrace();
 	}
+	
+	
 
 	return "NULL";
     }
@@ -225,6 +237,19 @@ public class ServerHandler implements Server.Iface {
 	
 	return true;
     }
+    
+    // Loops through each machine and collects their stats.
+    public void collectStats() throws TException{
+		for(Machine m : computeNodes){
+			TTransport computeTransport = new TSocket(m.ipAddress, m.port);
+			computeTransport.open();
+			TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
+			ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
+			
+			System.out.println(computeNode.getStats());
+			computeTransport.close();
+		}
+	}
     
     public void recover(Machine m){
 		// Look into the inProgress map

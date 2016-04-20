@@ -46,8 +46,19 @@ class HeartBeat extends Thread {
                             node.heartbeat();
                             nodes.add(m);
                         }catch(TException e){
+							Task task = taskQueue.peek();
+							if(task instanceof SortTask){
+								ServerStats.fault("sort");
+							}
+							else if(task instanceof MergeTask){
+								ServerStats.fault("merge");
+							} 
+							else {
+								ServerStats.fault("");
+							} 
+							
 							System.out.println("DOWN!!!!!!: Machine " + m.port);
-                           recover(m);
+                            recover(m);
                         }
                     }
             } catch(Exception e){
