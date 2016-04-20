@@ -129,7 +129,12 @@ public class Client {
     }
 
 
-    private boolean submitJob(String filename, Integer chunks) throws TException {
+    /* From the assignment description
+       The number of intermediate files for merge tasks is also passed to the server as a
+	parameter. If it is set to 8 and there are 64 sort tasks (intermediated files), there will be 9
+	merge tasks (8 merge tasks for the first round and 1 merge task for the second round).
+    */
+    private boolean submitJob(String filename, Integer chunks, Integer num_merge) throws TException {
 	//System.out.println("Reading File: " + filename);
 
 	//check for existence of file
@@ -139,7 +144,7 @@ public class Client {
 	    return false;
 	}
 
-	String result = server.compute(filename, chunks);
+	String result = server.compute(filename, chunks, numMerge);
 
 	if(result.equals("NULL")) {
 	    System.out.println("Job failed");

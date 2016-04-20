@@ -292,13 +292,13 @@ public class ServerHandler implements Server.Iface {
     }
 	
 	private void rpcMerge(Machine m,MergeTask task) throws TException{
-		TTransport computeTransport = new TSocket(m.ipAddress, m.port);
-		computeTransport.open();
-		TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
-		ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
+	    TTransport computeTransport = new TSocket(m.ipAddress, m.port);
+	    computeTransport.open();
+	    TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
+	    ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
 		
-		computeNode.merge(task.f1,task.f2,task.output);
-		computeTransport.close();
+	    computeNode.merge(task.filenames, task.output);
+	    computeTransport.close();
 	}
 
     /* ---- PRIVATE HELPER FUNCTIONS ---- */
