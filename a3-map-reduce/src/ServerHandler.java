@@ -128,7 +128,7 @@ public class ServerHandler implements Server.Iface {
 			try{
 				current = computeNodes.remove();
 			} catch(Exception e){
-				System.out.println("All nodes have died");
+				System.out.println("All nodes have died.");
 				System.exit(1);
 			}
 		    System.out.println("Reassigning to: " + current);
@@ -147,7 +147,7 @@ public class ServerHandler implements Server.Iface {
 		}
 	    }
 
-	    System.out.println("Sort complete, processing intermediate files for merging");
+	    System.out.println("Sort complete, processing intermediate files for merging.");
 	    // Now merge.	
 	    this.mergify(); //create MergeTasks
 
