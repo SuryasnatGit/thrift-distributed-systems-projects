@@ -25,12 +25,15 @@ class SortMerge extends Thread {
     @Override
     public void run(){
 		try{
+            long start = System.currentTimeMillis();
 			if(task instanceof SortTask){
 				sort((SortTask)task);
 			} else{
 				merge((MergeTask)task);
 			}
-			
+			long end = System.currentTimeMillis();
+            String type = (task instanceof SortTask) ? "sort" : "merge";
+            ComputeStats.endTask(start,end,type);
 			this.announce(task);
 			
 		} catch(TException e){
