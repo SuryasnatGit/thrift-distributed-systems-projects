@@ -17,7 +17,7 @@ public class Client {
     Server.Client server;
 
     final static String defaultDir = "./data/"; //default data directory
-    final static String USAGE_STRING = "Usage: <ls> | <sort> <filename> <chunks_size> | <exit>";
+    final static String USAGE_STRING = "Usage: <ls> | <sort> <filename> <chunks_size> <num_files_per_merge> | <exit>";
   
     //Connect to the superNode
     public Client(Machine serverInfo) throws TException{
@@ -96,28 +96,33 @@ public class Client {
     }
 
     private void fileOperation(String[] input, String op) throws Exception {
-	if(input.length < 3 && !op.equals("ls")) {
+	if(input.length < 4 && !op.equals("ls")) {
 	    System.out.println(USAGE_STRING);
 	    if(op.equals("sort"))
-		System.out.println("Input valid chunk size.");
+		System.out.println("Input valid chunk size and num files per merge.");
 	    return;
 	}
 
         switch(op) {
 
 	case "sort":
-	    Integer chunksize; 
+	    Integer chunksize;
+	    Integer num_merge;
 	    try {
 		chunksize = Integer.parseInt(input[2]);
 		if(chunksize < 1)
 		    throw new NumberFormatException();
+		num_merge = Integer.parseInt(input[3]);
+		if(num_merge < 2)
+		    throw new NumberFormatException();
 	    } 
 	    catch (NumberFormatException e) {
 		System.out.println(USAGE_STRING);
+		System.out.println("Number of chunks must be >1 and Number of files per merge must be >2");
 		return;
 	    }
 	    System.out.println("Client: Submitting Sort Job on " + defaultDir + input[1] + " with chunksize: " + chunksize);
-	    System.out.println(" Success: " + submitJob(defaultDir + input[1].trim(), chunksize));
+	    System.out.println(" Success: " + submitJob(defaultDir + input[1].trim(), chunksize, num_merge));
 	    break;
 
 	case "ls":

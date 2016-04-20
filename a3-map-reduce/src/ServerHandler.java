@@ -87,7 +87,7 @@ public class ServerHandler implements Server.Iface {
     }
 
     @Override
-    public String compute(String filename, int chunks) throws TException {
+    public String compute(String filename, int chunks, int num_merge) throws TException {
 	System.out.println("SERVER: Starting sort job on " + filename + " with chunksize " + chunks);
 	try {
 	    //process the file by generating chunk metadata
@@ -149,9 +149,9 @@ public class ServerHandler implements Server.Iface {
 
 	    System.out.println("Sort complete, processing intermediate files for merging.");
 	    // Now merge.	
-	    this.mergify(); //create MergeTasks
+	    this.mergify(num_merge); //create MergeTasks
 
-	    System.out.println("Performing initial number of merges :  " + tasks.size());
+	    System.out.println("Performing initial number of merges :  " + tasks.size() + " with " + num_merge + " intermediate files per merge.");
 	    
 	    // Assign Merge Tasks to Machine.
 	    for(int i = 0; i < tasks.size(); i++){
@@ -172,7 +172,7 @@ public class ServerHandler implements Server.Iface {
 	    //wait for it all to complete
 	    while(i_complete > 1){
 		if(completed.size() > 1)
-		    this.mergify(); //see if we need to create more tasks
+		    this.mergify(num_merge); //see if we need to create more tasks
 
 		MergeTask task = null;
 		synchronized(tasks) {
@@ -245,7 +245,7 @@ public class ServerHandler implements Server.Iface {
 		}
 	}
 
-    private synchronized void mergify() throws Exception {
+    private synchronized void mergify(num_merge) throws Exception {
 	//checks the completedTask List to see if we need to merge anything
 	synchronized(completed) {
 	    //don't merge anything if there's only 1 completed task
