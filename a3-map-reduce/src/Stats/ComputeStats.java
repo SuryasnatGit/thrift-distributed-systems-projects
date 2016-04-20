@@ -55,7 +55,7 @@ public class ComputeStats{
     }
     
     @Override
-    public static String toString(){
+    public String toString(){
         return "\n\n"+
         "==================================="+
         "Total Tasks: " + numOfTasks+ 
