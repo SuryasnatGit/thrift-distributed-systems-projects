@@ -22,16 +22,18 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.io.RandomAccessFile;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.nio.file.*;
 
 public class ServerHandler implements Server.Iface {
 
     private static final String int_dir = "intermediate_dir/"; //Intermediate Folder
-    
+    private static final String out_dir = "output_dir/";
+
     Queue<Machine> computeNodes; //LinkedList
     Map<Machine,ConcurrentLinkedQueue<Task>> inProgress;
     Machine self;
     private Integer i_complete; // synchronized counter for completed tasks.
-    private Integer i_unique;   // synchronized counter for unique intermediate files
+    private Long i_unique;   // synchronized counter for unique intermediate files
 
     private Queue<Task> tasks;  // task queue. ConcurrentLinkedQueue
     private Queue<String> completed; //holds unique identifier (output) for completed sort jobs
@@ -44,7 +46,7 @@ public class ServerHandler implements Server.Iface {
         this.completed = new ConcurrentLinkedQueue<>();
         
 	this.i_complete = 0;
-	this.i_unique = 0;
+	this.i_unique = 0L;
 
         //Create a Machine data type representing ourselves
         self = new Machine();
@@ -54,6 +56,8 @@ public class ServerHandler implements Server.Iface {
 	//initialize folder(s)
 	if(!(new File(int_dir)).mkdir()) //one line folder init mkdir bby!
 	    System.out.println("Folder already exists: " + int_dir);
+	if(!(new File(out_dir)).mkdir())
+	    System.out.println("Folder already exists: " + out_dir);
     }
     
     public static void main(String[] args) {
@@ -96,6 +100,7 @@ public class ServerHandler implements Server.Iface {
 	    int totalTasks = tasks.size();
 	    ServerStats.setTasks(totalTasks,totalTasks-1);
 	    long startTime = System.currentTimeMillis();
+	    System.out.println("Beginning to perform a total of " + totalTasks + " sorts. This may take awhile" );
 	    //start contacting all nodes and queue it all onto compute machines
 	    for(int i = 0; i < totalTasks; i++){
 		SortTask task = (SortTask) tasks.poll();
@@ -113,7 +118,7 @@ public class ServerHandler implements Server.Iface {
 	
 	    // blocking wait for all tasks for it all to complete.
 	    // Watches the queuefor all tasks for it all to complete.
-		
+	    System.out.println("Contacted & assigned sort tasks to all compute nodes, waiting for sort tasks to complete.");
 	    while(i_complete < totalTasks){
 		SortTask task = null;
 		if(!tasks.isEmpty()){
@@ -125,7 +130,7 @@ public class ServerHandler implements Server.Iface {
 			try{
 				current = computeNodes.remove();
 			} catch(Exception e){
-				System.out.println("All nodes have died");
+				System.out.println("All nodes have died.");
 				System.exit(1);
 			}
 		    System.out.println("Reassigning to: " + current);
@@ -147,10 +152,11 @@ public class ServerHandler implements Server.Iface {
 
 		long endTime = System.currentTimeMillis();
 		ServerStats.recordTasks(startTime,endTime,"sort");
+	    System.out.println("Sort complete, processing intermediate files for merging.");
 	    // Now merge.	
 	    this.mergify(); //create MergeTasks
 
-	    System.out.println("FIRST MERGIFY DONE NUMBER OF MERGES IS  " + tasks.size());
+	    System.out.println("Performing initial number of merges :  " + tasks.size());
 	    
 	    // Assign Merge Tasks to Machine.
 	    startTime = System.currentTimeMillis();
@@ -168,7 +174,7 @@ public class ServerHandler implements Server.Iface {
 		else 
 		    System.out.println("TASK IS NULL");
 	    }
-
+	    System.out.println("Contacted and assigned merge tasks to all compute nodes, waiting for merge tasks to complete.");
 	    //wait for it all to complete
 	    while(i_complete > 1){
 		if(completed.size() > 1)
@@ -195,23 +201,22 @@ public class ServerHandler implements Server.Iface {
 		ServerStats.print();
 	    System.out.println("FINISHED COMPUTE, RESULT FOUND AT: " + completed);
 	    collectStats();
+	    System.out.println("Merging complete.");
+	    return this.output(filename);
 	}
 	catch(Exception e)
 	{
 		e.printStackTrace();
+		return "NULL";
 	}
 	
-	
-
 	return "NULL";
     }
-
 
     @Override
     // RPC Called by the compute nodes when they have done their task
     public boolean announce(Machine m, String task_output) throws TException {
-	System.out.println("SERVER: RPC COMPLETED TASK WITH OUTPUT OF: " + task_output);
-
+	//System.out.println("SERVER: RPC COMPLETED TASK WITH OUTPUT OF: " + task_output);
 	//remove the completed task from the machineTask Q in inProgress
 	Queue<Task> machineTaskQ = inProgress.get(m);
 	Task completedTask = null;
@@ -270,7 +275,6 @@ public class ServerHandler implements Server.Iface {
 	//checks the completedTask List to see if we need to merge anything
 	synchronized(completed) {
 	    //don't merge anything if there's only 1 completed task
-	    System.out.println(completed);
 	    while(completed.size() > 1) {
 		String first = completed.remove();
 		String second = completed.remove();
@@ -280,6 +284,15 @@ public class ServerHandler implements Server.Iface {
 	    }
 	}
     }
+
+    private String output(String ori_file_path) throws Exception {
+	assert completed.size() == 1;
+	//move the completed mergesort to dest dir
+	String ori_file = Paths.get(ori_file_path).getFileName().toString();
+	String complete = completed.remove();
+	Path ret = Files.move(Paths.get(complete), Paths.get(out_dir + ori_file + "_sorted"), StandardCopyOption.REPLACE_EXISTING);
+	return ret.toString();
+    } 
     
     private void addToProgress(Machine m,Task task){
 		ConcurrentLinkedQueue<Task> machineTasks = inProgress.get(m);
@@ -316,6 +329,7 @@ public class ServerHandler implements Server.Iface {
 
     /* ---- PRIVATE HELPER FUNCTIONS ---- */
     private void chunkify(String filename, Integer chunksize) throws Exception {
+	System.out.println("Processing file for map reduce ..");
 	// get the file size and do math on the chunks
 	// read the file
 	File dataFile = new File(filename);
@@ -361,7 +375,7 @@ public class ServerHandler implements Server.Iface {
     // reset state for next job
     private void cleanup() {
 	i_complete = 0;
-	i_unique = 0;
+	i_unique = 0L;
 	tasks.clear();
         inProgress.clear();
 	completed.clear();

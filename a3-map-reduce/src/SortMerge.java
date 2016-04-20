@@ -11,6 +11,7 @@ import java.io.Writer;
 import java.io.OutputStreamWriter;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.nio.file.*;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,10 @@ class SortMerge extends Thread {
             ComputeStats.endTask(start,end,type);
 			this.announce(task);
 			
-		} catch(TException e){
+			if(task instanceof MergeTask) 
+			    this.removeIntermediateFiles((MergeTask) task);
+			
+		} catch(Exception e){
 			e.printStackTrace();
 		}
     }
@@ -54,11 +58,16 @@ class SortMerge extends Thread {
 		serverTransport.close();
 	}
 
+    private void removeIntermediateFiles(MergeTask mt) throws Exception {
+	Files.deleteIfExists(Paths.get(mt.f1));
+	Files.deleteIfExists(Paths.get(mt.f2));
+    }
+
     public boolean sort(SortTask task) throws TException {
 	//got to wrap it up because of IOExceptions.
 	Writer wr = null;
 	try {
-	    System.out.println("Sorting task -> " + task );
+	    //System.out.println("Sorting task -> " + task );
 	    List<Integer> data = readFileToIntList(task);
 	    Collections.sort(data); //magic of abstractions!
 	    //wr = new BufferedWriter(new FileWriter(new File(task.output)));
@@ -77,7 +86,7 @@ class SortMerge extends Thread {
     }
     
     public boolean merge(MergeTask task) throws TException {
-	System.out.println("MERGING TASK: " + task);
+	//System.out.println("MERGING TASK: " + task);
 	Writer wr = null;
 	try {
 	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output), "ascii")); 

@@ -116,7 +116,7 @@ public class Client {
 		System.out.println(USAGE_STRING);
 		return;
 	    }
-	    System.out.println("Client: Submitting Sort Job on " + defaultDir + input[1] + "with chunksize: " + chunksize);
+	    System.out.println("Client: Submitting Sort Job on " + defaultDir + input[1] + " with chunksize: " + chunksize);
 	    System.out.println(" Success: " + submitJob(defaultDir + input[1].trim(), chunksize));
 	    break;
 
@@ -146,7 +146,7 @@ public class Client {
 	    return false;
 	}
 	else {
-	    System.out.println("Content :\n    " + result); //just the filename, no paths allowed
+	    System.out.println("Output file located at :\n    " + result); //just the filename, no paths allowed
 	    return true;
 	}
     }
