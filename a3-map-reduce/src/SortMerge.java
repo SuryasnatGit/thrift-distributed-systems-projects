@@ -16,6 +16,7 @@ import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
+import java.util.PriorityQueue;
  
 class SortMerge extends Thread { 
     Task task;
@@ -56,8 +57,9 @@ class SortMerge extends Thread {
 	}
 
     private void removeIntermediateFiles(MergeTask mt) throws Exception {
-	Files.deleteIfExists(Paths.get(mt.f1));
-	Files.deleteIfExists(Paths.get(mt.f2));
+	for(String p : mt.filenames) {
+	    Files.deleteIfExists(Paths.get(p));
+	}
     }
 
     public boolean sort(SortTask task) throws TException {
@@ -81,8 +83,46 @@ class SortMerge extends Thread {
 	    return false;
 	}
     }
-    
+
     public boolean merge(MergeTask task) throws TException {
+	Writer wr = null;
+	try {
+	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output), "ascii"));
+	    //open a all the streams and stuff it into a priority q
+	    PriorityQueue<PeekableScanner> q = new PriorityQueue<>(task.filenames.size());
+	    for(String filename : task.filenames) {
+		PeekableScanner pks = new PeekableScanner(new File(filename));
+		q.add(pks);
+	    }
+	    
+	    //poll for numbers and keep getting the next int
+	    PeekableScanner smallest = q.poll();
+	    //stop when there's nothing else
+	    while(smallest != null) {
+		if(smallest.hasNext()) {
+		    //write the smallest int
+		    wr.write(smallest.peek());
+		    //advance scanner
+		    smallest.next();
+		}
+		//else remove from the queue, aka do nothing
+		
+		//then check if next scanner has numbers, if so add a space else don't
+		if(q.peek().hasNext()) wr.write(" ");
+		//put current smallest back into queue
+	        q.add(smallest);
+	    }
+	    wr.close();
+	    return true;
+	}
+	catch(Exception e) {
+	    e.printStackTrace();
+	    return false;
+	}
+    }
+
+    /*    
+    public boolean mergeOLD(MergeTask task) throws TException {
 	//System.out.println("MERGING TASK: " + task);
 	Writer wr = null;
 	try {
@@ -134,6 +174,7 @@ class SortMerge extends Thread {
 	    return false;
 	}
     }
+    */
 
     /* Open file as a stream.
        Jump to the startChunk offset
