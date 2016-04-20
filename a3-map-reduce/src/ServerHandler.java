@@ -191,7 +191,9 @@ public class ServerHandler implements Server.Iface {
 		}
 	    }
 	    System.out.println("Merging complete.");
-	    return this.output(filename);
+	    String out_file = this.output(filename);
+	    this.cleanup();
+	    return out_file;
 	}
 	catch(Exception e)
 	{
