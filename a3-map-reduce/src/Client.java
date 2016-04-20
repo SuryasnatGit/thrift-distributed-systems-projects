@@ -116,7 +116,7 @@ public class Client {
 		System.out.println(USAGE_STRING);
 		return;
 	    }
-	    System.out.println("Client: Submitting Sort Job on " + defaultDir + input[1] + "with chunksize: " + chunksize);
+	    System.out.println("Client: Submitting Sort Job on " + defaultDir + input[1] + " with chunksize: " + chunksize);
 	    System.out.println(" Success: " + submitJob(defaultDir + input[1].trim(), chunksize));
 	    break;
 

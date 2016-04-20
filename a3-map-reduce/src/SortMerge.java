@@ -64,7 +64,7 @@ class SortMerge extends Thread {
 	//got to wrap it up because of IOExceptions.
 	Writer wr = null;
 	try {
-	    System.out.println("Sorting task -> " + task );
+	    //System.out.println("Sorting task -> " + task );
 	    List<Integer> data = readFileToIntList(task);
 	    Collections.sort(data); //magic of abstractions!
 	    //wr = new BufferedWriter(new FileWriter(new File(task.output)));
@@ -83,7 +83,7 @@ class SortMerge extends Thread {
     }
     
     public boolean merge(MergeTask task) throws TException {
-	System.out.println("MERGING TASK: " + task);
+	//System.out.println("MERGING TASK: " + task);
 	Writer wr = null;
 	try {
 	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output), "ascii")); 

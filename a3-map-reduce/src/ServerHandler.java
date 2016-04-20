@@ -33,7 +33,7 @@ public class ServerHandler implements Server.Iface {
     Map<Machine,ConcurrentLinkedQueue<Task>> inProgress;
     Machine self;
     private Integer i_complete; // synchronized counter for completed tasks.
-    private Integer i_unique;   // synchronized counter for unique intermediate files
+    private Long i_unique;   // synchronized counter for unique intermediate files
 
     private Queue<Task> tasks;  // task queue. ConcurrentLinkedQueue
     private Queue<String> completed; //holds unique identifier (output) for completed sort jobs
@@ -46,7 +46,7 @@ public class ServerHandler implements Server.Iface {
         this.completed = new ConcurrentLinkedQueue<>();
         
 	this.i_complete = 0;
-	this.i_unique = 0;
+	this.i_unique = 0L;
 
         //Create a Machine data type representing ourselves
         self = new Machine();
@@ -98,6 +98,7 @@ public class ServerHandler implements Server.Iface {
 		((SortTask) t).output = int_dir + String.valueOf(i_unique++); 
 	
 	    int totalTasks = tasks.size();
+	    System.out.println("Beginning to perform a total of " + totalTasks + " sorts. This may take awhile" );
 	    //start contacting all nodes and queue it all onto compute machines
 	    for(int i = 0; i < totalTasks; i++){
 		SortTask task = (SortTask) tasks.poll();
@@ -115,7 +116,7 @@ public class ServerHandler implements Server.Iface {
 	
 	    // blocking wait for all tasks for it all to complete.
 	    // Watches the queuefor all tasks for it all to complete.
-		
+	    System.out.println("Contacted & assigned sort tasks to all compute nodes, waiting for sort tasks to complete.");
 	    while(i_complete < totalTasks){
 		SortTask task = null;
 		if(!tasks.isEmpty()){
@@ -146,10 +147,11 @@ public class ServerHandler implements Server.Iface {
 		}
 	    }
 
+	    System.out.println("Sort complete, processing intermediate files for merging");
 	    // Now merge.	
 	    this.mergify(); //create MergeTasks
 
-	    System.out.println("FIRST MERGIFY DONE NUMBER OF MERGES IS  " + tasks.size());
+	    System.out.println("Performing initial number of merges :  " + tasks.size());
 	    
 	    // Assign Merge Tasks to Machine.
 	    for(int i = 0; i < tasks.size(); i++){
@@ -166,7 +168,7 @@ public class ServerHandler implements Server.Iface {
 		else 
 		    System.out.println("TASK IS NULL");
 	    }
-
+	    System.out.println("Contacted and assigned merge tasks to all compute nodes, waiting for merge tasks to complete.");
 	    //wait for it all to complete
 	    while(i_complete > 1){
 		if(completed.size() > 1)
@@ -188,6 +190,7 @@ public class ServerHandler implements Server.Iface {
 		    addToProgress(current,task);
 		}
 	    }
+	    System.out.println("Merging complete.");
 	    return this.output(filename);
 	}
 	catch(Exception e)
@@ -300,6 +303,7 @@ public class ServerHandler implements Server.Iface {
 
     /* ---- PRIVATE HELPER FUNCTIONS ---- */
     private void chunkify(String filename, Integer chunksize) throws Exception {
+	System.out.println("Processing file for map reduce ..");
 	// get the file size and do math on the chunks
 	// read the file
 	File dataFile = new File(filename);
@@ -345,7 +349,7 @@ public class ServerHandler implements Server.Iface {
     // reset state for next job
     private void cleanup() {
 	i_complete = 0;
-	i_unique = 0;
+	i_unique = 0L;
 	tasks.clear();
         inProgress.clear();
 	completed.clear();
