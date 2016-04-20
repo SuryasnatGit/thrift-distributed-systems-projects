@@ -86,39 +86,41 @@ class SortMerge extends Thread {
 
 	    Integer a = null;
 	    Integer b = null;
-
-	    while(sc1.hasNextInt() && sc2.hasNextInt()) {
-		if(a == null) a = sc1.nextInt();
-		if(b == null) b = sc2.nextInt();
+	    while(sc1.hasNextInt() || sc2.hasNextInt()) {
+		if(a == null && sc1.hasNextInt()) a = sc1.nextInt();
+		if(b == null && sc2.hasNextInt()) b = sc2.nextInt();
 		
-		if(a < b) {
-		    wr.write(String.valueOf(a));
-		    a = null;
+		if(a != null && b != null) {
+		    if(a < b) {
+			wr.write(String.valueOf(a));
+			a = null;
+		    }
+		    else {
+			wr.write(String.valueOf(b));
+			b = null;
+		    }
+		    wr.write(" ");
 		}
 		else {
-		    wr.write(String.valueOf(b));
-		    b = null;
+		    //write remaining numbers
+		    if(a != null) {
+			wr.write(String.valueOf(a));
+			a = null;
+		    }
+		    if(b != null) { //aka else
+			wr.write(String.valueOf(b));
+			b = null;
+		    }
+		    if(sc1.hasNextInt() || sc2.hasNextInt()) wr.write(" ");
+		    //else don't write an int since we're at the end.
 		}
-		wr.write(" ");
 	    }
 
-	    //write leftover values left in a and b, if any
-	    if(a != null) wr.write(String.valueOf(a));
-	    if(b != null) wr.write(String.valueOf(b));
-	    wr.write(" ");
-
-	    //write remaining numbers, only one of these will execute
-	    while(sc1.hasNextInt()){
-		int c = sc1.nextInt();
-		wr.write(String.valueOf(c));
-		wr.write(" ");
-	    }
-	    while(sc2.hasNextInt()){
-		int c = sc2.nextInt();
-		wr.write(String.valueOf(c));
-		wr.write(" ");
-	    }
+	    //the last number
+	    if (a != null) wr.write(String.valueOf(a));
+	    if (b != null) wr.write(String.valueOf(b));
 	    wr.close();
+
 	    return true;
 	}
 	catch(Exception e) {
