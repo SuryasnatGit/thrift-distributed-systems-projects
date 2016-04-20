@@ -22,11 +22,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.io.RandomAccessFile;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.nio.file.*;
 
 public class ServerHandler implements Server.Iface {
 
     private static final String int_dir = "intermediate_dir/"; //Intermediate Folder
-    
+    private static final String out_dir = "output_dir/";
+
     Queue<Machine> computeNodes; //LinkedList
     Map<Machine,ConcurrentLinkedQueue<Task>> inProgress;
     Machine self;
@@ -54,6 +56,8 @@ public class ServerHandler implements Server.Iface {
 	//initialize folder(s)
 	if(!(new File(int_dir)).mkdir()) //one line folder init mkdir bby!
 	    System.out.println("Folder already exists: " + int_dir);
+	if(!(new File(out_dir)).mkdir())
+	    System.out.println("Folder already exists: " + out_dir);
     }
     
     public static void main(String[] args) {
@@ -184,22 +188,19 @@ public class ServerHandler implements Server.Iface {
 		    addToProgress(current,task);
 		}
 	    }
-	    System.out.println("FINISHED COMPUTE, RESULT FOUND AT: " + completed);
+	    return this.output(filename);
 	}
 	catch(Exception e)
 	{
 		e.printStackTrace();
+		return "NULL";
 	}
-
-	return "NULL";
     }
-
 
     @Override
     // RPC Called by the compute nodes when they have done their task
     public boolean announce(Machine m, String task_output) throws TException {
-	System.out.println("SERVER: RPC COMPLETED TASK WITH OUTPUT OF: " + task_output);
-
+	//System.out.println("SERVER: RPC COMPLETED TASK WITH OUTPUT OF: " + task_output);
 	//remove the completed task from the machineTask Q in inProgress
 	Queue<Task> machineTaskQ = inProgress.get(m);
 	Task completedTask = null;
@@ -245,7 +246,6 @@ public class ServerHandler implements Server.Iface {
 	//checks the completedTask List to see if we need to merge anything
 	synchronized(completed) {
 	    //don't merge anything if there's only 1 completed task
-	    System.out.println(completed);
 	    while(completed.size() > 1) {
 		String first = completed.remove();
 		String second = completed.remove();
@@ -255,6 +255,15 @@ public class ServerHandler implements Server.Iface {
 	    }
 	}
     }
+
+    private String output(String ori_file_path) throws Exception {
+	assert completed.size() == 1;
+	//move the completed mergesort to dest dir
+	String ori_file = Paths.get(ori_file_path).getFileName().toString();
+	String complete = completed.remove();
+	Path ret = Files.move(Paths.get(complete), Paths.get(out_dir + ori_file + "_sorted"), StandardCopyOption.REPLACE_EXISTING);
+	return ret.toString();
+    } 
     
     private void addToProgress(Machine m,Task task){
 		ConcurrentLinkedQueue<Task> machineTasks = inProgress.get(m);

@@ -11,6 +11,7 @@ import java.io.Writer;
 import java.io.OutputStreamWriter;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.nio.file.*;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +34,10 @@ class SortMerge extends Thread {
 			
 			this.announce(task);
 			
-		} catch(TException e){
+			if(task instanceof MergeTask) 
+			    this.removeIntermediateFiles((MergeTask) task);
+			
+		} catch(Exception e){
 			e.printStackTrace();
 		}
     }
@@ -50,6 +54,11 @@ class SortMerge extends Thread {
 		server.announce(self, task.output);
 		serverTransport.close();
 	}
+
+    private void removeIntermediateFiles(MergeTask mt) throws Exception {
+	Files.deleteIfExists(Paths.get(mt.f1));
+	Files.deleteIfExists(Paths.get(mt.f2));
+    }
 
     public boolean sort(SortTask task) throws TException {
 	//got to wrap it up because of IOExceptions.

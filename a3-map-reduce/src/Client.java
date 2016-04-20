@@ -146,7 +146,7 @@ public class Client {
 	    return false;
 	}
 	else {
-	    System.out.println("Content :\n    " + result); //just the filename, no paths allowed
+	    System.out.println("Output file located at :\n    " + result); //just the filename, no paths allowed
 	    return true;
 	}
     }
