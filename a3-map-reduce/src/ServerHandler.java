@@ -209,8 +209,6 @@ public class ServerHandler implements Server.Iface {
 		e.printStackTrace();
 		return "NULL";
 	}
-	
-	return "NULL";
     }
 
     @Override
@@ -246,6 +244,7 @@ public class ServerHandler implements Server.Iface {
     // Loops through each machine and collects their stats.
     public void collectStats() throws TException{
 		for(Machine m : computeNodes){
+			try{
 			TTransport computeTransport = new TSocket(m.ipAddress, m.port);
 			computeTransport.open();
 			TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
@@ -253,6 +252,9 @@ public class ServerHandler implements Server.Iface {
 			
 			System.out.println(computeNode.getStats());
 			computeTransport.close();
+			} catch(Exception e){
+				// ignore.
+			}	
 		}
 	}
     
@@ -385,7 +387,7 @@ public class ServerHandler implements Server.Iface {
     //Begin Thrift Server instance for a Node and listen for connections on our port
     private void start() throws TException {
         
-        HeartBeat heartBeatThread = new HeartBeat(computeNodes,inProgress,tasks);
+        HeartBeat heartBeatThread = new HeartBeat(this,computeNodes,inProgress,tasks);
         heartBeatThread.start();
         
         //Create Thrift server socket
