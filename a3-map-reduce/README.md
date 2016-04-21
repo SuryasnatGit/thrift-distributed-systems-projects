@@ -8,12 +8,33 @@ Team Members:
 For a quick overview on how to run the project and test, please go to the **How to Run the Project section**, as well reading the **Client** section regarding the UI commands.
 
 # Overall Design
-
+	
 # The Server
+
+- Server acts as dispatcher to all of the compute nodes.
+- Client gives the server a job
+- Server breaks the jobs into tasks
+- Those tasks are distrobuted to the compute nodes
+- the server maintains state.
+- the server waits until the compute nodes announce to the server they are done.
+- server moves on to next stage 
+- server shares responsibility with heartbeat in maintaining that nodes 
+that die, have their tasks recovered.
 
 # HeartBeat
 
+- running in parallel with the server
+- checks a shared list of actively running nodes
+- nodes that dont respond are taken out and have their tasks redistributed
+
 # Compute Nodes
+
+- maintains a queue
+- rpc calls are a alias for putting the task in the queue.
+- compute node contains a seperate thread that processes the tasks.
+- a task that is popped from the queue is assigned to a new sort merge task.
+- the new thread performs a sort or a merge based on the task object
+- when it is finished it alerts the server it is done.
 
 # Client
 
