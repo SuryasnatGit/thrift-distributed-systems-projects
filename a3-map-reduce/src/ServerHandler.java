@@ -225,7 +225,6 @@ public class ServerHandler implements Server.Iface {
 			    // Bring it to the back of the queue
 			    computeNodes.add(current);
 			} catch (Exception e){
-			    System.out.println("Died with task "+task);
 			    ServerStats.fault("merge");
 			    recover(current);
 			}	
