@@ -33,13 +33,6 @@ public class PeekableScanner implements Comparable<PeekableScanner>
     @Override
     public int compareTo(PeekableScanner other) 
     {
-	//if nothing in this scanner we are always smaller
-	if(hasNext() == false)
-	    return -1;
-	//if nothing in that scanner we are always bigger
-	if(other.hasNext() == false)
-	    return 1;
-
 	//check if two numbers be equal or not.
 	if(peek() == other.peek())
 	    return 0;

@@ -84,7 +84,8 @@ class SortMerge extends Thread {
 	}
     }
 
-    public boolean merge(MergeTask task) throws TException {
+    public boolean merge(MergeTask task) {
+	System.out.println("SORTMERGE TIME TO MERGE BABBBYYYY");
 	Writer wr = null;
 	try {
 	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output), "ascii"));
@@ -99,18 +100,21 @@ class SortMerge extends Thread {
 	    PeekableScanner smallest = q.poll();
 	    //stop when there's nothing else
 	    while(smallest != null) {
-		if(smallest.hasNext()) {
+		if(smallest.peek() != null) {
 		    //write the smallest int
-		    wr.write(smallest.peek());
-		    //advance scanner
-		    smallest.next();
+		    System.out.print(smallest.peek() + " <");
+		    wr.write(String.valueOf(smallest.next()));
+
+		    //see if we should add it back if we still have it
+		    //else get rid of it
+		    if(smallest.hasNext()) {
+			q.add(smallest);
+		    }
 		}
-		//else remove from the queue, aka do nothing
+		//then check if q's front has numbers, if so add a space else don't		
+		if(q.peek() != null) wr.write(" ");
 		
-		//then check if next scanner has numbers, if so add a space else don't
-		if(q.peek().hasNext()) wr.write(" ");
-		//put current smallest back into queue
-	        q.add(smallest);
+	        smallest = q.poll(); //next thing
 	    }
 	    wr.close();
 	    return true;
@@ -200,6 +204,4 @@ class SortMerge extends Thread {
 	
 	return output;
     }
-
-
 }

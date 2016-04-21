@@ -32,6 +32,7 @@ public class ServerHandler implements Server.Iface {
     Queue<Machine> computeNodes; //LinkedList
     Map<Machine,ConcurrentLinkedQueue<Task>> inProgress;
     Machine self;
+    private Integer totalMerges;
     private Integer i_complete; // synchronized counter for completed tasks.
     private Long i_unique;   // synchronized counter for unique intermediate files
 
@@ -46,6 +47,7 @@ public class ServerHandler implements Server.Iface {
         this.completed = new ConcurrentLinkedQueue<>();
         
 	this.i_complete = 0;
+	this.totalMerges = 0;
 	this.i_unique = 0L;
 
         //Create a Machine data type representing ourselves
@@ -148,11 +150,12 @@ public class ServerHandler implements Server.Iface {
 	    }
 
 	    System.out.println("Sort complete, processing intermediate files for merging.");
-	    // Now merge.	
-	    this.mergify(num_merge); //create MergeTasks
-
-	    System.out.println("Performing initial number of merges :  " + tasks.size() + " with " + num_merge + " intermediate files per merge.");
 	    
+	    //this.totalMerges = countMerges(num_merge, completed.size()); //this depends on totoal number of sorts!!
+	    // Now merge.	
+	    int toWait = this.mergify(num_merge); //create MergeTasks and get number to wait for
+	    System.out.println("Performing " + toWait + " tasks.");
+
 	    // Assign Merge Tasks to Machine.
 	    for(int i = 0; i < tasks.size(); i++){
 		MergeTask task = (MergeTask) tasks.poll();
@@ -168,19 +171,22 @@ public class ServerHandler implements Server.Iface {
 		else 
 		    System.out.println("TASK IS NULL");
 	    }
+
 	    System.out.println("Contacted and assigned merge tasks to all compute nodes, waiting for merge tasks to complete.");
 	    //wait for it all to complete
-	    while(i_complete > 1){
-		if(completed.size() > 1)
-		    this.mergify(num_merge); //see if we need to create more tasks
-
+	    // complete == toWait before we consider merge again.
+	    while(toWait != 0){
+		if(toWait == completed.size()) {
+		    toWait = this.mergify(num_merge); //see if we need to create more tasks
+		    if(toWait != 0) System.out.println("Performing " + toWait + " tasks.");
+		}
 		MergeTask task = null;
 		synchronized(tasks) {
 		    if(!tasks.isEmpty()){
 			task = (MergeTask) tasks.poll();
 		    }
 		}
-		if(task != null){
+		if(task != null){ 
 		    Machine current = computeNodes.remove();	
 		    // Bring it to the back of the queue
 		    computeNodes.add(current);
@@ -190,8 +196,8 @@ public class ServerHandler implements Server.Iface {
 		    addToProgress(current,task);
 		}
 	    }
-	    System.out.println("Merging complete.");
 	    String out_file = this.output(filename);
+	    System.out.println("Merging complete.");
 	    this.cleanup();
 	    return out_file;
 	}
@@ -247,19 +253,41 @@ public class ServerHandler implements Server.Iface {
 		}
 	}
 
-    private synchronized void mergify(num_merge) throws Exception {
-	//checks the completedTask List to see if we need to merge anything
+    // num_files is number files per merge, returns number of merges to wait for. 
+    private int mergify(int num_files) throws Exception {
+	int total = 0;
 	synchronized(completed) {
-	    //don't merge anything if there's only 1 completed task
-	    while(completed.size() > 1) {
-		String first = completed.remove();
-		String second = completed.remove();
-		Task merge = new MergeTask(first, second, int_dir + String.valueOf(i_unique));
+	    if(completed.size() == 1) return 0; //done
+	    while(completed.size() > 0) {
+		List<String> toMerge = new ArrayList<>(num_files);
+		for(int i = 0; i < num_files; i++) {
+		    if(completed.size() == 0) break;
+		    toMerge.add(completed.remove());
+		}
+		tasks.add(new MergeTask(toMerge, int_dir + String.valueOf(i_unique)));
 		i_unique++;
-		tasks.add(merge);
+		total++;
 	    }
 	}
+	return total;
     }
+
+    private int countMerges(int num_merge, int total_sorts) {
+	System.out.println("NUM MERGE " + num_merge + " total sorts " + total_sorts);
+	//edge cases
+	if(num_merge > total_sorts) return 1;
+	if(total_sorts - num_merge == 1) return 2;
+
+	int num = 0;
+	while(total_sorts > 1) {
+	    int sorts = (int) java.lang.Math.ceil((double) total_sorts / (double) num_merge);
+	    System.out.println("ss-> " + sorts);
+	    num += sorts;
+	    total_sorts = sorts;
+	}
+	System.out.println("total merges to do" + num);
+	return num;
+    } 
 
     private String output(String ori_file_path) throws Exception {
 	assert completed.size() == 1;
@@ -352,6 +380,7 @@ public class ServerHandler implements Server.Iface {
     private void cleanup() {
 	i_complete = 0;
 	i_unique = 0L;
+	totalMerges = 0;
 	tasks.clear();
         inProgress.clear();
 	completed.clear();

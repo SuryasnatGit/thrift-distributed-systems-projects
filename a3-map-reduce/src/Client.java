@@ -149,7 +149,7 @@ public class Client {
 	    return false;
 	}
 
-	String result = server.compute(filename, chunks, numMerge);
+	String result = server.compute(filename, chunks, num_merge);
 
 	if(result.equals("NULL")) {
 	    System.out.println("Job failed");
