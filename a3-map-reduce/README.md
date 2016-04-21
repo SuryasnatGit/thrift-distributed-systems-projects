@@ -9,6 +9,21 @@ For a quick overview on how to run the project and test, please go to the **How 
 
 # Overall Design
 
+We designed the entire system to perform map-reduce in a non-blocking manner. After considering all the possible failure scenarios this was the key
+to the design of a robust system that is able to continually function as long as the server is alive and there is at least one compute node. 
+
+On a high level, the Client first makes a request to perform a computation on the server after connecting to the server. The client will then block
+until it receives the output file name containing the result. This is the only blocking call.
+
+The assumptions on this entire set up are that: 
+
+(a) The server will not crash
+(b) The all distributed processes have a shared/common filesystem on NFS (Networked File System)
+
+The server will then first perform an analysis on the data file based on the chunk size provided by the client to compute how many sort tasks have to be carried out. The larger the chunk size, the smaller the number of sort tasks to be carried out. The server then assigns these sort tasks to all compute nodes in a FIFO manner, and wait for all sorting to be complete. This is done by having the compute node perform an RPC call back to the server. Once all tasks (including any tasks that have been failed and reassigned with a heartbeat algorithm) are complete. The server then calculates the number of merges to be done based on the number of intermediate files, and the number of files per merge (provided by the client). 
+
+Merges are then assigned to the same compute nodes, and each compute node will perform n-way merging. **To ensure the system is able to merge large files**, we open each file as a special stream that is peekable. This ensures we do not have to read in all files in memory, reducing the possibility of running out of memory.
+
 # The Server
 
 # HeartBeat
@@ -32,7 +47,6 @@ The terminal contains a few simple commands to interact with the File Server.
  - `exit` - closes the connection to the Server and quits the interactive terminal
 
 # Performance Results
-
 
 # How to Run the Project
 
