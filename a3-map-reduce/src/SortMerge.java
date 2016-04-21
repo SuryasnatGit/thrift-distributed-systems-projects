@@ -85,7 +85,6 @@ class SortMerge extends Thread {
     }
 
     public boolean merge(MergeTask task) {
-	System.out.println("SORTMERGE TIME TO MERGE BABBBYYYY");
 	Writer wr = null;
 	try {
 	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output), "ascii"));
@@ -124,61 +123,6 @@ class SortMerge extends Thread {
 	    return false;
 	}
     }
-
-    /*    
-    public boolean mergeOLD(MergeTask task) throws TException {
-	//System.out.println("MERGING TASK: " + task);
-	Writer wr = null;
-	try {
-	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output), "ascii")); 
-	    Scanner sc1 = new Scanner(new File(task.f1));
-	    Scanner sc2 = new Scanner(new File(task.f2));
-
-	    Integer a = null;
-	    Integer b = null;
-	    while(sc1.hasNextInt() || sc2.hasNextInt()) {
-		if(a == null && sc1.hasNextInt()) a = sc1.nextInt();
-		if(b == null && sc2.hasNextInt()) b = sc2.nextInt();
-		
-		if(a != null && b != null) {
-		    if(a < b) {
-			wr.write(String.valueOf(a));
-			a = null;
-		    }
-		    else {
-			wr.write(String.valueOf(b));
-			b = null;
-		    }
-		    wr.write(" ");
-		}
-		else {
-		    //write remaining numbers
-		    if(a != null) {
-			wr.write(String.valueOf(a));
-			a = null;
-		    }
-		    if(b != null) { //aka else
-			wr.write(String.valueOf(b));
-			b = null;
-		    }
-		    if(sc1.hasNextInt() || sc2.hasNextInt()) wr.write(" ");
-		    //else don't write an int since we're at the end.
-		}
-	    }
-
-	    //the last number
-	    if (a != null) wr.write(String.valueOf(a));
-	    if (b != null) wr.write(String.valueOf(b));
-	    wr.close();
-
-	    return true;
-	}
-	catch(Exception e) {
-	    e.printStackTrace();
-	    return false;
-	}
-    }
-    */
 
     /* Open file as a stream.
        Jump to the startChunk offset

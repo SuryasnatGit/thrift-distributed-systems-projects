@@ -99,7 +99,7 @@ public class Client {
 	if(input.length < 4 && !op.equals("ls")) {
 	    System.out.println(USAGE_STRING);
 	    if(op.equals("sort"))
-		System.out.println("Input valid chunk size and num files per merge.");
+		System.out.println("Input valid chunk size and number of files per merge.");
 	    return;
 	}
 

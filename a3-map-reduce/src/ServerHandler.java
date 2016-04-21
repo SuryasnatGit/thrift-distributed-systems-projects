@@ -32,7 +32,6 @@ public class ServerHandler implements Server.Iface {
     Queue<Machine> computeNodes; //LinkedList
     Map<Machine,ConcurrentLinkedQueue<Task>> inProgress;
     Machine self;
-    private Integer totalMerges;
     private Integer i_complete; // synchronized counter for completed tasks.
     private Long i_unique;   // synchronized counter for unique intermediate files
 
@@ -47,7 +46,6 @@ public class ServerHandler implements Server.Iface {
         this.completed = new ConcurrentLinkedQueue<>();
         
 	this.i_complete = 0;
-	this.totalMerges = 0;
 	this.i_unique = 0L;
 
         //Create a Machine data type representing ourselves
@@ -151,10 +149,9 @@ public class ServerHandler implements Server.Iface {
 
 	    System.out.println("Sort complete, processing intermediate files for merging.");
 	    
-	    //this.totalMerges = countMerges(num_merge, completed.size()); //this depends on totoal number of sorts!!
 	    // Now merge.	
 	    int toWait = this.mergify(num_merge); //create MergeTasks and get number to wait for
-	    System.out.println("Performing " + toWait + " tasks.");
+	    System.out.println("Performing " + toWait + " merges..");
 
 	    // Assign Merge Tasks to Machine.
 	    for(int i = 0; i < tasks.size(); i++){
@@ -178,7 +175,7 @@ public class ServerHandler implements Server.Iface {
 	    while(toWait != 0){
 		if(toWait == completed.size()) {
 		    toWait = this.mergify(num_merge); //see if we need to create more tasks
-		    if(toWait != 0) System.out.println("Performing " + toWait + " tasks.");
+		    if(toWait != 0) System.out.println("Performing " + toWait + " merges..");
 		}
 		MergeTask task = null;
 		synchronized(tasks) {
@@ -272,23 +269,6 @@ public class ServerHandler implements Server.Iface {
 	return total;
     }
 
-    private int countMerges(int num_merge, int total_sorts) {
-	System.out.println("NUM MERGE " + num_merge + " total sorts " + total_sorts);
-	//edge cases
-	if(num_merge > total_sorts) return 1;
-	if(total_sorts - num_merge == 1) return 2;
-
-	int num = 0;
-	while(total_sorts > 1) {
-	    int sorts = (int) java.lang.Math.ceil((double) total_sorts / (double) num_merge);
-	    System.out.println("ss-> " + sorts);
-	    num += sorts;
-	    total_sorts = sorts;
-	}
-	System.out.println("total merges to do" + num);
-	return num;
-    } 
-
     private String output(String ori_file_path) throws Exception {
 	assert completed.size() == 1;
 	//move the completed mergesort to dest dir
@@ -380,7 +360,6 @@ public class ServerHandler implements Server.Iface {
     private void cleanup() {
 	i_complete = 0;
 	i_unique = 0L;
-	totalMerges = 0;
 	tasks.clear();
         inProgress.clear();
 	completed.clear();
