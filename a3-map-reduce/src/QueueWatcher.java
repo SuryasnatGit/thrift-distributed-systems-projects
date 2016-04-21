@@ -28,7 +28,7 @@ class QueueWatcher extends Thread {
 				task = requests.remove();
 				
 				if(task != null){
-					tryToFail();
+					tryToFail(task);
 					SortMerge handler = new SortMerge(task);
 					handler.start();
 				}
@@ -39,11 +39,12 @@ class QueueWatcher extends Thread {
 		}
 	}
 	
-	private void tryToFail(){
+	private void tryToFail(Task task){
 		double roll = rand.nextDouble();
 		if(roll < instance.chanceToFail){
-			//System.out.println("Roll: " + roll);
-			//System.out.println("Chance: " + instance.chanceToFail);
+			System.out.println("Roll: " + roll);
+			System.out.println("Chance: " + instance.chanceToFail);
+			ComputeStats.print();
 			System.out.println("FAILED");
 			System.exit(0);
 		}

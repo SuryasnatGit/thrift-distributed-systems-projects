@@ -16,6 +16,7 @@ import java.net.InetAddress;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+
 public class ComputeNodeHandler implements ComputeNode.Iface{
 
     Machine self;
@@ -65,6 +66,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
 	SortTask task = new SortTask(startChunk,endChunk,filename,output);
 	boolean success = false;
 	
+    ComputeStats.newTask("sort");
 	// Add to the queue
 	synchronized(taskQueue){
 		taskQueue.add(task);
@@ -78,6 +80,8 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
 
 	// Serialize
 	MergeTask task = new MergeTask(f1,f2,output);
+    
+    ComputeStats.newTask("merge");
 	// Add to the Queue
 	synchronized(taskQueue){
 	    taskQueue.add(task);
@@ -93,7 +97,7 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     
     @Override
     public String getStats() throws TException {
-        return "";
+        return ComputeStats.stats();
     }
     
     @Override
