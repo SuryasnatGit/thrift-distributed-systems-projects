@@ -55,6 +55,35 @@ The terminal contains a few simple commands to interact with the File Server.
 # Performance Results
 
 
+# Stress Testing
+=large file, =10 servers
+Lots of tasks (small chunksize)
+
+# Performance Testing
+Due to time constraints we perform tests on the 20mb (half one), we can assert that if it works on larger files it can work on smaller files
+
+
+for 15 servers:
+				for 10 % 50% and 90% of the file size as chunk size
+							k merges where k = 2, k = n /2, k = n-1
+
+# Fault Testing
+20mb, create upper and lower from formula, runtime
+upper being faults = amount of servers
+--> show if faults > num servers all will die
+
+duplicate the largest performance test with x y z faults , calculate percentage impact
+
+Unit Testing
+- file not found
+- kill node when enrolling
+- kill node when assigning tasks
+- kill node when assigning merge
+- kill node when merging
+- kill node when sorting
+- run another job after another has completed
+
+
 # How to Run the Project
 
 The File Server was built with the help of Ant. A prerequisite to run this project requires Ant. Additionally, the generated thrift files were also kept in a version control, but the `Thrift` compiler is also needed if Thrift files need to be generated (else only the Java Thrift library is needed).
