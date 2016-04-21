@@ -87,7 +87,7 @@ public class ServerHandler implements Server.Iface {
     }
 
     @Override
-    public String compute(String filename, int chunks) throws TException {
+    public String compute(String filename, int chunks, int num_merge) throws TException {
 	System.out.println("SERVER: Starting sort job on " + filename + " with chunksize " + chunks);
 	try {
 	    //process the file by generating chunk metadata
@@ -160,11 +160,11 @@ public class ServerHandler implements Server.Iface {
 		long endTime = System.currentTimeMillis();
 		ServerStats.recordTasks(startTime,endTime,"sort");
 	    System.out.println("Sort complete, processing intermediate files for merging.");
-	    // Now merge.	
-	    this.mergify(); //create MergeTasks
-
-	    System.out.println("Performing initial number of merges :  " + tasks.size());
 	    
+	    // Now merge.	
+	    int toWait = this.mergify(num_merge); //create MergeTasks and get number to wait for
+	    System.out.println("Performing " + toWait + " merges..");
+
 	    // Assign Merge Tasks to Machine.
 	    startTime = System.currentTimeMillis();
 	    for(int i = 0; i < tasks.size(); i++){
@@ -188,53 +188,57 @@ public class ServerHandler implements Server.Iface {
 		else 
 		    System.out.println("TASK IS NULL");
 	    }
+
 	    System.out.println("Contacted and assigned merge tasks to all compute nodes, waiting for merge tasks to complete.");
 	    //wait for it all to complete
-	    while(i_complete > 1){
-		if(completed.size() > 1)
-		    this.mergify(); //see if we need to create more tasks
-
+	    // complete == toWait before we consider merge again.
+	    while(toWait != 0){
+		if(toWait == completed.size()) {
+		    toWait = this.mergify(num_merge); //see if we need to create more tasks
+		    if(toWait != 0) System.out.println("Performing " + toWait + " merges..");
+		}
 		MergeTask task = null;
 		synchronized(tasks) {
 		    if(!tasks.isEmpty()){
 			task = (MergeTask) tasks.poll();
 		    }
 		}
+
 		if(task != null){
 			Machine current = null;
 			// This check is dangerous because  nodes are popped 
 			// off when they are being inspected. Its possible
-			// the last node is being checked by heartbeat and server think
+			// the last node is being checked by heartbeat and server thinks
 			// no servers are available.
 			try{
-				current = computeNodes.remove();
-			} catch(Exception e){
-				System.out.println("All nodes have died.");
-				System.exit(1);
+			    current = computeNodes.remove();
+			}catch(Exception e){
+			    System.out.println("All nodes have died.");
+			    System.exit(1);
 			}
-		    // Add to progress
+			// Add to progress
 			addToProgress(current, task);	
-		     try{
-				System.out.println(task);
-				// Make RPC call
-				rpcMerge(current, task);
-				
-				// Bring it to the back of the queue
-				computeNodes.add(current);
+			try{
+			    System.out.println(task);
+			    // Make RPC call
+			    rpcMerge(current, task);
+			    // Bring it to the back of the queue
+			    computeNodes.add(current);
 			} catch (Exception e){
-				System.out.println("Died with task "+task);
-				ServerStats.fault("merge");
-				recover(current);
+			    System.out.println("Died with task "+task);
+			    ServerStats.fault("merge");
+			    recover(current);
 			}	
 		}
 	    }
 	    endTime = System.currentTimeMillis();
-		ServerStats.recordTasks(startTime,endTime,"merge");
+	    ServerStats.recordTasks(startTime, endTime, "merge");
 	    System.out.println("FINISHED COMPUTE, RESULT FOUND AT: " + completed);
 	    collectStats();
 	    ServerStats.print();
-	    System.out.println("Merging complete.");
+
 	    String out_file = this.output(filename);
+	    System.out.println("Merging complete.");
 	    this.cleanup();
 	    return out_file;
 	}
@@ -307,18 +311,23 @@ public class ServerHandler implements Server.Iface {
 		}
 	}
 
-    private synchronized void mergify() throws Exception {
-	//checks the completedTask List to see if we need to merge anything
+    // num_files is number files per merge, returns number of merges to wait for. 
+    private int mergify(int num_files) throws Exception {
+	int total = 0;
 	synchronized(completed) {
-	    //don't merge anything if there's only 1 completed task
-	    while(completed.size() > 1) {
-		String first = completed.remove();
-		String second = completed.remove();
-		Task merge = new MergeTask(first, second, int_dir + String.valueOf(i_unique));
+	    if(completed.size() == 1) return 0; //done
+	    while(completed.size() > 0) {
+		List<String> toMerge = new ArrayList<>(num_files);
+		for(int i = 0; i < num_files; i++) {
+		    if(completed.size() == 0) break;
+		    toMerge.add(completed.remove());
+		}
+		tasks.add(new MergeTask(toMerge, int_dir + String.valueOf(i_unique)));
 		i_unique++;
-		tasks.add(merge);
+		total++;
 	    }
 	}
+	return total;
     }
 
     private String output(String ori_file_path) throws Exception {
@@ -354,13 +363,13 @@ public class ServerHandler implements Server.Iface {
     }
 	
 	private void rpcMerge(Machine m,MergeTask task) throws TException{
-		TTransport computeTransport = new TSocket(m.ipAddress, m.port);
-		computeTransport.open();
-		TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
-		ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
+	    TTransport computeTransport = new TSocket(m.ipAddress, m.port);
+	    computeTransport.open();
+	    TProtocol computeProtocol = new TBinaryProtocol(new TFramedTransport(computeTransport));
+	    ComputeNode.Client computeNode  = new ComputeNode.Client(computeProtocol);
 		
-		computeNode.merge(task.f1,task.f2,task.output);
-		computeTransport.close();
+	    computeNode.merge(task.filenames, task.output);
+	    computeTransport.close();
 	}
 
     /* ---- PRIVATE HELPER FUNCTIONS ---- */

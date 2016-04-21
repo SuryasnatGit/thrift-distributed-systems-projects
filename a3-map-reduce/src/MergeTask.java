@@ -1,15 +1,14 @@
+import java.util.List;
 
 class MergeTask extends Task {
-    String f1;
-    String f2;
-    public MergeTask(String f1, String f2, String output) {
-	this.f1 = f1;
-	this.f2 = f2;
+    List<String> filenames;
+    public MergeTask(List<String> filenames, String output) {
 	this.output = output;
+	this.filenames = filenames;
     }
 
     @Override
     public String toString() {
-	return "MERGE: " + f1 + " + " + f2 + " ---> " + output; 
+	return "MERGE: " + filenames.toString() + " ---> " + output; 
     }
 }

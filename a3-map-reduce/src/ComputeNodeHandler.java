@@ -76,12 +76,12 @@ public class ComputeNodeHandler implements ComputeNode.Iface{
     }
 
     @Override
-    public boolean merge(String f1, String f2,String output) throws TException {		
+    public boolean merge(List<String> filenames, String output) throws TException {		
 
 	// Serialize
-	MergeTask task = new MergeTask(f1,f2,output);
-    
-    ComputeStats.newTask("merge");
+	MergeTask task = new MergeTask(filenames, output);
+
+	ComputeStats.newTask("merge");
 	// Add to the Queue
 	synchronized(taskQueue){
 	    taskQueue.add(task);

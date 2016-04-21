@@ -16,6 +16,7 @@ import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
+import java.util.PriorityQueue;
  
 class SortMerge extends Thread { 
     Task task;
@@ -59,8 +60,9 @@ class SortMerge extends Thread {
 	}
 
     private void removeIntermediateFiles(MergeTask mt) throws Exception {
-	Files.deleteIfExists(Paths.get(mt.f1));
-	Files.deleteIfExists(Paths.get(mt.f2));
+	for(String p : mt.filenames) {
+	    Files.deleteIfExists(Paths.get(p));
+	}
     }
 
     public boolean sort(SortTask task) throws TException {
@@ -84,52 +86,39 @@ class SortMerge extends Thread {
 	    return false;
 	}
     }
-    
-    public boolean merge(MergeTask task) throws TException {
-	//System.out.println("MERGING TASK: " + task);
+
+    public boolean merge(MergeTask task) {
 	Writer wr = null;
 	try {
-	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output), "ascii")); 
-	    Scanner sc1 = new Scanner(new File(task.f1));
-	    Scanner sc2 = new Scanner(new File(task.f2));
-
-	    Integer a = null;
-	    Integer b = null;
-	    while(sc1.hasNextInt() || sc2.hasNextInt()) {
-		if(a == null && sc1.hasNextInt()) a = sc1.nextInt();
-		if(b == null && sc2.hasNextInt()) b = sc2.nextInt();
-		
-		if(a != null && b != null) {
-		    if(a < b) {
-			wr.write(String.valueOf(a));
-			a = null;
-		    }
-		    else {
-			wr.write(String.valueOf(b));
-			b = null;
-		    }
-		    wr.write(" ");
-		}
-		else {
-		    //write remaining numbers
-		    if(a != null) {
-			wr.write(String.valueOf(a));
-			a = null;
-		    }
-		    if(b != null) { //aka else
-			wr.write(String.valueOf(b));
-			b = null;
-		    }
-		    if(sc1.hasNextInt() || sc2.hasNextInt()) wr.write(" ");
-		    //else don't write an int since we're at the end.
-		}
+	    wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(task.output), "ascii"));
+	    //open a all the streams and stuff it into a priority q
+	    PriorityQueue<PeekableScanner> q = new PriorityQueue<>(task.filenames.size());
+	    for(String filename : task.filenames) {
+		PeekableScanner pks = new PeekableScanner(new File(filename));
+		q.add(pks);
 	    }
+	    
+	    //poll for numbers and keep getting the next int
+	    PeekableScanner smallest = q.poll();
+	    //stop when there's nothing else
+	    while(smallest != null) {
+		if(smallest.peek() != null) {
+		    //write the smallest int
+		    System.out.print(smallest.peek() + " <");
+		    wr.write(String.valueOf(smallest.next()));
 
-	    //the last number
-	    if (a != null) wr.write(String.valueOf(a));
-	    if (b != null) wr.write(String.valueOf(b));
+		    //see if we should add it back if we still have it
+		    //else get rid of it
+		    if(smallest.hasNext()) {
+			q.add(smallest);
+		    }
+		}
+		//then check if q's front has numbers, if so add a space else don't		
+		if(q.peek() != null) wr.write(" ");
+		
+	        smallest = q.poll(); //next thing
+	    }
 	    wr.close();
-
 	    return true;
 	}
 	catch(Exception e) {
@@ -162,6 +151,4 @@ class SortMerge extends Thread {
 	
 	return output;
     }
-
-
 }

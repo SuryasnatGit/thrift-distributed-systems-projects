@@ -17,7 +17,7 @@ public class Client {
     Server.Client server;
 
     final static String defaultDir = "./data/"; //default data directory
-    final static String USAGE_STRING = "Usage: <ls> | <sort> <filename> <chunks_size> | <exit>";
+    final static String USAGE_STRING = "Usage: <ls> | <sort> <filename> <chunks_size> <num_files_per_merge> | <exit>";
   
     //Connect to the superNode
     public Client(Machine serverInfo) throws TException{
@@ -96,28 +96,33 @@ public class Client {
     }
 
     private void fileOperation(String[] input, String op) throws Exception {
-	if(input.length < 3 && !op.equals("ls")) {
+	if(input.length < 4 && !op.equals("ls")) {
 	    System.out.println(USAGE_STRING);
 	    if(op.equals("sort"))
-		System.out.println("Input valid chunk size.");
+		System.out.println("Input valid chunk size and number of files per merge.");
 	    return;
 	}
 
         switch(op) {
 
 	case "sort":
-	    Integer chunksize; 
+	    Integer chunksize;
+	    Integer num_merge;
 	    try {
 		chunksize = Integer.parseInt(input[2]);
 		if(chunksize < 1)
 		    throw new NumberFormatException();
+		num_merge = Integer.parseInt(input[3]);
+		if(num_merge < 2)
+		    throw new NumberFormatException();
 	    } 
 	    catch (NumberFormatException e) {
 		System.out.println(USAGE_STRING);
+		System.out.println("Number of chunks must be >1 and Number of files per merge must be >2");
 		return;
 	    }
 	    System.out.println("Client: Submitting Sort Job on " + defaultDir + input[1] + " with chunksize: " + chunksize);
-	    System.out.println(" Success: " + submitJob(defaultDir + input[1].trim(), chunksize));
+	    System.out.println(" Success: " + submitJob(defaultDir + input[1].trim(), chunksize, num_merge));
 	    break;
 
 	case "ls":
@@ -129,7 +134,12 @@ public class Client {
     }
 
 
-    private boolean submitJob(String filename, Integer chunks) throws TException {
+    /* From the assignment description
+       The number of intermediate files for merge tasks is also passed to the server as a
+	parameter. If it is set to 8 and there are 64 sort tasks (intermediated files), there will be 9
+	merge tasks (8 merge tasks for the first round and 1 merge task for the second round).
+    */
+    private boolean submitJob(String filename, Integer chunks, Integer num_merge) throws TException {
 	//System.out.println("Reading File: " + filename);
 
 	//check for existence of file
@@ -139,7 +149,7 @@ public class Client {
 	    return false;
 	}
 
-	String result = server.compute(filename, chunks);
+	String result = server.compute(filename, chunks, num_merge);
 
 	if(result.equals("NULL")) {
 	    System.out.println("Job failed");
