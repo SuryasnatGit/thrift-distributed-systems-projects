@@ -38,40 +38,40 @@ public class ComputeStats{
     
     public static void print(){
         System.out.println("\n\n");
-        System.out.println("===================================");
+        System.out.println("========"+Comm.self+"========");
         System.out.println("Total Tasks: " + numOfTasks); 
         System.out.println("Total Tasks Finished: " + finishedTasks);
         System.out.println("Total Time: " + totalTime +" ms/task");
-        System.out.println("Total Average Time: " + totalTime/finishedTasks +" ms/task");
+        //System.out.println("Total Average Time: " + totalTime/finishedTasks +" ms/task");
         System.out.println("================SORT===============");
         System.out.println("Total Tasks: " + numSort); 
         System.out.println("Total Tasks Finished: " + finishedSort);
         System.out.println("Total Time: " + sortTime +" ms/task");
-        System.out.println("Total Average Time: " + sortTime/finishedSort +" ms/task");
+        //System.out.println("Total Average Time: " + sortTime/finishedSort +" ms/task");
         System.out.println("===============MERGE================");
         System.out.println("Total Tasks: " + numMerge); 
         System.out.println("Total Tasks Finished: " + finishedMerge);
         System.out.println("Total Time: " + mergeTime +" ms/task");
-        System.out.println("Total Average Time: " + mergeTime/finishedMerge +" ms/task");
+        //System.out.println("Total Average Time: " + mergeTime/finishedMerge +" ms/task");
         System.out.println("===================================");
 	    System.out.println("\n\n");
     }
     
     public static String stats(){
-        return "\n\n"+
+        return "\n"+
         "========"+Comm.self+"========"+
-        "Total Tasks: " + numOfTasks+ 
-        "Total Tasks Finished: " + finishedTasks+
-        "Total Average Time: " + totalTime/finishedTasks +" ms/task"+
-        "================SORT==============="+
-        "Total Tasks: " + numSort+ 
-        "Total Tasks Finished: " + finishedSort+
-        "Total Average Time: " + sortTime/finishedSort +" ms/task"+
-        "===============MERGE================"+
-        "Total Tasks: " + numMerge+ 
-        "Total Tasks Finished: " + finishedMerge+
-        "Total Average Time: " + mergeTime/finishedMerge +" ms/task"+
-        "==================================="+
-	    "\n\n";
+        "\nTotal Tasks: " + numOfTasks+ 
+        "\nTotal Tasks Finished: " + finishedTasks+
+        "\nTotal Average Time: " + totalTime/finishedTasks +" ms/task"+
+        "\n================SORT==============="+
+        "\nTotal Tasks: " + numSort+ 
+        "\nTotal Tasks Finished: " + finishedSort+
+        "\nTotal Average Time: " + sortTime/finishedSort +" ms/task"+
+        "\n===============MERGE================"+
+        "\nTotal Tasks: " + numMerge+ 
+        "\nTotal Tasks Finished: " + finishedMerge+
+        "\nTotal Average Time: " + mergeTime/finishedMerge +" ms/task"+
+        "\n==================================="+
+	    "\n";
     }
 }

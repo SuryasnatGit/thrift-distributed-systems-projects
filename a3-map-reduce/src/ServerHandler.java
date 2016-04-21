@@ -29,13 +29,13 @@ public class ServerHandler implements Server.Iface {
     private static final String int_dir = "intermediate_dir/"; //Intermediate Folder
     private static final String out_dir = "output_dir/";
 
-    Queue<Machine> computeNodes; //LinkedList
+    ConcurrentLinkedQueue<Machine> computeNodes; //LinkedList
     Map<Machine,ConcurrentLinkedQueue<Task>> inProgress;
     Machine self;
     private Integer i_complete; // synchronized counter for completed tasks.
     private Long i_unique;   // synchronized counter for unique intermediate files
 
-    private Queue<Task> tasks;  // task queue. ConcurrentLinkedQueue
+    private ConcurrentLinkedQueue<Task> tasks;  // task queue. ConcurrentLinkedQueue
     private Queue<String> completed; //holds unique identifier (output) for completed sort jobs
 
     
@@ -106,13 +106,17 @@ public class ServerHandler implements Server.Iface {
 		SortTask task = (SortTask) tasks.poll();
 		if(task != null) {
 		    Machine current = computeNodes.remove();
-	
-		    // Bring it to the back of the queue
-		    computeNodes.add(current);
-		    // Make RPC call
-		    rpcSort(current, task);
 		    // Add to progress
-		    addToProgress(current, task);
+			addToProgress(current, task);
+		    try{
+				// Make RPC call
+				rpcSort(current, task);
+				// Bring it to the back of the queue
+				computeNodes.add(current);
+			} catch (Exception e){
+				ServerStats.fault("sort");
+				recover(current);
+			}	
 		}
 	    }
 	
@@ -127,26 +131,29 @@ public class ServerHandler implements Server.Iface {
 
 		if(task != null){
 			Machine current = null;
+			// This check is dangerous because  nodes are popped 
+			// off when they are being inspected. Its possible
+			// the last node is being checked by heartbeat and server think
+			// no servers are available.
 			try{
 				current = computeNodes.remove();
 			} catch(Exception e){
 				System.out.println("All nodes have died.");
 				System.exit(1);
 			}
-		    System.out.println("Reassigning to: " + current);
+		    System.out.println("Reassigning "+task+" to: " + current);
+		    // Add to the progress.
+			addToProgress(current,task);
 		    try{
 				// Do a RPC call.
 				rpcSort(current,task);
+				
 				// Bring it to the back of the queue
 				computeNodes.add(current);
-				// Add to the progress.
-				addToProgress(current,task);
 			} catch(TException e) {
 				ServerStats.fault("sort");
 				recover(current);
 			}
-		}{
-			Thread.sleep(100);
 		}
 	    }
 
@@ -164,12 +171,19 @@ public class ServerHandler implements Server.Iface {
 		MergeTask task = (MergeTask) tasks.poll();
 		if(task != null) {
 		    Machine current = computeNodes.remove();
-		    // Bring it to the back of the queue
-		    computeNodes.add(current);
-		    // Do a RPC call.
-		    rpcMerge(current,task);
-		    // Add to the progress.
-		    addToProgress(current,task);
+			// Add to progress
+			addToProgress(current, task);
+			
+		     try{
+				// Make RPC call
+				rpcMerge(current, task);
+				
+				// Bring it to the back of the queue
+				computeNodes.add(current);
+			} catch (Exception e){
+				ServerStats.fault("merge");
+				recover(current);
+			}	
 		}
 		else 
 		    System.out.println("TASK IS NULL");
@@ -187,20 +201,38 @@ public class ServerHandler implements Server.Iface {
 		    }
 		}
 		if(task != null){
-		    Machine current = computeNodes.remove();	
-		    // Bring it to the back of the queue
-		    computeNodes.add(current);
-		    // Make a RPC call
-		    rpcMerge(current,task);
-		    // Add to the progress.
-		    addToProgress(current,task);
+			Machine current = null;
+			// This check is dangerous because  nodes are popped 
+			// off when they are being inspected. Its possible
+			// the last node is being checked by heartbeat and server think
+			// no servers are available.
+			try{
+				current = computeNodes.remove();
+			} catch(Exception e){
+				System.out.println("All nodes have died.");
+				System.exit(1);
+			}
+		    // Add to progress
+			addToProgress(current, task);	
+		     try{
+				System.out.println(task);
+				// Make RPC call
+				rpcMerge(current, task);
+				
+				// Bring it to the back of the queue
+				computeNodes.add(current);
+			} catch (Exception e){
+				System.out.println("Died with task "+task);
+				ServerStats.fault("merge");
+				recover(current);
+			}	
 		}
 	    }
 	    endTime = System.currentTimeMillis();
 		ServerStats.recordTasks(startTime,endTime,"merge");
-		ServerStats.print();
 	    System.out.println("FINISHED COMPUTE, RESULT FOUND AT: " + completed);
 	    collectStats();
+	    ServerStats.print();
 	    System.out.println("Merging complete.");
 	    String out_file = this.output(filename);
 	    this.cleanup();
@@ -262,7 +294,7 @@ public class ServerHandler implements Server.Iface {
     
     public void recover(Machine m){
 		// Look into the inProgress map
-		Queue<Task> temp = inProgress.get(m);
+		ConcurrentLinkedQueue<Task> temp = inProgress.get(m);
 		
 		if(temp != null){
 			for(Task t : temp){

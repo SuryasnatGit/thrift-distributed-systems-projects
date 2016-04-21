@@ -2,6 +2,7 @@ public class ServerStats{
     static int numFaults;
     static int sortFaults;
     static int mergeFaults;
+    static int miscFaults;
     static long timeSort;
     static long timeMerge;
     static long totalTime;
@@ -27,8 +28,10 @@ public class ServerStats{
 		if(type.equals("sort")){
 			sortFaults++;
 		} 
-		if(type.equals("merge")){
+		else if(type.equals("merge")){
 			mergeFaults++;
+		}else {
+			miscFaults++;
 		}
 	}
     
@@ -54,19 +57,19 @@ public class ServerStats{
     public static String stats(){
 	return "\n\n"+
         "==================================="+
-        "Total Tasks Queued: " + (sortTasks + mergeTasks)+ 
-        "Total Time: " + totalTime +" ms/task"+
-        "Total Average Time: " + (totalTime)/(sortTasks+mergeTasks) +" ms/task"+
-        "Number of Faults: " + numFaults+
-        "================SORT==============="+
-        "Total Tasks: " + sortTasks+ 
-        "Total Average Time: " + timeSort/sortTasks +" ms/task"+
-        "Number of Faults: " + sortFaults+
-        "===============MERGE================"+
-        "Total Tasks: " + mergeTasks+ 
-        "Total Average Time: " + timeMerge/mergeTasks +" ms/task"+
-        "Number of Faults: " + mergeFaults +
-        "==================================="+ 
+        "\nTotal Tasks Queued: " + (sortTasks + mergeTasks)+ 
+        "\nTotal Time: " + totalTime +" ms/task"+
+        "\nTotal Average Time: " + (totalTime)/(sortTasks+mergeTasks) +" ms/task"+
+        "\nNumber of Faults: " + numFaults+
+        "\n================SORT==============="+
+        "\nTotal Tasks: " + sortTasks+ 
+        "\nTotal Average Time: " + timeSort/sortTasks +" ms/task"+
+        "\nNumber of Faults: " + sortFaults+
+        "\n===============MERGE================"+
+        "\nTotal Tasks: " + mergeTasks+ 
+        "\nTotal Average Time: " + timeMerge/mergeTasks +" ms/task"+
+        "\nNumber of Faults: " + mergeFaults +
+        "\n==================================="+ 
         "\n\n";
 	}
 }
