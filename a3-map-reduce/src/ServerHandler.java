@@ -100,7 +100,7 @@ public class ServerHandler implements Server.Iface {
 	    int totalTasks = tasks.size();
 	    ServerStats.setTasks(totalTasks,totalTasks-1);
 	    long startTime = System.currentTimeMillis();
-	    System.out.println("Beginning to perform a total of " + totalTasks + " sorts. This may take awhile" );
+	    System.out.println("Beginning to perform a total of " + totalTasks + " sorts. This may take awhile." );
 	    //start contacting all nodes and queue it all onto compute machines
 	    for(int i = 0; i < totalTasks; i++){
 		SortTask task = (SortTask) tasks.poll();
@@ -159,7 +159,7 @@ public class ServerHandler implements Server.Iface {
 
 		long endTime = System.currentTimeMillis();
 		ServerStats.recordTasks(startTime,endTime,"sort");
-	    System.out.println("Sort complete, processing intermediate files for merging.");
+	    System.out.println("Sort complete, processing intermediate files for merging now.");
 	    
 	    // Now merge.	
 	    int toWait = this.mergify(num_merge); //create MergeTasks and get number to wait for
@@ -233,12 +233,11 @@ public class ServerHandler implements Server.Iface {
 	    }
 	    endTime = System.currentTimeMillis();
 	    ServerStats.recordTasks(startTime, endTime, "merge");
-	    System.out.println("FINISHED COMPUTE, RESULT FOUND AT: " + completed);
 	    collectStats();
 	    ServerStats.print();
 
 	    String out_file = this.output(filename);
-	    System.out.println("Merging complete.");
+	    System.out.println("Merging complete. Results found at: " + out_file);
 	    this.cleanup();
 	    return out_file;
 	}
@@ -374,11 +373,13 @@ public class ServerHandler implements Server.Iface {
 
     /* ---- PRIVATE HELPER FUNCTIONS ---- */
     private void chunkify(String filename, Integer chunksize) throws Exception {
-	System.out.println("Processing file for map reduce ..");
 	// get the file size and do math on the chunks
 	// read the file
 	File dataFile = new File(filename);
 	long filesize = dataFile.length();
+	
+	System.out.println("Processing file for map reduce. This may take awhile for large files.");
+	System.out.println("Filesize (bytes): " + filesize);
 
 	FileInputStream fis = new FileInputStream(dataFile);
 	//assert fis.available() == filesize; 

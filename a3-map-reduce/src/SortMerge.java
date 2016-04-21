@@ -104,7 +104,6 @@ class SortMerge extends Thread {
 	    while(smallest != null) {
 		if(smallest.peek() != null) {
 		    //write the smallest int
-		    System.out.print(smallest.peek() + " <");
 		    wr.write(String.valueOf(smallest.next()));
 
 		    //see if we should add it back if we still have it
