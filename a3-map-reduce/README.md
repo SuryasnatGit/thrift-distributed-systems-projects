@@ -60,23 +60,29 @@ that occurs then the node is down.
 
 After it detects this, the heartbeat calls a recovery function on the 
 node. What this does is take the node out of the system and reassigns
-the node's running tasks into the task queue. 
+the node's running tasks into the task queue. The heartbeat thread performs 
+RPC calls to other alive compute nodes and reassign Sort/Merge tasks.
 
 # Compute Nodes
 
 The compute node is responsible for processing the sort and merge tasks. 
 It has two components; A thread responsible for maintaining the queue of
 tasks and a thread pool that puts tasks from the server into the server.
-The server makes rpc calls to the compute node to add Sort and Merge tasks
-into the requesr queue.
+The server makes RPC calls to the compute node to add Sort and Merge tasks
+into the request queue.
 
-While maintaining the queue the QueueWatcher thread sees if there are 
-any tasks to be ran and when there is it creates a SortMerge thread
+While maintaining the queue the `QueueWatcher` thread sees if there are 
+any tasks to be executed and when there is, it starts a new SortMerge thread
 to handle it. The SortMerge thread will sort a file or merge k files
 depending the taks descriptions. When it is done it will announce back 
 to the server so that the server can keep track of the progress.
 
-## Fault Induction
+The `Sort` and `Merge` RPC calls made by the server to the compute node do not 
+actually perform the sorting and merging, rather they atomically add a sort/merge task 
+to the task queue and complete the RPC call, ensuring that the Server does not block when assigning 
+multiple tasks to compute nodes that can possibly fail.
+
+## Fault Injection
 
 Faults are introduced into the compute server when it pops a task from 
 the queue. Before actually creating a thread to run the task, it generates
@@ -84,6 +90,21 @@ a random number to compare against the given chance to fail. If the number
 is less than the given chance to fail then it will call System.exit(). In
 Java when a thread calls this the entire process exits. So the QueueWatcher
 is able to end execution of the Compute Node and all SortMerge threads.
+
+**The chance of a fault** is accessed before a beginning to execute the task 
+previously assigned to the `computeNode`. **The probability of a fault can be increased or decreased**
+by editing the `build.xml`, at the following parameter.
+
+     <property name="node.chanceToFail" value="0.01"/>
+
+A `computeNode` that has been simulated to fail based on the random number drawn will perform a `System.exit(0)`
+without any clean up or notification, creating a `TException`. The `HeartBeat` thread will ensure tasks assigned
+to a particular node that has already failed to another ComputeNode.
+
+If all nodes die before an entire merge sort operation is completed, the server aborts the job and mentions that nodes have died.
+The assignment description mentions that the main server should not fail and hence we did not introduce fault probability
+to the main server.
+
 
 # Client
 
@@ -101,13 +122,17 @@ is able to end execution of the Compute Node and all SortMerge threads.
 
 ## SortTask / MergeTask
 
+We used object oriented programming principles in designing this framework by having an abstract class called `Task` and 2 classes `SortTask` and `MergeTask`. `SortTask` objects specify which file read as well as the start and end offset, while `MergeTask` holds a list of paths to intermediate files to merge. Both tasks have a unique filename assigned by the server. Through this method we can ensure that tasks that failed can be easily reexecuted and that files being written to are unique (avoiding any possibility of a race condition in a distributed system).
+
 ## SortMerge
 
 We start off a thread for every sort/merge task on the compute node, ensuring that we are able to perform concurrent sorts and merges on each compute node. We have a `QueueWatcher` thread that maintains a lock-free access on a concurrent linked queue within a `computeNode`. The QueueWatcher starts up a sort/merge task in an individual thread, and then performs an RPC call to the server to `announce` that the task has been completed. This ensures that we are able to perform multiple tasks concurrently. Since each task does not depend on the previous task like in most map reduce cases, each task is individually carried out.
 
 Sorting is first done by advancing (`skip`) a BufferedReader to a specific postion of the data file (which is also being read concurrently by other `ComputeNode` processes, and reading in a specific number of bytes (based on the calibration and chunk size). After spliting the `character` buffer that is transformed into a `String` and parsing the entire `String` array into `Integers`, we sort the numbers (using Java's internal `Colections.sort` to ensure performance efficiency). 
 
-Merging is then done after all sorting is complete. After being assigned a `MergeTask`, merging is executed in another thread.
+Merging is then done after all sorting is complete. After being assigned a `MergeTask`, merging is executed in another thread. Previously our design was to perform multiple merges in which only 2 intermediate files are merged each time as we did not completely understand the assignment goal. After rereading the assignment description, we realized we had to perform merging on any number of files, this is known as `k-way` merging. This was achieved by using a special form of a scanner that is able to read the next number in a scanner (stream), in a lazyway, and exploiting a Priority Queue that was able to automatically order each stream from smallest to largest. 
+
+Merging is then done by writing out the smallest number in the heap of a Priority Queue and repeated until a stream no longer has anymore numbers before it is discarded. The resulting file is then announced to the server.
 
 
 # Performance Results
