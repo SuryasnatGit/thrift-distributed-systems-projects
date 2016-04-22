@@ -1,0 +1,112 @@
+sort 2000000 100000 2 0%
+
+     [java] ===================================
+     [java] Total Tasks Queued: 150
+     [java] Total Time: 42621 ms/task
+     [java] Total Average Time: 284 ms/task
+     [java] Number of Faults: 1
+     [java] ================SORT===============
+     [java] Total Tasks: 98
+     [java] Total Average Time: 36 ms/task
+     [java] Total Time: 3528 ms
+     [java] Number of Faults: 0
+     [java] ===============MERGE================
+     [java] Total Tasks: 52
+     [java] Total Average Time: 750 ms/task
+     [java] Total Time: 39000 ms
+     [java] Number of Faults: 0
+     [java] ===================================
+     
+     
+1.3%
+    [java] ==============SERVER================
+     [java] Total Tasks Queued: 150
+     [java] Total Time: 14362 ms
+     [java] Total Average Time: 95 ms/task
+     [java] Number of Faults: 6
+     [java] ================SORT===============
+     [java] Total Tasks: 98
+     [java] Total Average Time: 34 ms/task
+     [java] Number of Faults: 4
+     [java] ===============MERGE================
+     [java] Total Tasks: 52
+     [java] Total Average Time: 210 ms/task
+     [java] Number of Faults: 1
+     [java] ===================================
+
+
+,3.3%
+
+     [java] ==============SERVER================
+     [java] Total Tasks Queued: 150
+     [java] Total Time: 16220 ms
+     [java] Total Average Time: 108 ms/task
+     [java] Number of Faults: 8
+     [java] ================SORT===============
+     [java] Total Tasks: 98
+     [java] Total Average Time: 22 ms/task
+     [java] Number of Faults: 4
+     [java] ===============MERGE================
+     [java] Total Tasks: 52
+     [java] Total Average Time: 269 ms/task
+     [java] Number of Faults: 4
+     [java] ===================================
+     [java] 
+     [java] 
+     [java] 
+     [java] Merging complete.
+
+
+
+sort 2000000 100000 50 0%
+
+     [java] ===================================
+     [java] Total Tasks Queued: 99
+     [java] Total Time: 32794 ms/task
+     [java] Total Average Time: 331 ms/task
+     [java] Number of Faults: 1
+     [java] ================SORT===============
+     [java] Total Tasks: 98
+     [java] Total Average Time: 30 ms/task
+     [java] Total Time: 2940 ms
+     [java] Number of Faults: 0
+     [java] ===============MERGE================
+     [java] Total Tasks: 1
+     [java] Total Average Time: 29771 ms/task
+     [java] Number of Faults: 0
+     [java] ===================================
+
+2%,
+     [java] ==============SERVER================
+     [java] Total Tasks Queued: 99
+     [java] Total Time: 9696 ms
+     [java] Total Average Time: 97 ms/task
+     [java] Number of Faults: 2
+     [java] ================SORT===============
+     [java] Total Tasks: 98
+     [java] Total Average Time: 20 ms/task
+     [java] Number of Faults: 1
+     [java] ===============MERGE================
+     [java] Total Tasks: 1
+     [java] Total Average Time: 7726 ms/task
+     [java] Number of Faults: 1
+     [java] ===================================
+
+
+5%
+
+     [java] ==============SERVER================
+     [java] Total Tasks Queued: 99
+     [java] Total Time: 9194 ms
+     [java] Total Average Time: 92 ms/task
+     [java] Number of Faults: 6
+     [java] ================SORT===============
+     [java] Total Tasks: 98
+     [java] Total Average Time: 31 ms/task
+     [java] Number of Faults: 5
+     [java] ===============MERGE================
+     [java] Total Tasks: 1
+     [java] Total Average Time: 6103 ms/task
+     [java] Number of Faults: 0
+     [java] ===================================
+
