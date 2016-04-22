@@ -2,10 +2,10 @@
    <project name="CSci 5105: MapReduce: Sort Merge" default="build">
 
      <!--Default server and Server properties used unless provided-->   
-     <property name="server.address" value="localhost" />
+     <property name="server.address" value="x32-01" />
      <property name="server.port" value="9090"/>
      <property name="node.port" value="5000"/>
-     <property name="node.chanceToFail" value="0.01"/>
+     <property name="node.chanceToFail" value="0.0"/>
      <property name="src.dir" value="src" />
      <property name="build.dir" value = "bin"/>
      <property name="thrift.install" value="/usr/local/Thrift/" />

@@ -64,7 +64,7 @@ class HeartBeat extends Thread {
 								ServerStats.fault("misc");
 							} 
 							
-							System.out.println("DOWN!!!!!!: Machine " + m.port);
+							System.out.println("DOWN!!!!!!: Machine " + m.ipAddress + ":" + m.port);
                             recover(m);
                         }
                     }

@@ -12,8 +12,7 @@ sort 2000000 100000 2 0%
      [java] Number of Faults: 0
      [java] ===============MERGE================
      [java] Total Tasks: 52
-     [java] Total Average Time: 750 ms/task
-     [java] Total Time: 39000 ms
+     [java] Total Average Time: 100 ms/task
      [java] Number of Faults: 0
      [java] ===================================
      

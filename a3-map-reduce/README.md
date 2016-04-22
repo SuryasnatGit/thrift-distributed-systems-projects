@@ -299,11 +299,20 @@ We have proven that our system can handle large number of requests and large num
 
 # Performance Testing
 Due to time constraints we perform tests on the 20mb (half one), we can assert that if it works on larger files it can work on smaller files
+We chose the percentages based on the a ratio we wanted of nodes failing. This was performed over 10 computeNode instances on different machines.
+
+Fault % represents: Perfect run, at least 1-2 servers faulting , and half the servers faulting.
+
+`sort 2000000 100000 2 0%`
+`sort 2000000 100000 2 1.3%`
+`sort 2000000 100000 2 3.3%`
 
 
-for 15 servers:
-				for 10 % 50% and 90% of the file size as chunk size
-							k merges where k = 2, k = n /2, k = n-1
+`sort <filename> <chunkszie> <no merges> <fault percentage>`
+`sort 2000000 100000 50 0%`
+`sort 2000000 100000 50 2%`
+`sort 2000000 100000 50 5%`
+
 
 # Fault Testing
     Max acceptable bound for fault tolerance. 
