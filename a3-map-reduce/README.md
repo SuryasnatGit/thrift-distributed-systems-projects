@@ -28,15 +28,28 @@ Intermediate files in the `intermediate_dir` that have been successfully merged 
 
 # The Server
 
-- Server acts as dispatcher to all of the compute nodes.
-- Client gives the server a job
-- Server breaks the jobs into tasks
-- Those tasks are distrobuted to the compute nodes
-- the server maintains state.
-- the server waits until the compute nodes announce to the server they are done.
-- server moves on to next stage 
-- server shares responsibility with heartbeat in maintaining that nodes 
-that die, have their tasks recovered.
+The Server acts as dispatcher to all of the compute nodes. When the client
+gives the server a job, it breaks it into 4 steps. 
+    1. Break up the file into chunks and turning those chunks into tasks.
+    2. Distribute those sort tasks among all compute servers and then watch the queue for 
+    any tasks that need to be redistributed because they went down. And when enough annoucements
+    have been called it moves on to the next step.
+    3. Create merge tasks and distribute the tasks.
+    4. Distribute those merge tasks among all compute servers and then watch the queue for 
+    any tasks that need to be redistributed because they went down. And when enough annoucements
+    have been called it finishes and returns the final file name ot the server.
+
+The key data structures in the server are the TaskQueue and the InProgress Map.
+The TaskQueue uses Java's ConcurrentLinkedList so that it supports concurrent operation
+by the heartbeat thread and the server thread, and the RPC thread pool. The TaskQueue
+is a queue of Task objects and that need to be sent to compute servers to process. The
+InProgress map is a mapping from machines to a list of tasks they are working on.
+
+Since the heartbeat is not polling every milisecond there is a chance that if 
+a node goes down the server could assign a task to it before the heartbeat recovers
+it from the system. To account for this the server actively wraps any calls to a 
+compute node with a try catch. If any errors occur then it uses the same recover
+function that HeartBeat uses to recover the tasks and the node from the system.
 
 # HeartBeat
 
