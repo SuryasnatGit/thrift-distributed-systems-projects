@@ -164,6 +164,7 @@ public class ServerHandler implements Server.Iface {
 	    
 	    // Now merge.	
 	    int toWait = this.mergify(num_merge); //create MergeTasks and get number to wait for
+	    ServerStats.addMerge(toWait);
 	    System.out.println("Performing " + toWait + " merges..");
 
 	    // Assign Merge Tasks to Machine.
