@@ -9,18 +9,20 @@ For a quick overview on how to run the project and test, please go to the **How 
 
 # Overall Design
 
-We designed the entire system to perform map-reduce in a non-blocking manner. After considering all the possible failure scenarios this was the key
+We designed the entire system atop Apache Thrift to perform map-reduce in a non-blocking manner. After considering all the possible failure scenarios this was the key
 to the design of a robust system that is able to continually function as long as the server is alive and there is at least one compute node. 
 
 On a high level, the Client first makes a request to perform a computation on a file listed in `data` on the server after connecting to the server. The client will then block
 until it receives the output file name containing the result. This is the only blocking call.
 
-The assumptions on this entire set up are that: 
+The assumptions on this entire system set up are that: 
 
-(a) The server will not crash
-(b) The all distributed processes have a shared/common filesystem on NFS (Networked File System)
+ a. The server will not crash
+ b. The all distributed processes have a shared/common filesystem on NFS (Networked File System)
+ c. ComputeNodes can crash at any time (before, during or after executing/queuing a job)
+ d. Only one client runs a compute job on the cluster at a time.
 
-The server will then first perform an analysis on the data file based on the chunk size provided by the client to compute how many sort tasks have to be carried out. The larger the chunk size, the smaller the number of sort tasks to be carried out. The server then assigns these sort tasks to all compute nodes in a FIFO manner, and wait for all sorting to be complete. This is done by having the compute node perform an RPC call back to the server. Once all tasks (including any tasks that have been failed and reassigned with a heartbeat algorithm) are complete. The server then calculates the number of merges to be done based on the number of intermediate files, and the number of files per merge (provided by the client). 
+After a client makes a request, the server will then first perform an analysis on the data file based on the chunk size provided by the client to compute how many sort tasks have to be carried out. The larger the chunk size, the smaller the number of sort tasks to be carried out. The server then assigns these sort tasks to all compute nodes in a FIFO manner, and wait for all sorting to be complete. This is done by having the compute node perform an RPC call back to the server. Once all tasks (including any tasks that have been failed and reassigned with a heartbeat algorithm) are complete. The server then calculates the number of merges to be done based on the number of intermediate files, and the number of files per merge (provided by the client). 
 
 Merges are then assigned to the same compute nodes, and each compute node will perform n-way merging. **To ensure the system is able to merge large files**, we open each file as a special stream that is peekable. This ensures we do not have to read in all files in memory, reducing the possibility of running out of memory. By utilizing lazy streams into a priority queue we can ensure that we are able to merge up to `k` number of files.
 
@@ -30,7 +32,9 @@ Intermediate files in the `intermediate_dir` that have been successfully merged 
 
 The Server acts as dispatcher to all of the compute nodes. When the client
 gives the server a job, it breaks it into 4 steps. 
-    1. Break up the file into chunks and turning those chunks into tasks.
+
+    1. Processes the file into chunks and turning those chunks into tasks that keep track of the offsets.
+    (The actual file is not modifed or broken up)
     2. Distribute those sort tasks among all compute servers and then watch the queue for 
     any tasks that need to be redistributed because they went down. And when enough annoucements
     have been called it moves on to the next step.
@@ -39,9 +43,9 @@ gives the server a job, it breaks it into 4 steps.
     any tasks that need to be redistributed because they went down. And when enough annoucements
     have been called it finishes and returns the final file name ot the server.
 
-The key data structures in the server are the TaskQueue and the InProgress Map.
-The TaskQueue uses Java's ConcurrentLinkedList so that it supports concurrent operation
-by the heartbeat thread and the server thread, and the RPC thread pool. The TaskQueue
+The key data structures in the server are the `TaskQueue` and the `InProgress` Map.
+The `TaskQueue` uses Java's `ConcurrentLinkedList` so that it supports concurrent operation
+by the `heartbeat` thread and the `server` thread, and the Thrift RPC thread pool. The `TaskQueue`
 is a queue of Task objects and that need to be sent to compute servers to process. The
 InProgress map is a mapping from machines to a list of tasks they are working on.
 
@@ -134,50 +138,17 @@ Merging is then done after all sorting is complete. After being assigned a `Merg
 
 Merging is then done by writing out the smallest number in the heap of a Priority Queue and repeated until a stream no longer has anymore numbers before it is discarded. The resulting file is then announced to the server.
 
-
-# Performance Results
-
-
-# Stress Testing
-=large file, =10 servers
-Lots of tasks (small chunksize)
-
-# Performance Testing
-Due to time constraints we perform tests on the 20mb (half one), we can assert that if it works on larger files it can work on smaller files
-
-
-for 15 servers:
-				for 10 % 50% and 90% of the file size as chunk size
-							k merges where k = 2, k = n /2, k = n-1
-
-# Fault Testing
-    Max acceptable bound for fault tolerance. 
-    NumTasks * % Chance to Fail = Number of Servers that will fault.
-
-In our testing we will be testing the above hypothesis with these scenarios.
-F = Chance to fault.
-N = number of servers.
-T = number of tasks.
-1. T * F  = 2N 
-2. T * F = N
-3. T * F = .1 N
-
-With this we will figure out a acceptable 
-
-# Unit Testing
-- file not found
-- kill node when enrolling
-- kill node when assigning tasks
-- kill node when assigning merge
-- kill node when merging
-- kill node when sorting
-- run another job after another has completed
-
 # How to Run the Project
 
-The File Server was built with the help of Ant. A prerequisite to run this project requires Ant. Additionally, the generated thrift files were also kept in a version control, but the `Thrift` compiler is also needed if Thrift files need to be generated (else only the Java Thrift library is needed).
+The entire Map Reduce project was built with the help of Ant. A prerequisite to run this project requires Ant. Additionally, the generated thrift files were also kept in a version control, but the `Thrift` compiler is also needed if Thrift files need to be generated (else only the Java Thrift library is needed).
 
 Ant was used to handle automatic building and generation of class files (into a separate `bin` directory) as well as creating short targets for rapid developement.
+
+The compute nodes connect to the server to enroll into the MapReduce server located at `localhost` on port `9090`, **to override this default, on Step 6 do**:
+
+    ant -Dserver.address='x32-XX' -Dserver.port='XXXX' start-node
+
+**Please see Ant Targets and Overriding Properties for more information.**
 
 ### *To start the Coordinator, Servers, and Client on localhost*
 
@@ -197,13 +168,19 @@ Ant was used to handle automatic building and generation of class files (into a 
     9. cd into project directory
     10. ant start-client
     
-## How To Run the entire project
+### Example of running the entire project across different computers.
 
-The compute nodes connect to the server to enroll into the MapReduce server located at `localhost` on port `9090`, **to override this default, on Step 6 do**:
+On the root directory where `build.xml` is located.
 
-    ant -Dserver.address='x32-XX' -Dserver.port='XXXX' start-node
+    1. (Machine A) `ant start-server` 
+    2. (Machine B) `ant -Dserver.address=IP_MachineA start-node`
+    3. Repeat step 2 for other machines.
+    4. (Machine Z) `ant -Dserver.address=IP_MachineA start-client`
+    5. `ls`
+    6. Performing a sort on any of the files, like `sort 200000 200 4`
 
-**Please see Ant Targets and Overriding Properties for more information.**
+**You can edit the fail probability** in `build.xml` under `<property name="node.chanceToFail" value="0.01"/>` where `0.01` equals to 1.0 percent. (`0.0061` equals to 0.061 percent).
+
 
 ## Ant Targets
 
@@ -211,17 +188,17 @@ The fastest way to test out the entire DHT is to create 1 SuperNode and multiple
 
 Note: Run commands from the project directory, where `build.xml` is localed.
 
-  - `ant start-all`
-      - Create a MapReduce server (port 9090) and 10 Nodes and a Client on the same machine.  
-      - All processes run in their own Java VM and as a forked process.
-      - Client waits for 4 seconds before connecting the MapReduce server
-      - Note: see Ant Properties on how to start targets with different values.
+ - `ant start-all`
+     - Create a MapReduce server (port 9090) and 10 Nodes and a Client on the same machine.  
+     - All processes run in their own Java VM and as a forked process.
+     - Client waits for 4 seconds before connecting the MapReduce server
+     - Note: see Ant Properties on how to start targets with different values.
 
 - `ant start-server`
   - Starts the coordinator on the current machine on the port specified by `server.port`
 
 - `ant start-node`
-  - Starts a node that will connect to the server located at `server.address` and `server.port`.
+  - Starts a compute node that will connect to the server located at `server.address` and `server.port`.
 
 - `ant start client`
   - Starts the client that connects to the server specified under `server.address` and `server.port`
@@ -268,3 +245,127 @@ Alternatively open up `build.xml` and edit the values:
      
      <!-- CHANGE THESE VALUES -->   
      <property name="node.chanceToFail" value="0.01"/>
+
+## Additional point to note
+
+At times the target `ant start-all` may be problematic as there is a race condition in the `javac` compiler and JVM starting multiple instances of ComputeNodes at the same time.
+Ant attempts to rebuild classes it finds that needs rebuilding, while some threads begin to execute a process before it has completed. While artificial delays have been introduced 
+between starting each compute nodes, at times the JVM is unable to start a class (with exceptions like `ClassFormatError`). The 
+only known way to resolve this is to run `ant start-all` again. This does not occur if instances are started manually or across different machines. 
+
+# Performance Results
+
+
+# Stress Testing
+=large file, =10 servers
+Lots of tasks (small chunksize)
+
+# Performance Testing
+Due to time constraints we perform tests on the 20mb (half one), we can assert that if it works on larger files it can work on smaller files
+
+
+for 15 servers:
+				for 10 % 50% and 90% of the file size as chunk size
+							k merges where k = 2, k = n /2, k = n-1
+
+# Fault Testing
+    Max acceptable bound for fault tolerance. 
+    NumTasks * % Chance to Fail = Number of Servers that will fault.
+
+In our testing we will be testing the above hypothesis with these scenarios.
+F = Chance to fault.
+N = number of servers.
+T = number of tasks.
+1. T * F  = 2N 
+2. T * F = N
+3. T * F = .1 N
+
+With this we will figure out a acceptable 
+
+# Unit Testing
+
+Here are a few tests we perfomed during the development of this project, we have considered and accounted for these possibilities.
+
+Scenario : Data file not found
+
+Description: The client submits jobs to the server indicating the filename of a data file, which may not exist in `data/`
+
+Solution: The client and server both actively check if the file exists before performing the entire merge sort operation notifying all files.
+
+---
+
+Scenario : Race conditions overriding filenames
+
+Description: Assigning intermediate output filenames to the compute nodes for each task might cause files to be overridden if multiple threads attempt to increment a unique counter.
+
+Solution: Ensure only one thread increments the unique counter for filenames, ensuing each ComputeNode instance is able to write out to a unique file.
+
+---
+
+Scenario: Number of short tasks exceeding the unique data type. 
+
+Description: We initially used `int` primitive types as the atomic counter for unique intermediate filenames. This number could be very large and overflow (i.e only 65535 unique counters can be created in a `char` type)
+
+Solution: To avoid any possibility of overflowing and overwriting intermediate files we decided to use a long counter, effectively increasing the maximum number from 2147483647 to 9223372036854775807, eliminating any chance of overflow.
+
+---
+
+Scenario : ComputeNode instance is killed/dies when enrolling with the server.
+
+Description: A computenode dies or loses connection to the network when enrolling into the cluster.
+
+Solution: HeartBeat thread will remove unresponsive nodes. This case is accounted for.
+
+---
+
+Scenario : ComputeNode instance is killed/dies while server is assigning tasks.
+
+Description: A compute node dies or loses connection to the server when the server is assigning `Tasks` (Merge tasks or Sort Tasks) to the nodes. 
+
+Solution: The HeartBeat threads checks to see if the node is still reachable and functional at regulat intervals, and performs recovery by reassigning tasks to other
+healthy nodes, tasks are all kept track off and node jobs are accounted for in the server.
+
+---
+
+Scenario: ComputeNode instance crashes when merging intermediate (sorted files)
+Scenario: ComputeNode instance crashes when sorting intermediate files.
+
+Description: ComputeNodes can fail when performing jobs that require intensive computation. 
+
+Solution: Handled by the heartbeat thread as well. 
+
+--- 
+
+Scenario: ComputeNodes runs out of memory when merging/sorting
+
+Description: Due to hard limits set by Machines in CSELabs, performing MergeSort creates a large number of intermediate files and an output file, having a possibility of hitting the 
+1GB quota.
+
+Solution: Intermediate files are deleted upon successful completion of jobs (after the ComputeNode has successfully announced this to the Server). Deleting additional files on the account also reduces this possibility.
+
+---
+
+Scenario : All Compute Nodes die before the completion of an object
+
+Description : When increasing the fault probability, there is a high chance of all compute nodes on the cluster crashing.
+
+Solution : The server notifies the job has failed and mentions that no more healthy compute nodes are in the cluster, and then exits. 
+
+---
+
+Scenario : Client begins another Merge Sort after a job has been completed. 
+
+Description : The Server previously kept leftover state after a job has been completed, causing issues when another job is started.
+
+Solution : The server has a `cleanup()` function that ensures upon successful completion of each job it is kept stateless, as with compute nodes. 
+
+---
+
+Scenario : User inputs bad parameters/ bad input for commands
+
+Description : The entire system would throw an exception if a user does not entire perfect parameters.
+
+Solution : The client sanitizes and performs checks before submitting the job, ensuring any user-input problems are resolved client side.
+
+---
+
