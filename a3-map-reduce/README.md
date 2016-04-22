@@ -142,6 +142,7 @@ Merging is then done by writing out the smallest number in the heap of a Priorit
 
 The entire Map Reduce project was built with the help of Ant. A prerequisite to run this project requires Ant. Additionally, the generated thrift files were also kept in a version control, but the `Thrift` compiler is also needed if Thrift files need to be generated (else only the Java Thrift library is needed).
 
+
 Ant was used to handle automatic building and generation of class files (into a separate `bin` directory) as well as creating short targets for rapid developement.
 
 The compute nodes connect to the server to enroll into the MapReduce server located at `localhost` on port `9090`, **to override this default, on Step 6 do**:
@@ -246,7 +247,7 @@ Alternatively open up `build.xml` and edit the values:
      <!-- CHANGE THESE VALUES -->   
      <property name="node.chanceToFail" value="0.01"/>
 
-## Additional point to note
+### Additional point to note
 
 At times the target `ant start-all` may be problematic as there is a race condition in the `javac` compiler and JVM starting multiple instances of ComputeNodes at the same time.
 Ant attempts to rebuild classes it finds that needs rebuilding, while some threads begin to execute a process before it has completed. While artificial delays have been introduced 
@@ -254,7 +255,6 @@ between starting each compute nodes, at times the JVM is unable to start a class
 only known way to resolve this is to run `ant start-all` again. This does not occur if instances are started manually or across different machines. 
 
 # Performance Results
-
 
 # Stress Testing
 =large file, =10 servers
@@ -278,9 +278,25 @@ N = number of servers.
 T = number of tasks.
 1. T * F  = 2N 
 2. T * F = N
-3. T * F = .1 N
+3. T * F = .5 N
+4. T * F = 1/15 * N
 
-With this we will figure out a acceptable 
+With this we will figure out a acceptable fault rate.
+
+## Results
+Please refer to "results/Fault Testing" for raw data.
+
+Looking at the data someone who is concerned about the longevity of the computing 
+cluster should figure how the average amount of tasks that are ran in a day,minute,second..etc.
+After that is determined a person is able to use that number of tasks and figure out what would be a acceptable
+fault percentage in their system. 
+
+In our tests we've found that the acceptable fault percentage to have is typically safer when T * F < N.
+Where T is the number of tasks and F is the fault percentage and N is number of servers. This is because if there
+are statistically more faults than there are nodes there wont be any nodes left to do any sort or merge tasks.
+
+This leaves operators a couple options when trying to lessen risk. Either decrease the amount of tasks done,
+or increase the amount of servers. Increasing and decreasing the fault rate would be harder in a real life situation.
 
 # Unit Testing
 
