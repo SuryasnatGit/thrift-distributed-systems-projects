@@ -8,7 +8,22 @@ Team Members:
 For a quick overview on how to run the project and test, please go to the **How to Run the Project section**, as well reading the **Client** section regarding the UI commands.
 
 # Overall Design
-	
+
+We designed the entire system to perform map-reduce in a non-blocking manner. After considering all the possible failure scenarios this was the key
+to the design of a robust system that is able to continually function as long as the server is alive and there is at least one compute node. 
+
+On a high level, the Client first makes a request to perform a computation on the server after connecting to the server. The client will then block
+until it receives the output file name containing the result. This is the only blocking call.
+
+The assumptions on this entire set up are that: 
+
+(a) The server will not crash
+(b) The all distributed processes have a shared/common filesystem on NFS (Networked File System)
+
+The server will then first perform an analysis on the data file based on the chunk size provided by the client to compute how many sort tasks have to be carried out. The larger the chunk size, the smaller the number of sort tasks to be carried out. The server then assigns these sort tasks to all compute nodes in a FIFO manner, and wait for all sorting to be complete. This is done by having the compute node perform an RPC call back to the server. Once all tasks (including any tasks that have been failed and reassigned with a heartbeat algorithm) are complete. The server then calculates the number of merges to be done based on the number of intermediate files, and the number of files per merge (provided by the client). 
+
+Merges are then assigned to the same compute nodes, and each compute node will perform n-way merging. **To ensure the system is able to merge large files**, we open each file as a special stream that is peekable. This ensures we do not have to read in all files in memory, reducing the possibility of running out of memory.
+
 # The Server
 
 - Server acts as dispatcher to all of the compute nodes.
@@ -23,18 +38,37 @@ that die, have their tasks recovered.
 
 # HeartBeat
 
-- running in parallel with the server
-- checks a shared list of actively running nodes
-- nodes that dont respond are taken out and have their tasks redistributed
+The heartbeat thread checks all running compute nodes to see if they 
+are down. The heartbeat is a server thread and pings each compute
+node. When pinging the compute server if there is a error or exception 
+that occurs then the node is down.
+
+After it detects this, the heartbeat calls a recovery function on the 
+node. What this does is take the node out of the system and reassigns
+the node's running tasks into the task queue. 
 
 # Compute Nodes
 
-- maintains a queue
-- rpc calls are a alias for putting the task in the queue.
-- compute node contains a seperate thread that processes the tasks.
-- a task that is popped from the queue is assigned to a new sort merge task.
-- the new thread performs a sort or a merge based on the task object
-- when it is finished it alerts the server it is done.
+The compute node is responsible for processing the sort and merge tasks. 
+It has two components; A thread responsible for maintaining the queue of
+tasks and a thread pool that puts tasks from the server into the server.
+The server makes rpc calls to the compute node to add Sort and Merge tasks
+into the requesr queue.
+
+While maintaining the queue the QueueWatcher thread sees if there are 
+any tasks to be ran and when there is it creates a SortMerge thread
+to handle it. The SortMerge thread will sort a file or merge k files
+depending the taks descriptions. When it is done it will announce back 
+to the server so that the server can keep track of the progress.
+
+## Fault Induction
+
+Faults are introduced into the compute server when it pops a task from 
+the queue. Before actually creating a thread to run the task, it generates
+a random number to compare against the given chance to fail. If the number
+is less than the given chance to fail then it will call System.exit(). In
+Java when a thread calls this the entire process exits. So the QueueWatcher
+is able to end execution of the Compute Node and all SortMerge threads.
 
 # Client
 
@@ -82,7 +116,6 @@ Unit Testing
 - kill node when merging
 - kill node when sorting
 - run another job after another has completed
-
 
 # How to Run the Project
 
