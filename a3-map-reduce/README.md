@@ -40,18 +40,37 @@ that die, have their tasks recovered.
 
 # HeartBeat
 
-- running in parallel with the server
-- checks a shared list of actively running nodes
-- nodes that dont respond are taken out and have their tasks redistributed
+The heartbeat thread checks all running compute nodes to see if they 
+are down. The heartbeat is a server thread and pings each compute
+node. When pinging the compute server if there is a error or exception 
+that occurs then the node is down.
+
+After it detects this, the heartbeat calls a recovery function on the 
+node. What this does is take the node out of the system and reassigns
+the node's running tasks into the task queue. 
 
 # Compute Nodes
 
-- maintains a queue
-- rpc calls are a alias for putting the task in the queue.
-- compute node contains a seperate thread that processes the tasks.
-- a task that is popped from the queue is assigned to a new sort merge task.
-- the new thread performs a sort or a merge based on the task object
-- when it is finished it alerts the server it is done.
+The compute node is responsible for processing the sort and merge tasks. 
+It has two components; A thread responsible for maintaining the queue of
+tasks and a thread pool that puts tasks from the server into the server.
+The server makes rpc calls to the compute node to add Sort and Merge tasks
+into the requesr queue.
+
+While maintaining the queue the QueueWatcher thread sees if there are 
+any tasks to be ran and when there is it creates a SortMerge thread
+to handle it. The SortMerge thread will sort a file or merge k files
+depending the taks descriptions. When it is done it will announce back 
+to the server so that the server can keep track of the progress.
+
+## Fault Induction
+
+Faults are introduced into the compute server when it pops a task from 
+the queue. Before actually creating a thread to run the task, it generates
+a random number to compare against the given chance to fail. If the number
+is less than the given chance to fail then it will call System.exit(). In
+Java when a thread calls this the entire process exits. So the QueueWatcher
+is able to end execution of the Compute Node and all SortMerge threads.
 
 # Client
 
@@ -79,6 +98,35 @@ Merging is then done after all sorting is complete. After being assigned a `Merg
 
 
 # Performance Results
+
+
+# Stress Testing
+=large file, =10 servers
+Lots of tasks (small chunksize)
+
+# Performance Testing
+Due to time constraints we perform tests on the 20mb (half one), we can assert that if it works on larger files it can work on smaller files
+
+
+for 15 servers:
+				for 10 % 50% and 90% of the file size as chunk size
+							k merges where k = 2, k = n /2, k = n-1
+
+# Fault Testing
+20mb, create upper and lower from formula, runtime
+upper being faults = amount of servers
+--> show if faults > num servers all will die
+
+duplicate the largest performance test with x y z faults , calculate percentage impact
+
+Unit Testing
+- file not found
+- kill node when enrolling
+- kill node when assigning tasks
+- kill node when assigning merge
+- kill node when merging
+- kill node when sorting
+- run another job after another has completed
 
 # How to Run the Project
 
