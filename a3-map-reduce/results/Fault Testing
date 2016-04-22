@@ -1,0 +1,96 @@
+Command: sort 10000000 1000000 5
+FileSize ~ 50mb
+ChunkSize ~ 1mb
+Number of files per merge = 5
+97 Total tasks.
+
+1)Where faults = 2N
+97 * f = 30 faults
+f = .30
+     [java] Server: Size of current TaskQueue: 37
+     [java] 
+     [java] 
+     [java] 
+     [java] ===================================
+     [java] Total Tasks Queued: 97
+     [java] Total Time: 0 ms/task
+     [java] Total Average Time: 0 ms/task
+     [java] Number of Faults: 14
+     [java] ================SORT===============
+     [java] Total Tasks: 49
+     [java] Total Average Time: 0 ms/task
+     [java] Number of Faults: 15
+     [java] ===============MERGE================
+     [java] Total Tasks: 48
+     [java] Total Average Time: 0 ms/task
+     [java] Number of Faults: 0
+     [java] ===================================
+
+All nodes died.
+
+
+
+2) Where faults = N
+97 * f = 15 faults
+f = .15
+
+    [java] ===================================
+     [java] Total Tasks Queued: 97
+     [java] Total Time: 5229 ms/task
+     [java] Total Average Time: 53 ms/task
+     [java] Number of Faults: 15
+     [java] ================SORT===============
+     [java] Total Tasks: 49
+     [java] Total Average Time: 106 ms/task
+     [java] Number of Faults: 11
+     [java] ===============MERGE================
+     [java] Total Tasks: 48
+     [java] Total Average Time: 0 ms/task
+     [java] Number of Faults: 4
+     [java] ===================================
+
+All Nodes Died
+
+
+3) Where faults = .5N
+97 * f = 7 faults
+f = .07
+
+     [java] ===================================
+     [java] Total Tasks Queued: 97
+     [java] Total Time: 14186 ms/task
+     [java] Total Average Time: 146 ms/task
+     [java] Number of Faults: 5
+     [java] ================SORT===============
+     [java] Total Tasks: 49
+     [java] Total Average Time: 48 ms/task
+     [java] Number of Faults: 5
+     [java] ===============MERGE================
+     [java] Total Tasks: 48
+     [java] Total Average Time: 246 ms/task
+     [java] Number of Faults: 0
+     [java] ===================================
+     
+All jobs finished. Success
+     
+4) Smallest percentage where at least statistically one server will crash.     
+97 * f = 1 faults
+f = .01
+
+     [java] ===================================
+     [java] Total Tasks Queued: 97
+     [java] Total Time: 16602 ms/task
+     [java] Total Average Time: 171 ms/task
+     [java] Number of Faults: 1
+     [java] ================SORT===============
+     [java] Total Tasks: 49
+     [java] Total Average Time: 57 ms/task
+     [java] Number of Faults: 1
+     [java] ===============MERGE================
+     [java] Total Tasks: 48
+     [java] Total Average Time: 287 ms/task
+     [java] Number of Faults: 0
+     [java] ===================================
+
+All Jobs Finished, Success
+

@@ -138,6 +138,7 @@ public class ServerHandler implements Server.Iface {
 			try{
 				current = computeNodes.remove();
 			} catch(Exception e){
+                ServerStats.print();
 				System.out.println("All nodes have died.");
 				System.exit(1);
 			}
@@ -213,6 +214,7 @@ public class ServerHandler implements Server.Iface {
 			try{
 			    current = computeNodes.remove();
 			}catch(Exception e){
+                ServerStats.print();
 			    System.out.println("All nodes have died.");
 			    System.exit(1);
 			}

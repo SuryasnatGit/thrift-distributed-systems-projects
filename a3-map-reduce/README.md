@@ -135,9 +135,27 @@ N = number of servers.
 T = number of tasks.
 1. T * F  = 2N 
 2. T * F = N
-3. T * F = .1 N
+3. T * F = .5 N
+4. T * F = 1/15 * N
 
-With this we will figure out a acceptable 
+With this we will figure out a acceptable fault rate.
+
+## Results
+Please refer to "results/Fault Testing" for data.
+
+Looking at the data someone who is concerned about the longevity of the computing 
+cluster should figure how the average amount of tasks that are ran in a day,minute,second..etc.
+After that is determined a person is able to use that number of tasks and figure out what would be a acceptable
+fault percentage in their system. 
+
+In our tests we've found that the acceptable fault percentage to have is typically safer when T * F < N.
+Where T is the number of tasks and F is the fault percentage and N is number of servers. This is because if there
+are statistically more faults than there are nodes there wont be any nodes left to do any sort or merge tasks.
+
+This leaves operators a couple options when trying to lessen risk. Either decrease the amount of tasks done,
+or increase the amount of servers. Increasing and decreasing the fault rate would be harder in a real life situation.
+
+
 
 # Unit Testing
 - file not found
