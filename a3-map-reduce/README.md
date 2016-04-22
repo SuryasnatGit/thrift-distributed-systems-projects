@@ -28,6 +28,8 @@ Merges are then assigned to the same compute nodes, and each compute node will p
 
 Intermediate files in the `intermediate_dir` that have been successfully merged and sorted are deleted to save space and the final output is sent to the `output_dir`.
 
+While we did not have to increase the amount of Java Heap Space allocated by default, this might be necessary if the chunksize exceeds the amount of memory available, as Sort tasks on each chunk are done in memory, while merges are not.
+
 # The Server
 
 The Server acts as dispatcher to all of the compute nodes. When the client
@@ -257,8 +259,43 @@ only known way to resolve this is to run `ant start-all` again. This does not oc
 # Performance Results
 
 # Stress Testing
-=large file, =10 servers
-Lots of tasks (small chunksize)
+
+We performed stress testing across 15 compute nodes, each on a differenct virtual machine. The tests were done using lots of tasks (small chunksize compared to filesize) and few tasks (large chunksize). 
+
+The tests were performed on the largest sample file. Because if the entire cluster is able to handle a sort merge on the largest sample file, we are able to deduce that the system is robust enough to handle smaller files. Tests with a probable failure was also carried out in Performanace testing and Fault testing.
+
+The raw data collected from stress testing can be found in `results/StressTestingData.txt`.
+
+## Parameter for stress test 1 (Large chunksize)
+
+`sort 20000000 500000 4`
+
+Where we are sorting the file 20000000 (of approx 98 mb) with a chunksize of 500000 (500kb) with 4 intermediate files per merge.
+
+This yielded a total of 196 sorts, and then 67 merges in total. The total runtime for this was 67303ms (~67 seconds).
+
+## Parameter for stress test 2 (Large number of chunks, small chunks size)
+
+`sort 20000000 5000 4`
+
+Where we are sotring the same file of 98 mb with a chunksize of 5000 bytes (5kb) and a total of 4 intermediate files per merge. 
+
+This yielded a total of 19548 sorts and a total of 1633 merges. The total runtime was 262814 ms (262 seconds, or ~4.5 minutes).
+
+## Parameter for stress test 3 (Large number of merges on large chuhnks)
+
+`sort 20000000 500000 59`
+
+Where we are sorting the same file of 98 mb with a chunksize of 500000 bytes (500kb) with 59 intermediate files per merge.
+
+This yielded a total of 196 sorts and 5793 merges. The total runtime was 301657 ms (301 seconds, 5 minutes).
+
+## Analysis and conclusion
+
+In conclusion, with these stress tests, our Map Reduce program does not fail on large chunksizes as well as large file sizes, or with a large number of sort tasks. We found that the larger the number of sort tasks to perform, the longer it takes as more network RPC calls.
+
+We have proven that our system can handle large number of requests and large number of files, hence as it works at scale, it will handle smaller files and chunks just fine. We avoided increasing the Java Heap space with the given test files, this may be required if the chunksize exceeds the default amount of memory available to the JVM.
+
 
 # Performance Testing
 Due to time constraints we perform tests on the 20mb (half one), we can assert that if it works on larger files it can work on smaller files
@@ -284,7 +321,7 @@ T = number of tasks.
 With this we will figure out a acceptable fault rate.
 
 ## Results
-Please refer to "results/Fault Testing" for raw data.
+Please refer to "results/FaultTestingData.txt" for raw data.
 
 Looking at the data someone who is concerned about the longevity of the computing 
 cluster should figure how the average amount of tasks that are ran in a day,minute,second..etc.

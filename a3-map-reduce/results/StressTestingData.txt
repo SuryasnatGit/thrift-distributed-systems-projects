@@ -1,0 +1,57 @@
+Running Stress Testing Data 1 (Large chunksize)
+PARAMETERS: `sort 20000000 500000 4`
+
+     [java] ==============SERVER===============
+     [java] Total Tasks Queued: 391
+     [java] Total Time: 67303 ms/task
+     [java] Total Average Time: 172 ms
+     [java] Number of Faults: 0
+     [java] ================SORT===============
+     [java] Total Tasks: 196
+     [java] Total Average Time: 81 ms/task
+     [java] Number of Faults: 0
+     [java] ===============MERGE================
+     [java] Total Tasks: 195
+     [java] Total Average Time: 262 ms/task
+     [java] Number of Faults: 0
+     [java] ===================================
+     [java] 
+     [java] 
+     [java] 
+     [java] Merging complete. Results found at: output_dir/20000000_sorted
+
+
+Running Stress Test 2 (Large number of chunks, small chunks size)
+
+
+     [java] ==============SERVER================
+     [java] Total Tasks Queued: 21181
+     [java] Total Time: 262814 ms
+     [java] Total Average Time: 12 ms/task
+     [java] Number of Faults: 1
+     [java] ================SORT===============
+     [java] Total Tasks: 19548
+     [java] Total Average Time: 8 ms/task
+     [java] Number of Faults: 0
+     [java] ===============MERGE================
+     [java] Total Tasks: 1633
+     [java] Total Average Time: 54 ms/task
+     [java] Number of Faults: 0
+     [java] ===================================
+
+Running Stress Test 3 (Large number of merges on large chunks)
+
+     [java] ==============SERVER================
+     [java] Total Tasks Queued: 197
+     [java] Total Time: 301657 ms
+     [java] Total Average Time: 1531 ms/task
+     [java] Number of Faults: 1
+     [java] ================SORT===============
+     [java] Total Tasks: 196
+     [java] Total Average Time: 901 ms/task
+     [java] Number of Faults: 0
+     [java] ===============MERGE================
+     [java] Total Tasks: 5793
+     [java] Total Average Time: 124975 ms/task
+     [java] Number of Faults: 0
+     [java] ===================================
