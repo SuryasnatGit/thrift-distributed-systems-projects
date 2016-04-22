@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-   <project name="CSci 5105: MapReduce: Sort Merge" default="build">
+   <project name="CSci 5105: MapReduce: Merge Sort" default="build">
 
      <!--Default server and Server properties used unless provided-->   
      <property name="server.address" value="x32-01" />
