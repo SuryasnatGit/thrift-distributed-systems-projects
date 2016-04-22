@@ -126,13 +126,20 @@ for 15 servers:
 							k merges where k = 2, k = n /2, k = n-1
 
 # Fault Testing
-20mb, create upper and lower from formula, runtime
-upper being faults = amount of servers
---> show if faults > num servers all will die
+    Max acceptable bound for fault tolerance. 
+    NumTasks * % Chance to Fail = Number of Servers that will fault.
 
-duplicate the largest performance test with x y z faults , calculate percentage impact
+In our testing we will be testing the above hypothesis with these scenarios.
+F = Chance to fault.
+N = number of servers.
+T = number of tasks.
+1. T * F  = 2N 
+2. T * F = N
+3. T * F = .1 N
 
-Unit Testing
+With this we will figure out a acceptable 
+
+# Unit Testing
 - file not found
 - kill node when enrolling
 - kill node when assigning tasks
