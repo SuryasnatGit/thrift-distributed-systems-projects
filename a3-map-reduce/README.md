@@ -12,7 +12,7 @@ For a quick overview on how to run the project and test, please go to the **How 
 We designed the entire system to perform map-reduce in a non-blocking manner. After considering all the possible failure scenarios this was the key
 to the design of a robust system that is able to continually function as long as the server is alive and there is at least one compute node. 
 
-On a high level, the Client first makes a request to perform a computation on the server after connecting to the server. The client will then block
+On a high level, the Client first makes a request to perform a computation on a file listed in `data` on the server after connecting to the server. The client will then block
 until it receives the output file name containing the result. This is the only blocking call.
 
 The assumptions on this entire set up are that: 
@@ -22,7 +22,9 @@ The assumptions on this entire set up are that:
 
 The server will then first perform an analysis on the data file based on the chunk size provided by the client to compute how many sort tasks have to be carried out. The larger the chunk size, the smaller the number of sort tasks to be carried out. The server then assigns these sort tasks to all compute nodes in a FIFO manner, and wait for all sorting to be complete. This is done by having the compute node perform an RPC call back to the server. Once all tasks (including any tasks that have been failed and reassigned with a heartbeat algorithm) are complete. The server then calculates the number of merges to be done based on the number of intermediate files, and the number of files per merge (provided by the client). 
 
-Merges are then assigned to the same compute nodes, and each compute node will perform n-way merging. **To ensure the system is able to merge large files**, we open each file as a special stream that is peekable. This ensures we do not have to read in all files in memory, reducing the possibility of running out of memory.
+Merges are then assigned to the same compute nodes, and each compute node will perform n-way merging. **To ensure the system is able to merge large files**, we open each file as a special stream that is peekable. This ensures we do not have to read in all files in memory, reducing the possibility of running out of memory. By utilizing lazy streams into a priority queue we can ensure that we are able to merge up to `k` number of files.
+
+Intermediate files in the `intermediate_dir` that have been successfully merged and sorted are deleted to save space and the final output is sent to the `output_dir`.
 
 # The Server
 
@@ -53,19 +55,28 @@ that die, have their tasks recovered.
 
 # Client
 
-The Client is a terminal to the Server. 
+- The Client is a terminal to the Server. 
+- The Client will establish a connection to the main server.
+- If the Client is successful, an simple interactive terminal asking for user input is then launched.
+- If the Client is unsuccessful, the Client will go to sleep for one second before retrying indefinitely.
+- The terminal contains a few simple commands to interact with the File Server.
+    - `sort <filename> <chunk size> <number of merges>` - performs a map-reduce merge sort on file `filename` with `chunk_size` byte chunk sizes and that are merged with `number of merges` number of files per merge.
+    - `ls` - lists all files in the `data` directory
+    - `exit` - closes the connection to the Server and quits the interactive terminal
 
-The Client will establish a connection to the main server.
+- **Example command**: `sort 200000 200 12` tells the entire cluster to perform merge-sort on a file named `200000` with chunk sizes of `200` bytes, which are finally merged with `12` files per merge. 
 
-If the Client is successful, an simple interactive terminal asking for user input is then launched.
 
-If the Client is unsuccessful, the Client will go to sleep for one second before retrying indefinitely.
+## SortTask / MergeTask
 
-The terminal contains a few simple commands to interact with the File Server.
+## SortMerge
 
- - `sort <filename> <chunk size> <number of merges>` - 
- - `ls` - lists all files in the `data` directory
- - `exit` - closes the connection to the Server and quits the interactive terminal
+We start off a thread for every sort/merge task on the compute node, ensuring that we are able to perform concurrent sorts and merges on each compute node. We have a `QueueWatcher` thread that maintains a lock-free access on a concurrent linked queue within a `computeNode`. The QueueWatcher starts up a sort/merge task in an individual thread, and then performs an RPC call to the server to `announce` that the task has been completed. This ensures that we are able to perform multiple tasks concurrently. Since each task does not depend on the previous task like in most map reduce cases, each task is individually carried out.
+
+Sorting is first done by advancing (`skip`) a BufferedReader to a specific postion of the data file (which is also being read concurrently by other `ComputeNode` processes, and reading in a specific number of bytes (based on the calibration and chunk size). After spliting the `character` buffer that is transformed into a `String` and parsing the entire `String` array into `Integers`, we sort the numbers (using Java's internal `Colections.sort` to ensure performance efficiency). 
+
+Merging is then done after all sorting is complete. After being assigned a `MergeTask`, merging is executed in another thread.
+
 
 # Performance Results
 
@@ -93,7 +104,7 @@ Ant was used to handle automatic building and generation of class files (into a 
     9. cd into project directory
     10. ant start-client
     
-## Note
+## How To Run the entire project
 
 The compute nodes connect to the server to enroll into the MapReduce server located at `localhost` on port `9090`, **to override this default, on Step 6 do**:
 
