@@ -345,6 +345,7 @@ healthy nodes, tasks are all kept track off and node jobs are accounted for in t
 
 Scenario: ComputeNode instance crashes when merging intermediate (sorted files)
 Scenario: ComputeNode instance crashes when sorting intermediate files.
+Scenario: Forced exit of a compute node when merging and sorting files.
 
 Description: ComputeNodes can fail when performing jobs that require intensive computation. 
 

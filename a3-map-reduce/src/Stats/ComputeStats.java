@@ -66,10 +66,12 @@ public class ComputeStats{
         "\n================SORT==============="+
         "\nTotal Tasks: " + numSort+ 
         "\nTotal Tasks Finished: " + finishedSort+
+        "\nTotal Time: " + sortTime +
         "\nTotal Average Time: " + sortTime/finishedSort +" ms/task"+
         "\n===============MERGE================"+
         "\nTotal Tasks: " + numMerge+ 
         "\nTotal Tasks Finished: " + finishedMerge+
+        "\nTotal Time: " + mergeTime +" ms"+
         "\nTotal Average Time: " + mergeTime/finishedMerge +" ms/task"+
         "\n==================================="+
 	    "\n";

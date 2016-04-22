@@ -98,7 +98,7 @@ public class ServerHandler implements Server.Iface {
 		((SortTask) t).output = int_dir + String.valueOf(i_unique++); 
 	
 	    int totalTasks = tasks.size();
-	    ServerStats.setTasks(totalTasks,totalTasks-1);
+	    ServerStats.setTasks(totalTasks,0);
 	    long startTime = System.currentTimeMillis();
 	    System.out.println("Beginning to perform a total of " + totalTasks + " sorts. This may take awhile." );
 	    //start contacting all nodes and queue it all onto compute machines
@@ -196,6 +196,7 @@ public class ServerHandler implements Server.Iface {
 	    while(toWait != 0){
 		if(toWait == completed.size()) {
 		    toWait = this.mergify(num_merge); //see if we need to create more tasks
+		    ServerStats.addMerge(toWait);
 		    if(toWait != 0) System.out.println("Performing " + toWait + " merges..");
 		}
 		MergeTask task = null;

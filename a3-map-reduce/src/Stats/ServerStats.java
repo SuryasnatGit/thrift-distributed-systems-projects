@@ -14,6 +14,10 @@ public class ServerStats{
 		mergeTasks = m;
 	}
     
+    public static synchronized void addMerge(int n){
+		mergeTasks += n;
+	}
+    
     public static synchronized void recordTasks(long start,long end, String type){
 		totalTime += (end - start);
 		if(type.equals("sort")){
@@ -37,9 +41,9 @@ public class ServerStats{
     
     public static void print(){
         System.out.println("\n\n");
-        System.out.println("===================================");
+        System.out.println("==============SERVER================");
         System.out.println("Total Tasks Queued: " + (sortTasks + mergeTasks)); 
-        System.out.println("Total Time: " + totalTime +" ms/task");
+        System.out.println("Total Time: " + totalTime +" ms");
         System.out.println("Total Average Time: " + (totalTime)/(sortTasks+mergeTasks) +" ms/task");
         System.out.println("Number of Faults: " + numFaults);
         System.out.println("================SORT===============");
@@ -56,9 +60,9 @@ public class ServerStats{
     
     public static String stats(){
 	return "\n\n"+
-        "==================================="+
+        "============SERVER=============="+
         "\nTotal Tasks Queued: " + (sortTasks + mergeTasks)+ 
-        "\nTotal Time: " + totalTime +" ms/task"+
+        "\nTotal Time: " + totalTime +" ms"+
         "\nTotal Average Time: " + (totalTime)/(sortTasks+mergeTasks) +" ms/task"+
         "\nNumber of Faults: " + numFaults+
         "\n================SORT==============="+
